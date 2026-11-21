@@ -24,6 +24,9 @@ const state = {
   place: null, // {label, lat, lon}
   last: null, // last computed {chart, meta}
   showPalan: false,
+  palanSystem: 'parasari', // 'parasari' | 'kp'
+  palanSystemChosen: false, // true once the reader picks one
+  bayesWinner: null, // set by the Bayesian tab when one system clearly fits better
 };
 const help = (k) => CARD_HELP[state.lang][k];
 const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? TUI[state.lang][k] ?? BUI[state.lang][k] ?? k;
@@ -78,7 +81,16 @@ function useCorrectedTime(dt, b) {
   location.hash = '#jathagam';
   setTimeout(() => f.requestSubmit(), 50);
 }
-const bayes = initBayes($('bayes-view'), { lang: () => state.lang, t, useTime: useCorrectedTime });
+const bayes = initBayes($('bayes-view'), {
+  lang: () => state.lang,
+  t,
+  useTime: useCorrectedTime,
+  // remember which rule system fits this person better, for the Palan tab
+  setWinner: (sys) => {
+    state.bayesWinner = sys;
+    if (sys && !state.palanSystemChosen) state.palanSystem = sys;
+  },
+});
 const VIEWS = ['jathagam', 'today', 'porutham', 'dosham', 'bayes', 'faq'];
 
 // "What is this?" boxes: one per view; the jathagam one follows the active tab
@@ -369,7 +381,7 @@ function renderResults({ chart, meta }) {
       <button type="button" class="btn-cta" id="btn-palan" aria-expanded="${state.showPalan}" aria-controls="palan">${state.showPalan ? t('palanHide') : t('palanShow')}</button>
     </div>`;
   if (state.showPalan) {
-    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt), (d) => dt(d, 'LLL yyyy'));
+    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt), (d) => dt(d, 'LLL yyyy'), state.palanSystem);
     const plainSecs = pl.sections.filter((x) => !x.technical);
     const techSecs = pl.sections.filter((x) => x.technical);
     // only "In brief" starts open; readers open the sections they want
@@ -378,7 +390,7 @@ function renderResults({ chart, meta }) {
       if (typeof x === 'string') return `<li>${esc(x)}</li>`;
       return `<li class="pl-item">
         ${x.h ? `<div class="pl-head"><strong>${esc(x.h)}</strong></div>` : ''}
-        ${(x.p || []).length ? `${x.h ? `<div class="pl-label">${t('plExpect')}</div>` : ''}<ul class="pl-p">${x.p.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
+        ${(x.p || []).length ? `${x.h && !x.noLabel ? `<div class="pl-label">${t('plExpect')}</div>` : ''}<ul class="pl-p">${x.p.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
         ${(x.tips || []).length ? `<div class="pl-label pl-do">${t('plDo')}</div><ul class="pl-tips">${x.tips.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
         ${x.why ? `<p class="pl-why">${esc(x.why)}</p>` : ''}
       </li>`;
@@ -389,6 +401,11 @@ function renderResults({ chart, meta }) {
       </details>`;
     palan += `
     <div class="card palan" id="palan">
+      <div class="sys-switch" role="radiogroup" aria-label="${t('readWith')}">
+        <span>${t('readWith')}</span>
+        ${['parasari', 'kp'].map((k) => `<button type="button" role="radio" aria-checked="${state.palanSystem === k}" class="sys-btn${state.palanSystem === k ? ' on' : ''}" data-sys="${k}">${t('sysBtn')[k]}</button>`).join('')}
+      </div>
+      ${state.bayesWinner && !state.palanSystemChosen ? `<p class="hint">${t('sysFromBayes')(t('sysBtn')[state.bayesWinner])}</p>` : ''}
       <p class="palan-note">${esc(pl.note)}</p>
       ${plainSecs.map((sec, i) => secHtml(sec, openPlain(i))).join('')}
       <details class="palan-tech">
@@ -404,6 +421,14 @@ function renderResults({ chart, meta }) {
   res.hidden = false;
   $('btn-print').addEventListener('click', () => window.print());
   $('btn-temple').addEventListener('click', () => openTempleCard(chart, meta.name, L));
+  res.querySelectorAll('.sys-btn').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      state.palanSystem = btn.dataset.sys;
+      state.palanSystemChosen = true;
+      renderResults(state.last);
+      $('palan')?.scrollIntoView({ block: 'start' });
+    })
+  );
   $('btn-palan').addEventListener('click', () => {
     state.showPalan = !state.showPalan;
     if (state.showPalan && location.hash !== '#palan') history.replaceState(null, '', '#palan');

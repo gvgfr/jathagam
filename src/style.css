@@ -191,6 +191,12 @@ details.palan-sec[open] summary::after { content: '−'; }
 .palan h3 { font-size: 1.02rem; color: var(--maroon); margin: 0; }
 .palan ul { margin: 0; padding: 0 0 10px; list-style: none; }
 .palan li { margin: 0 0 8px; line-height: 1.6; padding: 8px 12px; background: #fff; border-radius: 8px; border-left: 4px solid var(--saffron); }
+/* palan rule-system switch */
+.sys-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 0 0 10px; }
+.sys-switch span { font-weight: 700; color: var(--maroon); font-size: 0.9rem; }
+.sys-btn { border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; min-height: 40px; font-weight: 600; color: var(--ink); }
+.sys-btn.on { border-color: var(--maroon); background: var(--maroon); color: #fff; }
+
 /* plain palan items */
 .palan ul.pl-list > li.pl-item { padding: 12px 14px; }
 .pl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin-bottom: 6px; }

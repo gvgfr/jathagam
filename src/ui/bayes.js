@@ -155,6 +155,7 @@ export function initBayes(root, ctx) {
     setTimeout(() => {
       const r = calibrate({ utc: b.conv.utc, lat: b.lat, lon: b.lon }, reported, { toleranceMin: state.tol, stepMin: 5 });
       state.last = { r, b, reported };
+      ctx.setWinner?.(r.kpVsParasari > 3 && r.systems.kp.overall.bf > 3 ? 'kp' : r.kpVsParasari < 1 / 3 && r.systems.parasari.overall.bf > 3 ? 'parasari' : null);
       $('b-error').textContent = '';
       renderResults();
       $('bayes-results').scrollIntoView({ behavior: 'smooth', block: 'start' });

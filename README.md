@@ -34,6 +34,18 @@ the methods working astrologers combine to time events:
   the Moon or lagnam, phrased as practical care, never as a prediction.
 * Every item has a **"Why"** line naming the period planets and their houses.
 
+**Read with: Simplified rules / KP system.** A switch on the Palan card reads
+the same chart with either rule system (KP uses Placidus cusps, sub-lords,
+four-level significators and cusp sub-lord promise). If the person's Bayesian
+check found one system clearly fits their life better (Bayes factor > 3 for it
+and against the other), that system is selected by default, with a note.
+
+**In brief** is written as a short reading: nature; the big story of the
+current dasa (years, the houses its planet works through, the life areas they
+centre on); right now (sub-period, what tradition points to and what to take
+care with); the next 12 months grouped by window; strongest areas at this age;
+the next change.
+
 Sections: In brief · Right now · Month by month · Next few years · Life areas ·
 Take extra care · Planets now · Your nature, plus a collapsed
 **For astrologers** section. Tone is in words, not colours; only "In brief"

@@ -15,8 +15,9 @@ import { transitWindows } from '../engine/transit.js';
 import { dasamsaSign, saptamsaSign } from '../engine/vargas.js';
 import { NAMES } from '../i18n.js';
 import { SIGN_TRAITS, NAK_TRAITS, EXALTATION } from './texts.js';
-import { HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS } from './plainTexts.js';
-import { EVENTS, EVENT_TEXT, FOCUS_EXTRA } from './eventTexts.js';
+import { HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_TO_FOCUS } from './plainTexts.js';
+import { EVENTS, EVENT_TEXT, FOCUS_EXTRA, EVENT_SHORT } from './eventTexts.js';
+import { kpChart, kpFires, KP_EVENTS } from '../engine/kp.js';
 
 const YEAR = 365.25 * 86400000;
 const GOOD_HOUSES = [1, 4, 5, 7, 9, 10];
@@ -102,11 +103,25 @@ const T = {
     sec: { brief: 'Your reading in brief', now: 'Right now', months: 'Month by month: the next 12 months', ahead: 'The next few years', areas: 'Your life areas', safety: 'Take extra care', transits: 'Planets moving now', nature: 'Your nature' },
     until: (d) => `until ${d}`,
     youAre: (lag, moon) => `By nature you are ${lag}, with a mind that is ${moon}.`,
+    and: ' and ',
+    who: (lagS, lagT, moonS, moonT) => `With ${lagS} rising and the Moon in ${moonS}, you are ${lagT}; inside, your mind is ${moonT}.`,
+    bigStory: (L, yrs, y0, y1, hs, areas, how) => `You are in ${L}’s ${yrs}-year period (${y0}–${y1}). In your chart ${L} works through your ${hs} house${hs.includes(',') || hs.includes(' and ') ? 's' : ''}, so these years centre on ${areas || 'steady personal growth'}. Results tend to come ${how}.`,
+    nowStory: (until, lords, what, tone) => `Right now, until ${until} (${lords} sub-period): ${what} ${tone}`,
+    nowGood: (x) => `tradition points to ${x}.`,
+    nowCare: (x) => `Take care with ${x}.`,
+    goodFor: (x) => `good for ${x}.`,
+    careFor: (x) => `Take care with ${x}.`,
+    quietNow: 'a quieter stretch without strong indications either way.',
+    yearAheadH: 'The next 12 months at a glance',
+    takeCareSafety: 'take extra care with physical safety (driving, heights, tools, sports)',
+    strengths: (best, weak) => `Your strongest areas at this stage of life: ${best}.${weak ? ` The area that needs most care: ${weak}.` : ''}`,
+    nextStory: (d, L, ev) => `Next change: from ${d}, your ${L} sub-period begins${ev ? `, which tradition links with ${ev}` : ''}.`,
     nowLine: (until, what) => `Now (until ${until}): ${what}`,
     nextGood: (when, what) => `Next good window: ${when} — ${what}`,
     nextCare: (when, what) => `Next time to take care: ${when} — ${what}`,
     turning: (d, lord) => `Next big change: from ${d}, when your ${lord} period begins.`,
     why: (lords, rule) => `Why: ${lords} period. ${rule}`,
+    whyKp: (lords, k, hs) => `Why (KP): ${lords} period. ${k} signifies your ${hs} houses.`,
     rule: (k, owns, h) => (owns ? `${k} rules your ${owns} and sits in your ${h}.` : `${k} sits in your ${h}.`),
     ruleNode: (k, sl, h) => `${k} acts for ${sl} and sits in your ${h}.`,
     houses: (hs) => (hs.length === 1 ? `${ord(hs[0])}` : `${hs.slice(0, -1).map(ord).join(', ')} and ${ord(hs.at(-1))}`),
@@ -139,11 +154,25 @@ const T = {
     sec: { brief: 'சுருக்கமாக உங்கள் பலன்', now: 'இப்போது', months: 'மாதவாரியாக: அடுத்த 12 மாதங்கள்', ahead: 'அடுத்த சில ஆண்டுகள்', areas: 'வாழ்க்கைப் பகுதிகள்', safety: 'கூடுதல் கவனம் தேவைப்படும் காலங்கள்', transits: 'இப்போது நகரும் கிரகங்கள்', nature: 'உங்கள் இயல்பு' },
     until: (d) => `${d} வரை`,
     youAre: (lag, moon) => `இயல்பில் நீங்கள்: ${lag}. மனம்: ${moon}.`,
+    and: ', ',
+    who: (lagS, lagT, moonS, moonT) => `${lagS} லக்னம், ${moonS} ராசி: இயல்பில் நீங்கள் ${lagT}; மனதில் ${moonT}.`,
+    bigStory: (L, yrs, y0, y1, hs, areas, how) => `நீங்கள் ${L} தசையில் இருக்கிறீர்கள் (${yrs} ஆண்டுகள், ${y0}–${y1}). உங்கள் ஜாதகத்தில் ${L} உங்கள் ${hs}-ஆம் வீடுகள் வழியாகச் செயல்படுவதால், இந்த ஆண்டுகள் ${areas || 'நிலையான வளர்ச்சி'} மையமாக அமையும். பலன்கள் ${how} வரும்.`,
+    nowStory: (until, lords, what, tone) => `இப்போது, ${until} வரை (${lords} உட்காலம்): ${what} ${tone}`,
+    nowGood: (x) => `பாரம்பரியம் ${x} என்று சுட்டுகிறது.`,
+    nowCare: (x) => `கவனம்: ${x}.`,
+    goodFor: (x) => `${x} — சாதகம்.`,
+    careFor: (x) => `கவனம்: ${x}.`,
+    quietNow: 'இரு பக்கமும் வலுவான குறிப்புகள் இல்லாத அமைதியான காலம்.',
+    yearAheadH: 'அடுத்த 12 மாதங்கள் ஒரே பார்வையில்',
+    takeCareSafety: 'உடல் பாதுகாப்பில் கூடுதல் கவனம் (வாகனம், உயரம், கருவிகள், விளையாட்டு)',
+    strengths: (best, weak) => `வாழ்வின் இந்தக் கட்டத்தில் உங்கள் பலமான பகுதிகள்: ${best}.${weak ? ` அதிக கவனம் தேவைப்படும் பகுதி: ${weak}.` : ''}`,
+    nextStory: (d, L, ev) => `அடுத்த மாற்றம்: ${d} முதல் ${L} உட்காலம் தொடங்கும்${ev ? `; பாரம்பரியமாக இது ${ev} உடன் தொடர்புடையது` : ''}.`,
     nowLine: (until, what) => `இப்போது (${until} வரை): ${what}`,
     nextGood: (when, what) => `அடுத்த நல்ல காலம்: ${when} — ${what}`,
     nextCare: (when, what) => `அடுத்து கவனம் தேவை: ${when} — ${what}`,
     turning: (d, lord) => `அடுத்த பெரிய மாற்றம்: ${d} முதல் ${lord} காலம் தொடங்கும்.`,
     why: (lords, rule) => `காரணம்: ${lords} காலம். ${rule}`,
+    whyKp: (lords, k, hs) => `காரணம் (கே.பி.): ${lords} காலம். ${k} உங்கள் ${hs}-ஆம் வீடுகளுக்குக் காரகர்.`,
     rule: (k, owns, h) => (owns ? `${k} உங்கள் ${owns}-ஆம் வீடுகளுக்கு அதிபதி; ${h.replace('வீடு', 'வீட்டில்')} உள்ளார்.` : `${k} ${h.replace('வீடு', 'வீட்டில்')} உள்ளார்.`),
     ruleNode: (k, sl, h) => `${k} ${sl} சார்பாகச் செயல்படும்; ${h.replace('வீடு', 'வீட்டில்')} உள்ளார்.`,
     houses: (hs) => hs.join(', '),
@@ -180,7 +209,7 @@ function ord(n) {
 /**
  * @returns {{key:string,title:string,items:(string|{h?:string,p?:string[],tips?:string[],why?:string})[]}[]}
  */
-export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth) {
+export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth, system = 'parasari') {
   const t = T[lang];
   const g = (k) => NAMES.graha[lang][k];
   const s = chart.summary;
@@ -218,11 +247,20 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
     for (const a of antarams(b)) ants.push({ ...a, bhukti: b });
   }
 
+  // ---- rule system: simplified (whole-sign) or KP (Placidus cusps, sub-lords)
+  const K = system === 'kp' ? kpChart(chart) : null;
+  const safetyAnt = K ? (bl, al) => kpFires(K, 'safety', bl, al) : (bl, al) => isSafety(al) && (isSafety(bl) || ['mars', 'rahu'].includes(al));
+  /** Events indicated when bl (longer period) and al (shorter period) run, at a given age. */
+  const eventsAt = (bl, al, age) => {
+    if (!K) return matchEvents(union(bl, al), age, sig(al));
+    const res = EVENTS.filter((e) => KP_EVENTS[e.key] && age >= e.age[0] && age <= e.age[1] && kpFires(K, e.key, bl, al)).map((e) => ({ ...e }));
+    if (age >= 30 && age <= 80 && kpFires(K, 'parents', bl, al)) res.push({ key: 'parents', area: 'parents', prio: 5, care: true });
+    return res.sort((a, b) => b.prio - a.prio);
+  };
+
   /** Describe a period (lords = [dasa, bhukti, antaram?]) as events + tips. */
-  const safetyAnt = (bl, al) => isSafety(al) && (isSafety(bl) || ['mars', 'rahu'].includes(al));
-  const describe = (lords, when, touch) => {
-    const set = union(...lords.slice(-2));
-    const evs = matchEvents(set, ageAt(when), touch ? sig(touch) : null);
+  const describe = (lords, when) => {
+    const evs = eventsAt(lords.at(-2), lords.at(-1), ageAt(when));
     const good = evs.filter((e) => !e.care);
     const care = evs.filter((e) => e.care);
     const tone = periodTone(lords);
@@ -234,7 +272,10 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
     const tips = [...new Set(picked.map((e) => evText(e.key)[1]))].slice(0, 3);
     return { p, tips, tone, events: picked };
   };
-  const whyOf = (lords) => t.why(lords.map(g).join('–'), ruleOf(lords.at(-1)));
+  const whyOf = (lords) =>
+    K
+      ? t.whyKp(lords.map(g).join('–'), g(lords.at(-1)), t.houses([...K.planetSig[lords.at(-1)]].sort((x, y) => x - y)))
+      : t.why(lords.map(g).join('–'), ruleOf(lords.at(-1)));
 
   // Jupiter–Saturn double transit on key houses (from lagnam)
   const influences = (planetSign, offsets, h) => {
@@ -285,7 +326,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
     const lords = [a.bhukti.dasaLord, a.bhukti.lord, a.lord];
     const mid = new Date((a.start.getTime() + a.end.getTime()) / 2);
     const tone = periodTone(lords);
-    for (const e of matchEvents(union(a.bhukti.lord, a.lord), ageAt(mid), sig(a.lord))) {
+    for (const e of eventsAt(a.bhukti.lord, a.lord, ageAt(mid))) {
       if (e.care) upcomingCare.push({ ...e, a });
       else if (tone !== 'hard') upcomingGood.push({ ...e, a });
     }
@@ -392,15 +433,75 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
   if (!safetyItems.length) safetyItems.push(t.safetyNone);
   sections.push({ key: 'safety', title: t.sec.safety, items: safetyItems });
 
-  // =========================== BRIEF (placed first)
-  const brief = [t.youAre(SIGN_TRAITS[lag][lang], SIGN_TRAITS[s.rasi][lang])];
-  if (nowSummary) brief.push(t.nowLine(nowSummary.until, nowSummary.what));
-  const ng = upcomingGood.find((e) => e.a.start > now);
-  if (ng) brief.push(t.nextGood(mRange(ng.a.start, ng.a.end), evText(ng.key)[0]));
-  const nc = safety[0] || upcomingCare.find((e) => e.a.start > now);
-  if (nc) brief.push(t.nextCare(mRange(nc.start || nc.a.start, nc.end || nc.a.end), nc.why && nc.start ? evText('safety')[0] : evText(nc.key)[0]));
+  // =========================== BRIEF (placed first): a short written reading
+  const lc = (x) => x.replace(/\.$/, '').replace(/^./, (c) => c.toLowerCase());
+  const primaryHouses = (k) => {
+    if (K) return [K.planets[k].house, ...[...Array(12).keys()].map((i) => i + 1).filter((h) => K.owner(h) === k)];
+    if (k === 'rahu' || k === 'ketu') return [A.house(k), ...A.owns(SIGN_LORDS[by[k].sign])];
+    return [A.house(k), ...A.owns(k)];
+  };
+  const focusOf = (k) => {
+    const out = [];
+    for (const h of primaryHouses(k)) for (const f of HOUSE_TO_FOCUS[h]) if (!out.includes(f) && areaList.includes(f)) out.push(f);
+    return out.slice(0, 2);
+  };
+  const AREA_SHORT = {
+    en: { family: 'family', kids: 'children', health: 'health', career: 'career', finances: 'money and home', education: 'studies', parents: 'parents' },
+    ta: { family: 'குடும்பம்', kids: 'குழந்தைகள்', health: 'உடல்நலம்', career: 'தொழில்', finances: 'பணம், வீடு', education: 'கல்வி', parents: 'பெற்றோர்' },
+  };
+  const aShort = (f) => AREA_SHORT[lang][f];
+  const joinAnd = (arr) => (arr.length < 2 ? arr.join('') : `${arr.slice(0, -1).join(', ')}${t.and}${arr.at(-1)}`);
+  const brief = [];
+  brief.push(t.who(NAMES.rasi[lang][lag], SIGN_TRAITS[lag][lang], NAMES.rasi[lang][s.rasi], SIGN_TRAITS[s.rasi][lang]));
+  if (act) {
+    const L = act.dasa.lord;
+    const ph = primaryHouses(L);
+    brief.push(t.bigStory(g(L), act.dasa.years, act.dasa.start.getUTCFullYear(), act.dasa.end.getUTCFullYear(), t.houses([...new Set(ph)]), joinAnd(focusOf(L).map(aShort)), HOW[L][lang]));
+  }
+  const short = (k) => EVENT_SHORT[k][lang];
+  const pickDistinct = (evs, n) => {
+    const uniq = [...new Map(evs.map((e) => [e.key, e])).values()];
+    const nonTravel = uniq.filter((e) => e.key !== 'travel');
+    return (nonTravel.length ? nonTravel : uniq).sort((x, y) => y.prio - x.prio).slice(0, n);
+  };
+  if (curAnt) {
+    const lords = [act.dasa.lord, curAnt.bhukti.lord, curAnt.lord];
+    const evs = eventsAt(curAnt.bhukti.lord, curAnt.lord, ageNow);
+    if (safetyAnt(curAnt.bhukti.lord, curAnt.lord)) evs.push({ key: 'safety', prio: 6, care: true });
+    const good = pickDistinct(evs.filter((e) => !e.care), 2);
+    const care = pickDistinct(evs.filter((e) => e.care), 1);
+    const what = [good.length ? t.nowGood(joinAnd(good.map((e) => short(e.key)))) : t.quietNow, care.length ? t.nowCare(short(care[0].key)) : ''].filter(Boolean).join(' ');
+    brief.push(t.nowStory(fmtDate(curAnt.end), lords.slice(1).map(g).join('–'), what, TONE_WORDS[periodTone(lords)][lang]));
+  }
+  // the next 12 months: windows grouped by dates, opportunities and cautions together
+  const yearAhead = now.getTime() + YEAR;
+  const rows = new Map();
+  const addRow = (start, end, phrase, care) => {
+    const s0 = start < now ? now : start;
+    const key = mRange(s0, end);
+    if (!rows.has(key)) rows.set(key, { start: s0, good: [], care: [] });
+    const r = rows.get(key)[care ? 'care' : 'good'];
+    if (!r.includes(phrase)) r.push(phrase);
+  };
+  const goodSoon = upcomingGood.filter((e) => e.a.start.getTime() < yearAhead && e.a.end > now);
+  const nonTravelSoon = goodSoon.filter((e) => e.key !== 'travel');
+  for (const e of nonTravelSoon.length >= 2 ? nonTravelSoon : goodSoon) addRow(e.a.start, e.a.end, short(e.key), false);
+  for (const w of safety.filter((w) => w.start.getTime() < yearAhead)) addRow(w.start, w.end, short('safety'), true);
+  for (const e of upcomingCare.filter((e) => e.a.start.getTime() < yearAhead && e.a.end > now && e.key !== 'parents')) addRow(e.a.start, e.a.end, short(e.key), true);
+  const lines = [...rows.entries()]
+    .sort((x, y) => x[1].start - y[1].start)
+    .slice(0, 5)
+    .map(([when, r]) => `${when}: ${[r.good.length ? t.goodFor(joinAnd(r.good.slice(0, 3))) : '', r.care.length ? t.careFor(joinAnd(r.care.slice(0, 2))) : ''].filter(Boolean).join(' ')}`);
+  if (lines.length) brief.push({ h: t.yearAheadH, p: lines, noLabel: true });
+  // strongest areas and the one needing most care, for this age
+  const ranked = areaList.map((f) => [f, focusScore(f)]).sort((x, y) => y[1] - x[1]);
+  const weakest = ranked.at(-1);
+  brief.push(t.strengths(joinAnd(ranked.slice(0, 2).map(([f]) => aShort(f))), weakest[1] < 0.5 ? aShort(weakest[0]) : null));
   const nextB = bhuktis[curB + 1];
-  if (nextB) brief.push(t.turning(fmtDate(nextB.start), `${g(nextB.dasaLord)}–${g(nextB.lord)}`));
+  if (nextB) {
+    const ev = pickDistinct(eventsAt(nextB.dasaLord, nextB.lord, ageAt(nextB.start)).filter((e) => !e.care), 2);
+    brief.push(t.nextStory(fmtDate(nextB.start), g(nextB.lord), ev.length ? joinAnd(ev.map((e) => short(e.key))) : null));
+  }
   sections.unshift({ key: 'brief', title: t.sec.brief, items: brief });
 
   // =========================== PLANETS NOW
