@@ -1,8 +1,8 @@
 // Porutham (marriage matching) page.
 import { DateTime } from 'luxon';
-import { computeChart, localToUtc, zoneFor, porutham, rasisForNakshatra } from '../engine/index.js';
+import { porutham, rasisForNakshatra } from '../engine/index.js';
 import { NAMES, PORUTHAM, PUI } from '../i18n.js';
-import { attachAutocomplete } from './geocode.js';
+import { birthFields, wireBirth, readBirth } from './birthInput.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -16,37 +16,7 @@ function personBlock(who) {
       <label><input type="radio" name="${p}-mode" value="star" /> <span data-i18n="modeStar"></span></label>
     </div>
     <div class="mode-birth">
-      <div class="field">
-        <label for="${p}-name" data-i18n="name"></label>
-        <input id="${p}-name" type="text" autocomplete="off" maxlength="60" />
-      </div>
-      <div class="row-2">
-        <div class="field">
-          <label for="${p}-date" data-i18n="dob"></label>
-          <input id="${p}-date" type="date" min="1800-01-01" max="2199-12-31" />
-        </div>
-        <fieldset class="field time-field">
-          <legend data-i18n="tob"></legend>
-          <div class="time-inputs">
-            <input id="${p}-hh" type="number" inputmode="numeric" min="1" max="12" placeholder="hh" aria-label="hour" />
-            <span aria-hidden="true">:</span>
-            <input id="${p}-mm" type="number" inputmode="numeric" min="0" max="59" placeholder="mm" aria-label="minute" />
-            <select id="${p}-ampm" aria-label="AM/PM"><option value="am" data-i18n="am"></option><option value="pm" data-i18n="pm"></option></select>
-          </div>
-        </fieldset>
-      </div>
-      <div class="field place-field">
-        <label for="${p}-place" data-i18n="pob"></label>
-        <input id="${p}-place" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${p}-list" data-i18n-placeholder="placeHint" />
-        <ul id="${p}-list" class="place-list" role="listbox" hidden></ul>
-      </div>
-      <details class="more">
-        <summary data-i18n="manualCoords"></summary>
-        <div class="row-2">
-          <div class="field"><label for="${p}-lat" data-i18n="lat"></label><input id="${p}-lat" type="number" step="any" min="-90" max="90" /></div>
-          <div class="field"><label for="${p}-lon" data-i18n="lon"></label><input id="${p}-lon" type="number" step="any" min="-180" max="180" /></div>
-        </div>
-      </details>
+      ${birthFields(p)}
     </div>
     <div class="mode-star" hidden>
       <div class="row-2">
@@ -85,18 +55,9 @@ export function initPorutham(root, ctx) {
         $(p).querySelector('.mode-star').hidden = !star;
       })
     );
-    attachAutocomplete(
-      $(`${p}-place`),
-      $(`${p}-list`),
-      (pl) => {
-        $(`${p}-lat`).value = pl.lat.toFixed(4);
-        $(`${p}-lon`).value = pl.lon.toFixed(4);
-      },
-      () => {
-        $('p-error').textContent = ctx.t('geoError');
-        $(p).querySelector('details.more').open = true;
-      }
-    );
+    wireBirth(root, p, () => {
+      $('p-error').textContent = ctx.t('geoError');
+    });
     $(`${p}-star`).addEventListener('change', () => fillRasi(who));
   }
 
@@ -124,27 +85,10 @@ export function initPorutham(root, ctx) {
     if (mode === 'star') {
       return { nakshatra: Number($(`${p}-star`).value), rasi: Number($(`${p}-rasi`).value), source: 'star' };
     }
-    const [y, mo, d] = ($(`${p}-date`).value || '').split('-').map(Number);
-    let hh = Number($(`${p}-hh`).value);
-    const mm = Number($(`${p}-mm`).value);
-    const lat = parseFloat($(`${p}-lat`).value);
-    const lon = parseFloat($(`${p}-lon`).value);
-    if (!y || !mo || !d || $(`${p}-hh`).value === '' || $(`${p}-mm`).value === '' || hh < 1 || hh > 12 || mm < 0 || mm > 59) return null;
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
-    hh = (hh % 12) + ($(`${p}-ampm`).value === 'pm' ? 12 : 0);
-    const zone = zoneFor(lat, lon);
-    const conv = localToUtc({ year: y, month: mo, day: d, hour: hh, minute: mm }, zone);
-    if (!conv.valid) return null;
-    const chart = computeChart({ utc: conv.utc, lat, lon });
-    return {
-      nakshatra: chart.summary.nakshatra,
-      rasi: chart.summary.rasi,
-      pada: chart.summary.pada,
-      name: $(`${p}-name`).value.trim(),
-      source: 'birth',
-      zone,
-      conv,
-    };
+    const b = readBirth(root, p);
+    if (!b) return null;
+    const { summary } = b.chart;
+    return { nakshatra: summary.nakshatra, rasi: summary.rasi, pada: summary.pada, name: b.name, source: 'birth', zone: b.zone, conv: b.conv };
   }
 
   $('porutham-form').addEventListener('submit', (e) => {

@@ -42,6 +42,25 @@ Rules vary between families and almanacs; same-nakshatram exceptions and
 Sevvai dosham are not applied. The result is shown as a traditional guide
 (score out of 10, rajju highlighted), never as a verdict.
 
+## Dosham (use at your own risk)
+The **Dosham** tab (`#dosham`) checks a birth chart against three commonly
+printed rules (`src/engine/dosham.js`). It opens with a prominent "use at your
+own risk — not accurate" warning, and results appear only after the visitor
+ticks an acknowledgement box.
+
+* **Sevvai (Chevvai) dosham:** Mars in the 2nd, 4th, 7th, 8th or 12th house
+  from lagnam or the Moon (Venus shown for information). Exceptions applied:
+  Mars in own sign or exalted, with Guru or Chandiran, and the house-specific
+  exempt signs (2nd: Mithunam/Kanni, 4th: Mesham/Viruchigam, 7th:
+  Kadagam/Magaram, 8th: Dhanusu/Meenam, 12th: Rishabam/Thulam).
+* **Raagu–Kethu dosham:** Raagu or Kethu in the 1st, 2nd, 7th or 8th house from
+  lagnam or the Moon.
+* **Kala sarpa dosham:** all seven planets on one side of the Raagu–Kethu axis.
+
+Results say only whether the rule is met, with the reason, plus context
+(about 40% of people have Sevvai dosham by the lagnam rule alone). No remedies
+are suggested.
+
 ## Privacy
 The site is **unlisted**: a `noindex, nofollow` robots meta tag asks search
 engines not to list it, so it is reached only by link. (No robots.txt: it would
