@@ -65,3 +65,18 @@ export function activePeriod(dasa, when) {
   }
   return null;
 }
+
+/** Antarams (sub-sub-periods) of one bhukti: same Vimshottari order, starting from the bhukti lord. */
+export function antarams(bhukti) {
+  const span = bhukti.end - bhukti.start;
+  const i0 = DASA_ORDER.indexOf(bhukti.lord);
+  const out = [];
+  let s = bhukti.start.getTime();
+  for (let j = 0; j < 9; j++) {
+    const lord = DASA_ORDER[(i0 + j) % 9];
+    const e = s + (span * DASA_YEARS[lord]) / 120;
+    out.push({ lord, start: new Date(s), end: new Date(e) });
+    s = e;
+  }
+  return out;
+}

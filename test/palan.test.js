@@ -29,22 +29,25 @@ describe('palan text for reference charts', () => {
       it(`${c.name} (${lang})`, () => {
         const now = new Date(new Date(c.utc).getTime() + 30 * 365.25 * 86400000);
         const p = generatePalan(chart, lang, fmt, now);
-        expect(p.sections.map((x) => x.key)).toEqual(['brief', 'now', 'ahead', 'areas', 'transits', 'nature', 'dasa', 'gochara', 'yogas', 'areasTech', 'houses', 'planets']);
-        const flat = (i) => (typeof i === 'string' ? [i] : [i.h, ...(i.p || []), ...(i.tips || [])].filter(Boolean));
+        expect(p.sections.map((x) => x.key)).toEqual(['brief', 'now', 'months', 'ahead', 'areas', 'safety', 'past', 'transits', 'nature', 'dasa', 'gochara', 'yogas', 'areasTech', 'houses', 'planets']);
+        const flat = (i) => (typeof i === 'string' ? [i] : [i.h, ...(i.p || []), ...(i.tips || []), i.why].filter(Boolean));
         const text = [p.note, p.excluded, ...p.sections.flatMap((s) => [s.title, ...s.items.flatMap(flat)])].join('\n');
         expect(text).not.toMatch(/undefined|NaN|null|\[object/);
         expect(p.sections.find((x) => x.key === 'houses').items).toHaveLength(12);
         expect(p.sections.find((x) => x.key === 'planets').items).toHaveLength(9);
         // plain sections: every period and life area gives advice
-        for (const k of ['ahead', 'areas']) {
+        for (const k of ['months', 'ahead', 'areas']) {
           const objs = p.sections.find((x) => x.key === k).items.filter((i) => typeof i === 'object' && i.h);
           objs.forEach((o) => expect(o.tips.length, `${k} tips`).toBeGreaterThan(0));
         }
-        expect(p.sections.find((x) => x.key === 'areas').items).toHaveLength(6);
+        // life areas depend on age (30 years after birth here): no education after 30
+        const areaNames = p.sections.find((x) => x.key === 'areas').items.map((i) => i.h);
+        expect(areaNames.length).toBeGreaterThanOrEqual(4);
+        if (lang === 'en') expect(areaNames).not.toContain('Education');
         // Interpretations never assert death, lifespan or illness outcomes
         if (lang === 'en') {
           const body = p.sections.flatMap((s) => s.items.flatMap(flat)).join(' ');
-          expect(body).not.toMatch(/\b(death|die|dies|lifespan|longevity|disease|illness|accident)\b/i);
+          expect(body).not.toMatch(/\b(death|die|dies|lifespan|longevity|disease|illness)\b/i);
           expect(body).toMatch(/tradition/i);
         }
       });
@@ -93,5 +96,27 @@ describe('lordship', () => {
     const a = analyse(chartOf(0, { ...base, saturn: 0, mars: 5, jupiter: 5 }));
     expect([3, 7, 10].every((h) => a.aspectsOn(h).includes('saturn'))).toBe(true);
     expect(a.aspectsOn(4)).not.toContain('saturn');
+  });
+});
+
+import { significations, matchEvents } from '../src/palan/plain.js';
+import { computeChart } from '../src/engine/index.js';
+describe('signification method', () => {
+  const chart = computeChart({ utc: new Date('1977-07-27T19:00:00Z'), lat: 13.0827, lon: 80.2707 });
+  const A = analyse(chart);
+  it('a planet signifies the house it sits in and the houses it rules', () => {
+    const s = significations(A, 'saturn');
+    expect(s.has(A.house('saturn'))).toBe(true);
+    A.owns('saturn').forEach((h) => expect(s.has(h)).toBe(true));
+  });
+  it('promotion needs both the 10th and 11th; age limits marriage', () => {
+    expect(matchEvents(new Set([10, 11]), 40).map((e) => e.key)).toContain('promotion');
+    expect(matchEvents(new Set([10]), 40).map((e) => e.key)).not.toContain('promotion');
+    expect(matchEvents(new Set([2, 7, 11]), 30).map((e) => e.key)).toContain('marriage');
+    expect(matchEvents(new Set([2, 7, 11]), 55).map((e) => e.key)).not.toContain('marriage');
+  });
+  it('the sub-period planet must back at least half of the event houses', () => {
+    expect(matchEvents(new Set([10, 11]), 40, new Set([3])).map((e) => e.key)).not.toContain('promotion');
+    expect(matchEvents(new Set([10, 11]), 40, new Set([10])).map((e) => e.key)).toContain('promotion');
   });
 });

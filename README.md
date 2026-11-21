@@ -9,37 +9,39 @@ both modes).
 and deploys every push to `main` (`.github/workflows/pages.yml`).
 
 ## Palan (predictions)
-The **Palan** tab (`#palan`, also the gold card on every chart) is written for
-people, not astrologers (`src/palan/plain.js`, texts in `plainTexts.js`). It is
-organised around six areas: **family and relationships, kids, health and
-wellbeing, career, finances (home, savings, debt) and education.**
+The **Palan** tab (`#palan`) is written for people, not astrologers
+(`src/palan/plain.js`, texts in `plainTexts.js` and `eventTexts.js`). It uses
+the methods working astrologers combine to time events:
 
-* **Your reading in brief** — nature, life focus, what now is about, strongest
-  areas, areas needing patience and the next change (open by default; all
-  other sections start closed).
-* **Right now** — the big-picture dasa, this period area by area (what to
-  expect, what you can do), and a line for each of your other areas.
-* **The next few years** — the next five periods with dates, described area by
-  area, with tips.
-* **Life areas** — the six areas: what your chart traditionally shows, good
-  times and times to take more care (with dates, filtered by age), and a tip.
-  Career adds kinds of work, finances the main income source, family what
-  tradition says about the partner.
-* **Planets moving now** — Saturn (incl. Ezharai / Ashtama / Arthashtama Sani),
-  Jupiter and Raagu with end dates and tips.
+* **Signification (KP-style) event matching** — each planet signifies houses
+  through where it sits, what it rules and where its star lord sits. A life
+  event is indicated when the running period planets signify all its houses
+  (e.g. promotion 10+11, property 4+11, marriage 2+7+11, childbirth 2+5+11,
+  job change 10+12, expenses 2+12). The shortest period's planet must itself
+  back at least half of the houses.
+* **Dasa → bhukti → antaram** (`antarams()` in `dasa.js`) for timing down to
+  weeks: a month-by-month outlook for the next 12 months.
+* **Ashtakavarga** (`src/engine/ashtakavarga.js`, BPHS tables; totals checked
+  against the classical 48/49/39/54/56/52/39 = 337) to judge how Saturn and
+  Jupiter's transits act on this chart, and **Jupiter–Saturn double transit**
+  over the 4th, 5th, 7th, 10th and 11th houses.
+* **Divisional charts** D9 (strength), D10 (career) and D7 (children).
+* **Age-aware**: events and life areas only where relevant (no education after
+  30s; children's milestones and parents from mid-life; marriage timing only
+  21–42).
+* **Take extra care**: physical-safety caution windows from Mars/Saturn/Raagu
+  sub-periods linked to the 8th house and Mars transits over the 1st/8th from
+  the Moon or lagnam, phrased as practical care, never as a prediction.
+* **Looking back**: the last 10 years of periods, so people can compare with
+  what actually happened before trusting the forecasts.
+* Every item has a **"Why"** line naming the period planets and their houses.
 
-Tone is said in words ("a supportive time", "a steady time: good results with
-effort", "a time that asks for patience"), never with colours. Health is
-general wellbeing guidance only (energy, routine, rest, check-ups, "see a
-doctor"), never a diagnosis; lifespan is not covered.
-
-How it works: each planet gets a simple strength score from traditional rules
-(natural benefic/malefic, uchcham/aatchi/neecham, house placement, lordship of
-difficult houses, yogakarakan, neecha bhanga). A period's tone combines its
-dasa and bhukti lords; the areas it touches come from the houses its bhukti
-lord sits in and rules (e.g. 2nd → finances and family, 5th → kids and
-education, 6th → career and health). The technical readings are kept in a
-collapsed **For astrologers** section.
+Sections: In brief · Right now · Month by month · Next few years · Life areas ·
+Take extra care · Looking back · Planets now · Your nature, plus a collapsed
+**For astrologers** section. Tone is in words, not colours; only "In brief"
+starts open. Health is general wellbeing guidance with a see-a-doctor note;
+lifespan is not covered. These are traditional rules: they are not shown to
+predict events, and the page says so.
 
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):

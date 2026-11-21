@@ -200,6 +200,7 @@ details.palan-sec[open] summary::after { content: '−'; }
 .palan ul.pl-p, .palan ul.pl-tips { list-style: disc; padding-left: 1.2em; margin: 0; }
 .palan ul.pl-p li, .palan ul.pl-tips li { background: none; border: 0; padding: 2px 0; margin: 0; font-weight: 400; }
 .palan ul.pl-tips li { color: var(--ink); }
+.pl-why { margin: 8px 0 0; font-size: 0.8rem; color: var(--muted); font-style: italic; }
 details.palan-tech { margin-top: 14px; border: 1px dashed var(--line); border-radius: 10px; padding: 0 12px; background: #fffdf8; }
 details.palan-tech > summary { cursor: pointer; padding: 12px 0; font-weight: 700; color: var(--muted); min-height: 44px; }
 .sec-brief li { font-weight: 600; }

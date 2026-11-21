@@ -199,7 +199,7 @@ const T = {
  * @param {(d: Date) => string} [fmtDate] single date formatter
  * @returns {{note: string, excluded: string, sections: {key: string, title: string, items: string[]}[]}}
  */
-export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate = (d) => d.toISOString().slice(0, 10)) {
+export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate = (d) => d.toISOString().slice(0, 10), fmtMonth = null) {
   const t = T[lang];
   const g = (k) => NAMES.graha[lang][k];
   const sign = (i) => NAMES.rasi[lang][i];
@@ -336,7 +336,7 @@ export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate =
     return line;
   });
 
-  const plain = plainPalan(chart, A, go, lang, fmtRange, fmtDate, now);
+  const plain = plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth);
   return {
     note: t.note,
     excluded: t.excluded,

@@ -65,3 +65,39 @@ export function gocharam(moonSign, now = new Date()) {
   }
   return { ...out, sadeSati: sade };
 }
+
+/**
+ * Signs of the slow and medium planets at the middle of each month, for
+ * `months` months from `from`. Used for the month-by-month outlook.
+ */
+export function monthlyPositions(from, months = 12) {
+  const out = [];
+  const d0 = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), 15));
+  for (let i = 0; i < months; i++) {
+    const d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + i, 15));
+    const row = { date: d };
+    for (const k of ['saturn', 'jupiter', 'mars', 'rahu']) row[k] = signAt(k, d.getTime());
+    out.push(row);
+  }
+  return out;
+}
+
+/** Periods (start/end) within [from, to] when `key` is in one of `signs` (sampled every `stepDays`). */
+export function transitWindows(key, signs, from, to, stepDays = 3) {
+  const res = [];
+  let cur = null;
+  for (let t = from.getTime(); t <= to.getTime(); t += stepDays * DAY) {
+    const inside = signs.includes(signAt(key, t));
+    if (inside && !cur) cur = { start: new Date(t), sign: signAt(key, t) };
+    if (!inside && cur) {
+      cur.end = new Date(t);
+      res.push(cur);
+      cur = null;
+    }
+  }
+  if (cur) {
+    cur.end = new Date(to);
+    res.push(cur);
+  }
+  return res;
+}

@@ -342,7 +342,7 @@ function renderResults({ chart, meta }) {
     </div>`;
 
   // --- palan (traditional readings): a prominent call-to-action, expanded on demand
-  const PALAN_ICON = { brief: '✦', now: '📍', ahead: '🗓️', areas: '🧭', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
+  const PALAN_ICON = { brief: '✦', now: '📍', months: '📅', ahead: '🗓️', areas: '🧭', safety: '🛡️', past: '↩︎', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
   let palan = `
     <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
       <div>
@@ -352,7 +352,7 @@ function renderResults({ chart, meta }) {
       <button type="button" class="btn-cta" id="btn-palan" aria-expanded="${state.showPalan}" aria-controls="palan">${state.showPalan ? t('palanHide') : t('palanShow')}</button>
     </div>`;
   if (state.showPalan) {
-    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt));
+    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt), (d) => dt(d, 'LLL yyyy'));
     const plainSecs = pl.sections.filter((x) => !x.technical);
     const techSecs = pl.sections.filter((x) => x.technical);
     // only "In brief" starts open; readers open the sections they want
@@ -363,6 +363,7 @@ function renderResults({ chart, meta }) {
         ${x.h ? `<div class="pl-head"><strong>${esc(x.h)}</strong></div>` : ''}
         ${(x.p || []).length ? `${x.h ? `<div class="pl-label">${t('plExpect')}</div>` : ''}<ul class="pl-p">${x.p.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
         ${(x.tips || []).length ? `<div class="pl-label pl-do">${t('plDo')}</div><ul class="pl-tips">${x.tips.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
+        ${x.why ? `<p class="pl-why">${esc(x.why)}</p>` : ''}
       </li>`;
     };
     const secHtml = (sec, open) => `<details class="palan-sec sec-${sec.key}" ${open ? 'open' : ''}>
