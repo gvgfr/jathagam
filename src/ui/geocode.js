@@ -53,6 +53,45 @@ export function mergePlaces(a, b, max = 10) {
   return out.slice(0, max);
 }
 
+/**
+ * Spelling-tolerant key for Tamil/Indian place names written in English:
+ * Pappiredipatti, Pappireddipatti and Papireddypatti all give the same key.
+ */
+export function nameKey(name) {
+  return String(name || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z]/g, '')
+    .replace(/zh/g, 'l')
+    .replace(/([tdsckgpb])h/g, '$1')
+    .replace(/ee/g, 'i')
+    .replace(/oo/g, 'u')
+    .replace(/y/g, 'i')
+    .replace(/w/g, 'v')
+    .replace(/(.)\1+/g, '$1');
+}
+
+/** Edit distance (small strings only). */
+export function editDistance(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/** Keep places whose name is a close spelling match for what was typed. */
+export function closeMatches(query, places, nameOf) {
+  const q = nameKey(query.split(',')[0]);
+  const tol = q.length >= 8 ? 2 : 1;
+  return places.filter((p) => {
+    const k = nameKey(nameOf(p));
+    return k.startsWith(q) || editDistance(q, k.slice(0, q.length + 1)) <= tol || editDistance(q, k) <= tol;
+  });
+}
+
 async function getJson(url, signal) {
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Geocoder HTTP ${res.status}`);
@@ -60,6 +99,23 @@ async function getJson(url, signal) {
 }
 
 export async function searchPlaces(query, signal) {
+  const found = await searchExact(query, signal);
+  if (found.length || query.trim().length < 5) return found;
+  // Nothing found: the spelling may differ (single/double letters, th/t, zh/l...).
+  // Search a shorter prefix and keep names that are a close spelling match.
+  const words = query.split(',')[0].trim();
+  const prefix = words.slice(0, Math.max(4, Math.ceil(words.length / 2)));
+  try {
+    const data = await getJson(`${OPEN_METEO}?name=${encodeURIComponent(prefix)}&count=50&language=en&format=json`, signal);
+    const raw = (data.results || []).filter((r) => closeMatches(words, [r], (x) => x.name).length);
+    return fromOpenMeteo({ results: raw }).slice(0, 10);
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    return [];
+  }
+}
+
+async function searchExact(query, signal) {
   let first = [];
   let firstErr = null;
   try {

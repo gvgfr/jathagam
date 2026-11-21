@@ -28,3 +28,18 @@ describe('place search parsing', () => {
     expect(parseCoords('95, 10')).toBeNull();
   });
 });
+
+import { nameKey, closeMatches } from '../src/ui/geocode.js';
+describe('spelling-tolerant place names', () => {
+  it('common Tamil transliteration differences give the same key', () => {
+    expect(nameKey('Pappiredipatti')).toBe(nameKey('Pappireddipatti'));
+    expect(nameKey('Papireddypatti')).toBe(nameKey('Pappireddipatti'));
+    expect(nameKey('Thiruvarur')).toBe(nameKey('Tiruvarur'));
+    expect(nameKey('Kozhikode')).toBe(nameKey('Kolikode'));
+    expect(nameKey('Coimbatore')).not.toBe(nameKey('Chennai'));
+  });
+  it('close matches from a prefix search', () => {
+    const list = [{ name: 'Pappireddipatti' }, { name: 'Pappinissery' }, { name: 'Pappanaickenpatti' }];
+    expect(closeMatches('Pappiredipatti', list, (x) => x.name).map((x) => x.name)).toEqual(['Pappireddipatti']);
+  });
+});
