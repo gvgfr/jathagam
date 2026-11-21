@@ -43,8 +43,9 @@ Sevvai dosham are not applied. The result is shown as a traditional guide
 (score out of 10, rajju highlighted), never as a verdict.
 
 ## Privacy
-The site is **unlisted**: a `noindex, nofollow` robots meta tag and a
-`robots.txt` ask search engines not to list it, so it is reached only by link.
+The site is **unlisted**: a `noindex, nofollow` robots meta tag asks search
+engines not to list it, so it is reached only by link. (No robots.txt: it would
+have to sit at the domain root, and blocking crawling would hide the noindex tag.)
 This is not access control — anyone with the URL can open it.
 
 Everything runs in the browser. No storage (no cookies/localStorage), no
