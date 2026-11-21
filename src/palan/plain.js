@@ -73,6 +73,20 @@ export function significations(A, key) {
   return out;
 }
 
+const MALEFICS = ['mars', 'saturn', 'rahu', 'ketu'];
+/** Does the rule for event `key` fire in the period (bhukti lord bl, antaram lord al)?
+ *  Same rules as the palan, without the age filter (used by the Bayesian tab). */
+export function ruleFires(A, key, bl, al) {
+  const sa = significations(A, al);
+  const set = new Set([...significations(A, bl), ...sa]);
+  const isSaf = (k) => MALEFICS.includes(k) && (significations(A, k).has(8) || (significations(A, k).has(1) && significations(A, k).has(6)));
+  if (key === 'safety') return isSaf(al) && (isSaf(bl) || ['mars', 'rahu'].includes(al));
+  if (key === 'parents') return set.has(8) && (set.has(4) || set.has(9)) && sa.has(8);
+  const e = EVENTS.find((x) => x.key === key);
+  if (!e) return false;
+  return e.all.every((h) => set.has(h)) && e.all.filter((h) => sa.has(h)).length >= Math.ceil(e.all.length / 2);
+}
+
 /** Events indicated by a set of signified houses, for a given age. The
  *  shortest period's planet (mustTouch) must itself signify at least half of
  *  the event's houses, so one planet cannot trigger everything. */

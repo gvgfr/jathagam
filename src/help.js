@@ -57,6 +57,7 @@ export const GLOSSARY = {
   uthamam: { forms: ['Uthamam', 'உத்தமம்'], en: 'Good: this check matches well.', ta: 'சிறந்த பொருத்தம்.' },
   madhyamam: { forms: ['Madhyamam', 'மத்திமம்'], en: 'Fair: an acceptable, middle-level match.', ta: 'நடுத்தரப் பொருத்தம்; ஏற்கத்தக்கது.' },
   thirukanitham: { forms: ['Thirukanitham', 'திருக்கணிதம்'], en: 'The modern, astronomically exact way of calculating planet positions (used here). The older Vakya method uses ancient formulae and can differ slightly.', ta: 'கிரக நிலைகளை வானியல் ரீதியாகத் துல்லியமாகக் கணிக்கும் நவீன முறை (இங்கு பயன்படுவது). பழைய வாக்கிய முறை சிறிது வேறுபடலாம்.' },
+  bayesian: { forms: ['Bayesian', 'Bayes factor', 'பேய்சியன்', 'பேய்ஸ் காரணி'], en: 'A way of weighing evidence: it compares how likely your real life events are if the astrology rules work, against if they are random. The ratio is the Bayes factor.', ta: 'சான்றுகளை எடைபோடும் முறை: ஜோதிட விதிகள் செயல்பட்டால் உங்கள் நிகழ்வுகள் எவ்வளவு சாத்தியம், தற்செயலானால் எவ்வளவு என்று ஒப்பிடுகிறது. அந்த விகிதமே பேய்ஸ் காரணி.' },
   tamilMonth: { forms: ['Tamil month'], en: 'Tamil months follow the Sun: a new month starts when the Sun enters a new sign (Chithirai starts in mid-April).', ta: 'தமிழ் மாதங்கள் சூரியனைப் பின்பற்றுகின்றன: சூரியன் புதிய ராசியில் நுழையும்போது மாதம் தொடங்கும்.' },
 };
 
@@ -70,6 +71,7 @@ export const INTROS = {
     porutham: ['Marriage matching for a bride and groom.', 'Enter both people’s birth details, or just their star and sign if you know them.', 'You get a score out of 10. Rajju is traditionally the most important check.', 'It is a traditional guide, not a verdict on a relationship.'],
     dosham: ['Checks three doshams (chart patterns tradition treats as problems, mostly for marriage).', 'Use at your own risk: these rules are not accurate and differ between astrologers.', 'Doshams are very common. About 4 in 10 people have Sevvai dosham by the basic rule.'],
     faq: ['Answers to common questions, and a list of every term explained simply.'],
+    bayes: ['A unique check: does traditional astrology actually fit YOUR life?', 'Enter when big things happened; the maths tells you honestly whether your chart’s rules matched them better than chance.', 'It can also correct an approximate birth time, and gives a forecast using only the rules that worked for you.'],
   },
   ta: {
     jathagam: ['உங்கள் பிறந்த தேதி, நேரம், இடத்தை உள்ளிடவும்.', 'உங்கள் ஜாதகம் கிடைக்கும்: நட்சத்திரம், ராசி, பிறந்தபோது ஒவ்வொரு கிரகமும் இருந்த இடம்.', 'பிறகு “பலன்கள் காண்க” அல்லது “அர்ச்சனை அட்டை” பொத்தானை அழுத்தவும்.', 'பிறந்த நேரம் எவ்வளவு துல்லியமோ, ஜாதகமும் அவ்வளவு துல்லியம்.'],
@@ -79,6 +81,7 @@ export const INTROS = {
     porutham: ['மணமகள், மணமகனுக்கான திருமணப் பொருத்தம்.', 'இருவரின் பிறப்பு விவரம், அல்லது தெரிந்தால் நட்சத்திரம், ராசி மட்டும் போதும்.', '10-க்கு மதிப்பெண் கிடைக்கும். ரஜ்ஜு மிக முக்கியமானதாகக் கருதப்படுகிறது.', 'இது பாரம்பரிய வழிகாட்டி மட்டுமே; உறவைப் பற்றிய தீர்ப்பு அல்ல.'],
     dosham: ['மூன்று தோஷங்களைச் சோதிக்கிறது (பெரும்பாலும் திருமணத்துக்குக் குறையாகக் கருதப்படும் கிரக நிலைகள்).', 'உங்கள் பொறுப்பில் பயன்படுத்தவும்: இந்த விதிகள் துல்லியமானவை அல்ல; ஜோதிடருக்கு ஜோதிடர் மாறுபடும்.', 'தோஷங்கள் மிகவும் பொதுவானவை. அடிப்படை விதிப்படி 10-ல் 4 பேருக்கு செவ்வாய் தோஷம் வரும்.'],
     faq: ['பொதுவான கேள்விகளுக்கான பதில்கள், மற்றும் எல்லா சொற்களுக்கும் எளிய விளக்கம்.'],
+    bayes: ['தனித்துவமான சோதனை: பாரம்பரிய ஜோதிடம் உண்மையில் உங்கள் வாழ்க்கைக்குப் பொருந்துகிறதா?', 'முக்கிய நிகழ்வுகள் நடந்த காலங்களை உள்ளிடுங்கள்; உங்கள் ஜாதக விதிகள் தற்செயலை விட நன்றாகப் பொருந்தினவா என்று கணிதம் நேர்மையாகச் சொல்லும்.', 'தோராயமான பிறந்த நேரத்தைத் திருத்தவும், உங்களுக்குப் பொருந்திய விதிகளை மட்டும் வைத்துக் கணிக்கவும் உதவும்.'],
   },
 };
 

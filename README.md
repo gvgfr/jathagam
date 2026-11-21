@@ -41,6 +41,34 @@ starts open. Health is general wellbeing guidance with a see-a-doctor note;
 lifespan is not covered. These are traditional rules: they are not shown to
 predict events, and the page says so.
 
+## Bayesian check (`#bayes`)
+A tab that tests the traditional rules against the person's own life
+(`src/bayes/model.js`, UI `src/ui/bayes.js`). The person lists when big events
+happened (marriage, children, job changes, property, moves, injuries, illness,
+losses, parents…), with "never happened" for kinds that didn't occur.
+
+* **Model.** The unit is each antaram (sub-sub-period) of the person's past.
+  For each event kind: did the palan's rule for it fire in that period, and did
+  an event happen in it (a rough date is spread over the periods it overlaps).
+  H0: the event rate is the same whether or not the rule fires (chance).
+  H1: the rates differ. Weak Beta priors centred on the person's own event rate;
+  exact beta-binomial marginal likelihoods give a **Bayes factor** per kind,
+  multiplied for the overall score (Kass–Raftery scale: <1 favours chance,
+  >3 some support, >20 strong).
+* **Birth-time correction.** Candidate times every 5 minutes within the stated
+  uncertainty (±15/30/60 min) get posterior ∝ prior × Bayes factor (prior
+  highest at the stated time). The site only suggests another time when it beats
+  the stated one by a Bayes factor > 3 *and* the rules beat chance there;
+  otherwise it says keep your time. A tested synthetic life recovers a true time
+  20 minutes away from the stated one.
+* **Per-rule results** in plain counts ("fired in 17 periods; 1 of your 2
+  events fell in them") with the verdict.
+* **Personal forecast** for the next 2 years using only rules with Bayes factor
+  > 3 for this person, and only age-appropriate events. If none qualify it says
+  so plainly.
+* Entries stay on the device; they are saved in the browser only if the person
+  ticks "Remember my entries on this phone" (with a "Forget" button).
+
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
 

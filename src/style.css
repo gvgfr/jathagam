@@ -286,6 +286,29 @@ button.term:hover, button.term:focus-visible { background: #cfe2fa; }
 .site-footer a { color: var(--gold); }
 @media print { .intro-slot, .card-help, #gloss-pop { display: none !important; } button.term { background: none; border: 0; color: inherit; } }
 
+/* bayesian tab */
+.b-intro { padding-left: 1.2em; margin: 0; }
+.b-intro li { margin-bottom: 6px; line-height: 1.55; }
+.b-kind { border-top: 1px solid var(--line); padding: 10px 0; }
+.b-kind.used .b-kind-head strong { color: var(--maroon); }
+.b-kind-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; }
+.b-date { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+.b-date input { width: 6.5em; }
+.b-date select { flex: 1; width: auto; }
+.b-rm { background: none; border: 1px solid var(--line); border-radius: 8px; width: 40px; height: 40px; color: var(--muted); }
+.b-add { margin-top: 8px; background: none; border: 1px dashed var(--saffron); color: var(--maroon); border-radius: 8px; padding: 6px 12px; min-height: 40px; font-weight: 600; }
+.b-forget { margin: 0 0 12px; }
+.b-verdict { font-size: 1.08rem; font-weight: 700; color: var(--maroon); line-height: 1.5; }
+.b-bars { display: grid; gap: 4px; margin-top: 6px; }
+.b-bar { display: grid; grid-template-columns: 5.5em 1fr 3.5em; align-items: center; gap: 8px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.b-bar i { display: block; height: 12px; background: #b9a58a; border-radius: 3px; }
+.b-bar.stated span { font-weight: 700; }
+.b-bar.used i { background: var(--maroon); }
+.b-bar em { font-style: normal; color: var(--muted); text-align: right; }
+.b-rules { padding-left: 1.2em; margin: 6px 0; }
+.b-rules li { margin-bottom: 10px; line-height: 1.55; }
+.b-rules em { color: var(--muted); }
+
 /* tabs */
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
 .tabs a {
@@ -384,7 +407,7 @@ details.remedies li { margin-bottom: 6px; }
   body { background: #fff; font-size: 11pt; }
   .site-header { background: none; color: var(--maroon); border-bottom: 2px solid var(--maroon); padding: 0 0 6px; }
   .site-header h1 { color: var(--maroon); }
-  #lang-toggle, .form-card, .no-print, .tagline, .tabs, #porutham-form, #dosham-form, .palan-cta { display: none !important; }
+  #lang-toggle, .form-card, .no-print, .tagline, .tabs, #porutham-form, #dosham-form, #bayes-form, .palan-cta { display: none !important; }
   .card { box-shadow: none; break-inside: avoid; border-color: #bbb; padding: 10px; margin-bottom: 10px; }
   .charts { grid-template-columns: 1fr 1fr; }
   .si-chart { max-width: 85mm; }

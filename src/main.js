@@ -4,7 +4,7 @@ import '@fontsource/noto-sans-tamil/700.css';
 import './style.css';
 import { DateTime } from 'luxon';
 import { computeChart, localToUtc, zoneFor, offsetZone, parseClock, activePeriod, yearsToYMD, dms } from './engine/index.js';
-import { NAMES, UI, PUI, DUI, TUI, thithiName } from './i18n.js';
+import { NAMES, UI, PUI, DUI, TUI, BUI, thithiName } from './i18n.js';
 import { southIndianChart } from './ui/chart.js';
 import { attachAutocomplete, parseCoords } from './ui/geocode.js';
 import { generatePalan } from './palan/index.js';
@@ -12,6 +12,7 @@ import { initPorutham } from './ui/porutham.js';
 import { initDosham } from './ui/dosham.js';
 import { openTempleCard } from './ui/templeCard.js';
 import { initToday } from './ui/today.js';
+import { initBayes } from './ui/bayes.js';
 import { initGlossary } from './ui/glossary.js';
 import { INTROS, CARD_HELP, FAQ, GLOSSARY } from './help.js';
 
@@ -25,7 +26,7 @@ const state = {
   showPalan: false,
 };
 const help = (k) => CARD_HELP[state.lang][k];
-const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? TUI[state.lang][k] ?? k;
+const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? TUI[state.lang][k] ?? BUI[state.lang][k] ?? k;
 // Matches the 640px breakpoint in style.css: palan sections start collapsed below it.
 const isMobile = () => window.matchMedia('(max-width: 639px)').matches;
 const nm = (table, i) => NAMES[table][state.lang][i];
@@ -42,6 +43,7 @@ function applyLang() {
   porutham.relabel();
   dosham.relabel();
   today.relabel();
+  bayes.relabel();
   if (state.last) renderResults(state.last);
 }
 $('lang-toggle').addEventListener('click', () => {
@@ -62,10 +64,25 @@ applyLang();
 const porutham = initPorutham($('porutham-view'), { lang: () => state.lang, t });
 const dosham = initDosham($('dosham-view'), { lang: () => state.lang, t });
 const today = initToday($('today-view'), { lang: () => state.lang, t });
-const VIEWS = ['jathagam', 'today', 'porutham', 'dosham', 'faq'];
+// "Use this time" from the Bayesian tab: fill the main form and cast the chart
+function useCorrectedTime(dt, b) {
+  const f = $('birth-form');
+  f.date.value = dt.toISODate();
+  const h = dt.hour;
+  f.hh.value = String(h % 12 === 0 ? 12 : h % 12);
+  f.mm.value = String(dt.minute).padStart(2, '0');
+  f.ampm.value = h < 12 ? 'am' : 'pm';
+  f.lat.value = b.lat.toFixed(4);
+  f.lon.value = b.lon.toFixed(4);
+  if (b.name) f.name.value = b.name;
+  location.hash = '#jathagam';
+  setTimeout(() => f.requestSubmit(), 50);
+}
+const bayes = initBayes($('bayes-view'), { lang: () => state.lang, t, useTime: useCorrectedTime });
+const VIEWS = ['jathagam', 'today', 'porutham', 'dosham', 'bayes', 'faq'];
 
 // "What is this?" boxes: one per view; the jathagam one follows the active tab
-for (const v of ['today', 'porutham', 'dosham', 'faq']) {
+for (const v of ['today', 'porutham', 'dosham', 'bayes', 'faq']) {
   const d = document.createElement('div');
   d.className = 'intro-slot';
   d.dataset.intro = v;
