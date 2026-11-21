@@ -81,3 +81,23 @@ describe('names', () => {
     expect(thithiName(15, 'en')).toBe('Prathamai');
   });
 });
+
+import { parseClock } from '../src/engine/time.js';
+describe('typed birth time', () => {
+  it('00:30 is half past midnight', () => expect(parseClock('00', '30', 'am')).toEqual({ hour: 0, minute: 30 }));
+  it('12 AM is midnight, 12 PM is noon', () => {
+    expect(parseClock('12', '05', 'am').hour).toBe(0);
+    expect(parseClock('12', '05', 'pm').hour).toBe(12);
+  });
+  it('1–11 follow AM/PM', () => {
+    expect(parseClock('9', '45', 'pm').hour).toBe(21);
+    expect(parseClock('9', '45', 'am').hour).toBe(9);
+  });
+  it('13–23 are 24-hour time regardless of AM/PM', () => expect(parseClock('14', '30', 'am')).toEqual({ hour: 14, minute: 30 }));
+  it('rejects bad input', () => {
+    expect(parseClock('24', '00', 'am')).toBeNull();
+    expect(parseClock('10', '60', 'am')).toBeNull();
+    expect(parseClock('', '10', 'am')).toBeNull();
+    expect(parseClock('1.5', '10', 'am')).toBeNull();
+  });
+});

@@ -3,7 +3,7 @@ import '@fontsource/noto-sans-tamil/600.css';
 import '@fontsource/noto-sans-tamil/700.css';
 import './style.css';
 import { DateTime } from 'luxon';
-import { computeChart, localToUtc, zoneFor, offsetZone, activePeriod, yearsToYMD, dms } from './engine/index.js';
+import { computeChart, localToUtc, zoneFor, offsetZone, parseClock, activePeriod, yearsToYMD, dms } from './engine/index.js';
 import { NAMES, UI, PUI, DUI, thithiName } from './i18n.js';
 import { southIndianChart } from './ui/chart.js';
 import { attachAutocomplete } from './ui/geocode.js';
@@ -99,13 +99,13 @@ $('birth-form').addEventListener('submit', (e) => {
   err.textContent = '';
   const f = e.target;
   const [y, mo, d] = (f.date.value || '').split('-').map(Number);
-  let hh = Number(f.hh.value);
-  const mm = Number(f.mm.value);
-  if (!y || !mo || !d || f.hh.value === '' || f.mm.value === '' || hh < 1 || hh > 12 || mm < 0 || mm > 59) {
+  const clock = parseClock(f.hh.value, f.mm.value, f.ampm.value);
+  if (!y || !mo || !d || !clock) {
     err.textContent = t('badTime');
     return;
   }
-  hh = (hh % 12) + (f.ampm.value === 'pm' ? 12 : 0);
+  const hh = clock.hour;
+  const mm = clock.minute;
 
   const lat = parseFloat(f.lat.value);
   const lon = parseFloat(f.lon.value);

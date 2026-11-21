@@ -63,7 +63,7 @@ export function computeChart(birth, opts = {}) {
 }
 
 export { panchangam } from './panchangam.js';
-export { localToUtc, zoneFor, offsetZone } from './time.js';
+export { localToUtc, zoneFor, offsetZone, parseClock } from './time.js';
 export { activePeriod, yearsToYMD } from './dasa.js';
 export { dms } from './nakshatra.js';
 export { porutham, rasisForNakshatra } from './porutham.js';

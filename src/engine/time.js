@@ -48,3 +48,21 @@ export function offsetZone(minutes) {
   const a = Math.abs(minutes);
   return `UTC${sign}${Math.floor(a / 60)}:${String(a % 60).padStart(2, '0')}`;
 }
+
+/**
+ * Read an hour/minute typed by a person into a 24-hour clock.
+ * - 1–12 use the AM/PM choice (12 AM = midnight, 12 PM = noon)
+ * - 0 is midnight ("00:30" = 12:30 AM), whatever AM/PM says
+ * - 13–23 are taken as 24-hour time and AM/PM is ignored
+ * @returns {{hour:number, minute:number}|null}
+ */
+export function parseClock(hhStr, mmStr, ampm) {
+  const hs = String(hhStr ?? '').trim();
+  const ms = String(mmStr ?? '').trim();
+  if (!/^\d{1,2}$/.test(hs) || !/^\d{1,2}$/.test(ms)) return null;
+  const h = Number(hs);
+  const m = Number(ms);
+  if (h > 23 || m > 59) return null;
+  if (h === 0 || h > 12) return { hour: h, minute: m };
+  return { hour: (h % 12) + (ampm === 'pm' ? 12 : 0), minute: m };
+}

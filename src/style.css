@@ -70,6 +70,9 @@ input[type='text'], input[type='date'], input[type='number'], select {
   width: 100%; font: inherit; color: var(--ink); background: #fff;
   border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 44px;
 }
+/* iOS Safari draws date inputs wider than their box unless reset */
+input[type='date'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; text-align: left; }
+input[type='date']::-webkit-date-and-time-value { text-align: left; }
 input:focus, select:focus { border-color: var(--saffron); outline: none; box-shadow: 0 0 0 3px rgba(232, 137, 28, 0.25); }
 .row-2 { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
 .time-inputs { display: flex; align-items: center; gap: 6px; }
