@@ -35,8 +35,19 @@ export function sevvaiDosham(chart) {
   const hl = refs[0].house;
   if (refs[0].inHouse && SEVVAI_HOUSE_SIGN_EXCEPTION[hl].includes(mars.sign)) exceptions.push('houseSign');
 
-  const triggered = refs.filter((r) => r.inHouse && r.from !== 'venus').length > 0;
+  const hits = refs.filter((r) => r.inHouse && r.from !== 'venus');
+  const triggered = hits.length > 0;
+  // Strength, as commonly judged: how many reference points show it, and
+  // whether Mars is in the 7th or 8th (considered stronger than 2nd/4th/12th).
+  const strongHouse = hits.some((r) => r.house === 7 || r.house === 8);
+  const venusToo = refs[2].inHouse;
+  let level = null;
+  if (triggered) {
+    const n = hits.length + (venusToo ? 1 : 0);
+    level = n >= 3 || (hits.length === 2 && strongHouse) ? 'strong' : n === 2 || strongHouse ? 'moderate' : 'mild';
+  }
   return {
+    level,
     key: 'sevvai',
     triggered,
     cancelled: triggered && exceptions.length > 0,
@@ -57,7 +68,9 @@ export function raaguKethuDosham(chart) {
       if ([1, 2, 7, 8].includes(house)) hits.push({ node, from, house });
     }
   }
-  return { key: 'raaguKethu', triggered: hits.length > 0, cancelled: false, present: hits.length > 0, hits };
+  const strongHouse = hits.some((h) => h.house === 7 || h.house === 8);
+  const level = !hits.length ? null : hits.length >= 3 || (hits.length >= 2 && strongHouse) ? 'strong' : hits.length === 2 || strongHouse ? 'moderate' : 'mild';
+  return { key: 'raaguKethu', triggered: hits.length > 0, cancelled: false, present: hits.length > 0, hits, level };
 }
 
 /** Kala sarpa dosham: all seven planets lie on one side of the Raagu–Kethu axis. */
@@ -76,6 +89,7 @@ export function kalaSarpaDosham(chart) {
     present: allA || allB,
     // allA: planets run from Raagu towards Kethu (kala sarpa); allB: from Kethu to Raagu (often called kala amirtha)
     variant: allA ? 'sarpa' : allB ? 'amirtha' : null,
+    level: allA || allB ? 'moderate' : null,
     outside,
   };
 }

@@ -2,6 +2,7 @@
 import { DateTime } from 'luxon';
 import { doshams } from '../engine/index.js';
 import { NAMES } from '../i18n.js';
+import { DOSHAM_PLAIN } from '../doshamTexts.js';
 import { birthFields, wireBirth, readBirth } from './birthInput.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -50,40 +51,57 @@ export function initDosham(root, ctx) {
     const g = (k) => NAMES.graha[L][k];
     const sign = (i) => NAMES.rasi[L][i];
     const fromLabel = { lagnam: t('fromLagnam'), moon: t('fromMoon'), venus: t('fromVenus') };
-    const status = (d) =>
-      d.present
-        ? `<span class="st st-present">${t('dPresent')}</span>`
-        : d.cancelled
-          ? `<span class="st st-cancelled">${t('dCancelled')}</span>`
-          : `<span class="st st-absent">${t('dAbsent')}</span>`;
+    const P = DOSHAM_PLAIN[L];
+    const stateOf = (d) => (d.present ? 'present' : d.cancelled ? 'cancelled' : 'absent');
+    const ul = (arr) => `<ul>${arr.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 
-    const blocks = result.map((d) => {
+    // Technical details (the rule and the positions), collapsed
+    const technical = (d) => {
       let body = '';
       if (d.key === 'sevvai') {
-        body += `<p class="rule">${t('sevvaiRule')} ${t('marsIn')(sign(d.marsSign))}.</p><ul>`;
-        body += d.refs
-          .map((r) => `<li class="${r.inHouse ? 'hit' : ''}">${fromLabel[r.from]}: ${t('house')(r.house)}${r.inHouse ? ' ●' : ''}</li>`)
-          .join('');
-        body += '</ul>';
-        if (d.triggered && d.exceptions.length)
-          body += `<p class="rule">${t('exceptions')}:</p><ul>${d.exceptions.map((x) => `<li>${t('ex')[x]}</li>`).join('')}</ul>`;
+        body += `<p class="rule">${t('sevvaiRule')} ${t('marsIn')(sign(d.marsSign))}.</p>`;
+        body += ul(d.refs.map((r) => `${fromLabel[r.from]}: ${t('house')(r.house)}${r.inHouse ? ' ●' : ''}`));
+        if (d.triggered && d.exceptions.length) body += `<p class="rule">${t('exceptions')}:</p>${ul(d.exceptions.map((x) => t('ex')[x]))}`;
         body += `<p class="hint">${t('context')}</p>`;
       } else if (d.key === 'raaguKethu') {
         body += `<p class="rule">${t('raaguRule')}</p>`;
-        if (d.hits.length)
-          body += `<ul>${d.hits.map((h) => `<li class="hit">${t('nodeIn')(g(h.node), fromLabel[h.from], t('house')(h.house))}</li>`).join('')}</ul>`;
+        if (d.hits.length) body += ul(d.hits.map((h) => t('nodeIn')(g(h.node), fromLabel[h.from], t('house')(h.house))));
       } else {
         body += `<p class="rule">${t('kalaRule')}</p>`;
         if (d.variant) body += `<p>${t('kalaVariant')[d.variant]}</p>`;
         else if (d.outside.length) body += `<p>${t('kalaOutside')(d.outside.map(g).join(', '))}</p>`;
       }
-      if (d.triggered) {
-        body += `<details class="remedies"><summary>${t('remediesTitle')}</summary>
-          <p class="hint">${t('remediesNote')}</p>
-          <ul>${t('remedies')[d.key].map((r) => `<li>${r}</li>`).join('')}</ul></details>`;
+      return `<details class="d-tech"><summary>${P.details}</summary>${body}</details>`;
+    };
+
+    const blocks = result.map((d) => {
+      const st = stateOf(d);
+      const T = P[d.key];
+      let body = `<p class="d-status d-${st}">${P.status[st]}</p>`;
+      if (st === 'absent') body += `<p>${P.absentLine}</p>`;
+      else if (st === 'cancelled') body += `<p>${P.cancelledLine(d.exceptions.map((x) => t('ex')[x]).join('; '))}</p>`;
+      else {
+        body += `
+          <div class="d-sec"><h4>${P.simple}</h4><p>${T.simple}</p></div>
+          <div class="d-sec"><h4>${P.affects}</h4><p>${T.affects}</p></div>
+          <div class="d-sec"><h4>${P.strengthT}</h4><p><strong>${P.strength[d.level]}.</strong> ${T.why[d.level] || ''}</p></div>
+          <div class="d-sec"><h4>${P.notMean}</h4>${ul(T.notMean)}</div>
+          <div class="d-sec d-todo"><h4>${P.todo}</h4>${ul(T.todo)}</div>
+          <div class="remedies"><h4>${t('remediesTitle')}</h4><p class="hint">${t('remediesNote')}</p>${ul(t('remedies')[d.key])}</div>`;
       }
-      return `<div class="dosham-block"><h3>${t(d.key)}</h3>${status(d)}${body}</div>`;
+      body += technical(d);
+      return `<div class="dosham-block"><h3>${t(d.key)}</h3>${body}</div>`;
     });
+
+    // Summary at the top
+    const present = result.filter((d) => d.present);
+    const cancelled = result.filter((d) => d.cancelled);
+    const summary = [];
+    if (!present.length && !cancelled.length) summary.push(P.foundNone);
+    if (present.length) summary.push(P.foundSome(present.length, present.map((d) => `${t(d.key)} (${P.strength[d.level].toLowerCase()})`).join(', ')));
+    if (cancelled.length) summary.push(P.cancelledSome(cancelled.map((d) => t(d.key)).join(', ')));
+    if (present.some((d) => d.key !== 'kalaSarpa')) summary.push(P.firstStep);
+    const summaryHtml = `<div class="d-summary"><h3>${P.summaryTitle}</h3>${ul(summary)}</div>`;
 
     const off = b.conv.offsetMinutes;
     const sg = off < 0 ? '−' : '+';
@@ -94,6 +112,7 @@ export function initDosham(root, ctx) {
         <p class="risk">${t('dRisk')}</p>
         <p class="sub hint">${local.toFormat('dd-MM-yyyy hh:mm a')} · ${b.lat.toFixed(4)}, ${b.lon.toFixed(4)} · ${b.zone} UTC${sg}${Math.floor(Math.abs(off) / 60)}:${String(Math.abs(off) % 60).padStart(2, '0')}
           · ${t('lagnam')} ${sign(b.chart.lagnam.sign)} · ${t('rasi')} ${sign(b.chart.summary.rasi)}</p>
+        ${summaryHtml}
         ${blocks.join('')}
         <p class="warn">${t('dRiskMore')}</p>
       </div>`;

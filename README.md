@@ -102,7 +102,12 @@ ticks an acknowledgement box.
   lagnam or the Moon.
 * **Kala sarpa dosham:** all seven planets on one side of the Raagu–Kethu axis.
 
-Results say only whether the rule is met, with the reason, plus context
+Results open with a short summary (how many were found and what to do
+first). Each dosham found is explained for non-astrologers (`src/doshamTexts.js`):
+in simple words, what tradition says it can affect, how strong it is in the
+chart (mild / moderate / stronger), what it does NOT mean, and what to do,
+separately for people looking for a match and people already married. The rule
+and positions sit in a collapsed "For astrologers" section. Results include context
 (about 40% of people have Sevvai dosham by the lagnam rule alone). For a
 triggered dosham, common traditional remedies (temple visits, worship,
 fasting, dosha saamyam in matching) are listed with a note that they are
