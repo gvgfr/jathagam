@@ -46,6 +46,14 @@ centre on); right now (sub-period, what tradition points to and what to take
 care with); the next 12 months grouped by window; strongest areas at this age;
 the next change.
 
+**Career and studies: traditional pointers.** Planets ranked by their influence
+on the 10th house (lordship, occupation, aspect, plus the 10th lord of the D10
+chart) and, for people under 25, on the 4th, 5th and 9th houses; the top two are
+mapped to the fields tradition gives them (e.g. Mercury: commerce, accounting,
+computer science). Clearly labelled as associations, not predictions.
+
+The generic "long trip / pilgrimage" event is not forecast in the palan.
+
 Sections: In brief · Right now · Month by month · Next few years · Life areas ·
 Take extra care · Planets now · Your nature, plus a collapsed
 **For astrologers** section. Tone is in words, not colours; only "In brief"
@@ -80,6 +88,8 @@ parents…), with the year and ideally the month.
   person's own age-adjusted normal rate. Forecasts are saved on the phone (only
   if "remember" is ticked); when a period ends the page asks whether it
   happened and reports a Brier score for the model vs chance.
+* **No re-typing.** The Bayesian and Dosham tabs are filled in from the chart
+  cast on the Jathagam tab (the person can still change anything).
 * **Linked to the Palan.** The Palan reading opens with a box that invites the
   person to run the check or, once they have, states their own result in plain
   words (e.g. "no measurable connection… read this as a cultural and traditional

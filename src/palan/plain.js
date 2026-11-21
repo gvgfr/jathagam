@@ -15,7 +15,7 @@ import { transitWindows } from '../engine/transit.js';
 import { dasamsaSign, saptamsaSign } from '../engine/vargas.js';
 import { NAMES } from '../i18n.js';
 import { SIGN_TRAITS, NAK_TRAITS, EXALTATION } from './texts.js';
-import { HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_TO_FOCUS } from './plainTexts.js';
+import { PLANET_FIELDS, HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_TO_FOCUS } from './plainTexts.js';
 import { EVENTS, EVENT_TEXT, FOCUS_EXTRA, EVENT_SHORT } from './eventTexts.js';
 import { kpChart, kpFires, KP_EVENTS } from '../engine/kp.js';
 
@@ -100,7 +100,7 @@ export function matchEvents(sig, age, mustTouch = null) {
 
 const T = {
   en: {
-    sec: { brief: 'Your reading in brief', now: 'Right now', months: 'Month by month: the next 12 months', ahead: 'The next few years', areas: 'Your life areas', safety: 'Take extra care', transits: 'Planets moving now', nature: 'Your nature' },
+    sec: { brief: 'Your reading in brief', now: 'Right now', months: 'Month by month: the next 12 months', ahead: 'The next few years', areas: 'Your life areas', safety: 'Take extra care', direction: 'Career and studies: traditional pointers', transits: 'Planets moving now', nature: 'Your nature' },
     until: (d) => `until ${d}`,
     youAre: (lag, moon) => `By nature you are ${lag}, with a mind that is ${moon}.`,
     and: ' and ',
@@ -139,6 +139,11 @@ const T = {
     d7good: ' and is strong in the children chart (D7)',
     d7weak: ' but is weak in the children chart (D7)',
     careerFields: (f) => `Work that suits you traditionally: ${f}.`,
+    workH: 'Work',
+    studyH: 'Studies',
+    workLine: (a, b) => `Your strongest career planets are ${a} and ${b}. Tradition links them with:`,
+    studyLine: (a, b) => `Your strongest study planets are ${a} and ${b}. Tradition links them with:`,
+    directionNote: 'These are traditional associations, not a prediction of what anyone will become. Interests, abilities and opportunities matter far more, especially for a young person.',
     incomeFrom: (f) => `Income tends to come from ${f}.`,
     marriageBy: (f) => `Tradition says: ${f}.`,
     healthNote: 'General wellbeing guidance from tradition, not medical advice.',
@@ -151,7 +156,7 @@ const T = {
     saturn: 'Saturn (Sani)', jupiter: 'Jupiter (Guru)', raagu: 'Raagu',
   },
   ta: {
-    sec: { brief: 'சுருக்கமாக உங்கள் பலன்', now: 'இப்போது', months: 'மாதவாரியாக: அடுத்த 12 மாதங்கள்', ahead: 'அடுத்த சில ஆண்டுகள்', areas: 'வாழ்க்கைப் பகுதிகள்', safety: 'கூடுதல் கவனம் தேவைப்படும் காலங்கள்', transits: 'இப்போது நகரும் கிரகங்கள்', nature: 'உங்கள் இயல்பு' },
+    sec: { brief: 'சுருக்கமாக உங்கள் பலன்', now: 'இப்போது', months: 'மாதவாரியாக: அடுத்த 12 மாதங்கள்', ahead: 'அடுத்த சில ஆண்டுகள்', areas: 'வாழ்க்கைப் பகுதிகள்', safety: 'கூடுதல் கவனம் தேவைப்படும் காலங்கள்', direction: 'தொழில், கல்வி: பாரம்பரியக் குறிப்புகள்', transits: 'இப்போது நகரும் கிரகங்கள்', nature: 'உங்கள் இயல்பு' },
     until: (d) => `${d} வரை`,
     youAre: (lag, moon) => `இயல்பில் நீங்கள்: ${lag}. மனம்: ${moon}.`,
     and: ', ',
@@ -190,6 +195,11 @@ const T = {
     d7good: '; சப்தாம்ச சக்கரத்திலும் (D7) பலமாக',
     d7weak: '; சப்தாம்ச சக்கரத்தில் (D7) பலவீனம்',
     careerFields: (f) => `பாரம்பரியமாக உங்களுக்குப் பொருந்தும் பணிகள்: ${f}.`,
+    workH: 'தொழில்',
+    studyH: 'கல்வி',
+    workLine: (a, b) => `உங்கள் வலுவான தொழில் கிரகங்கள் ${a}, ${b}. பாரம்பரியமாக இவை தொடர்புடையவை:`,
+    studyLine: (a, b) => `உங்கள் வலுவான கல்விக் கிரகங்கள் ${a}, ${b}. பாரம்பரியமாக இவை தொடர்புடையவை:`,
+    directionNote: 'இவை பாரம்பரியத் தொடர்புகள் மட்டுமே; ஒருவர் என்ன ஆவார் என்ற கணிப்பு அல்ல. ஆர்வம், திறமை, வாய்ப்புகளே மிக முக்கியம், குறிப்பாக இளையோருக்கு.',
     incomeFrom: (f) => `வருமானம் பெரும்பாலும் வரும் வழி: ${f}.`,
     marriageBy: (f) => `பாரம்பரியம் சொல்வது: ${f}.`,
     healthNote: 'இது பாரம்பரிய நல்வாழ்வு வழிகாட்டல் மட்டுமே; மருத்துவ ஆலோசனை அல்ல.',
@@ -252,8 +262,9 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   const safetyAnt = K ? (bl, al) => kpFires(K, 'safety', bl, al) : (bl, al) => isSafety(al) && (isSafety(bl) || ['mars', 'rahu'].includes(al));
   /** Events indicated when bl (longer period) and al (shorter period) run, at a given age. */
   const eventsAt = (bl, al, age) => {
-    if (!K) return matchEvents(union(bl, al), age, sig(al));
-    const res = EVENTS.filter((e) => KP_EVENTS[e.key] && age >= e.age[0] && age <= e.age[1] && kpFires(K, e.key, bl, al)).map((e) => ({ ...e }));
+    // the generic "long trip" event fits almost everyone, so the palan does not forecast it
+    if (!K) return matchEvents(union(bl, al), age, sig(al)).filter((e) => e.key !== 'travel');
+    const res = EVENTS.filter((e) => e.key !== 'travel' && KP_EVENTS[e.key] && age >= e.age[0] && age <= e.age[1] && kpFires(K, e.key, bl, al)).map((e) => ({ ...e }));
     if (age >= 30 && age <= 80 && kpFires(K, 'parents', bl, al)) res.push({ key: 'parents', area: 'parents', prio: 5, care: true });
     return res.sort((a, b) => b.prio - a.prio);
   };
@@ -399,6 +410,39 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     return { h: fname(f), p, tips: [tip] };
   });
   sections.push({ key: 'areas', title: t.sec.areas, items: areas });
+
+  // =========================== CAREER AND STUDIES: traditional pointers
+  // Planets ranked by their influence on the 10th house (career) and on the
+  // 4th, 5th and 9th (schooling, intellect, higher studies), plus the D10 chart.
+  const influence = (houses, weights) => {
+    const score = {};
+    for (const k of ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn', 'rahu', 'ketu']) {
+      let sc = 0;
+      houses.forEach((h, i) => {
+        const w = weights[i];
+        if (A.lordOf(h) === k) sc += 3 * w;
+        if (A.occupants(h).includes(k)) sc += 2 * w;
+        if (A.aspectsOn(h).includes(k)) sc += 1 * w;
+      });
+      sc += 0.4 * strength(A, k);
+      score[k] = sc;
+    }
+    return score;
+  };
+  const work = influence([10], [1]);
+  const d10Lag = dasamsaSign(chart.lagnam.lon);
+  work[SIGN_LORDS[(d10Lag + 9) % 12]] += 1.5; // lord of the 10th in the career chart
+  const study = influence([4, 5, 9], [1, 1.2, 0.8]);
+  study.mercury += 1;
+  study.jupiter += 1;
+  const top = (sc) => Object.entries(sc).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k);
+  const [w1, w2] = top(work);
+  const [s1, s2] = top(study);
+  const direction = [];
+  if (ageNow < 25) direction.push({ h: t.studyH, p: [t.studyLine(g(s1), g(s2)), `${PLANET_FIELDS[s1].study[lang]}; ${PLANET_FIELDS[s2].study[lang]}.`], noLabel: true });
+  direction.push({ h: t.workH, p: [t.workLine(g(w1), g(w2)), `${PLANET_FIELDS[w1].work[lang]}; ${PLANET_FIELDS[w2].work[lang]}.`, t.careerFields(CAREER_FIELDS[A.house(l10)][lang])], noLabel: true });
+  direction.push(t.directionNote);
+  sections.push({ key: 'direction', title: t.sec.direction, items: direction });
 
   // =========================== SAFETY WINDOWS (next 24 months)
   const safety = [];

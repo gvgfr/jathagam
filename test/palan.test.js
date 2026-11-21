@@ -29,7 +29,7 @@ describe('palan text for reference charts', () => {
       it(`${c.name} (${lang})`, () => {
         const now = new Date(new Date(c.utc).getTime() + 30 * 365.25 * 86400000);
         const p = generatePalan(chart, lang, fmt, now);
-        expect(p.sections.map((x) => x.key)).toEqual(['brief', 'now', 'months', 'ahead', 'areas', 'safety', 'transits', 'nature', 'dasa', 'gochara', 'yogas', 'areasTech', 'houses', 'planets']);
+        expect(p.sections.map((x) => x.key)).toEqual(['brief', 'now', 'months', 'ahead', 'areas', 'direction', 'safety', 'transits', 'nature', 'dasa', 'gochara', 'yogas', 'areasTech', 'houses', 'planets']);
         const flat = (i) => (typeof i === 'string' ? [i] : [i.h, ...(i.p || []), ...(i.tips || []), i.why].filter(Boolean));
         const text = [p.note, p.excluded, ...p.sections.flatMap((s) => [s.title, ...s.items.flatMap(flat)])].join('\n');
         expect(text).not.toMatch(/undefined|NaN|null|\[object/);

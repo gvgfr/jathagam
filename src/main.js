@@ -171,7 +171,34 @@ function route() {
     renderResults(state.last);
     requestAnimationFrame(() => $('palan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
+  if ((tab === 'bayes' || tab === 'dosham') && state.last) prefillFromChart(tab === 'bayes' ? 'b-person' : 'd-person');
   document.querySelectorAll('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === tab ? 'page' : 'false'));
+}
+
+/** Fill another tab's birth fields from the chart cast on the Jathagam tab,
+ *  unless the person has already typed something different there. */
+function prefillFromChart(p) {
+  const { meta } = state.last;
+  const el = (k) => $(`${p}-${k}`);
+  if (!el('date') || (el('date').value && el('lat').value)) return;
+  const local = DateTime.fromJSDate(meta.conv.utc, { zone: meta.zone });
+  el('date').value = local.toISODate();
+  el('hh').value = String(local.hour % 12 === 0 ? 12 : local.hour % 12);
+  el('mm').value = String(local.minute).padStart(2, '0');
+  el('ampm').value = local.hour < 12 ? 'am' : 'pm';
+  if (local.hour === 0) {
+    el('hh').value = '00';
+    el('ampm').value = 'am';
+  }
+  el('place').value = meta.place || `${meta.lat.toFixed(4)}, ${meta.lon.toFixed(4)}`;
+  el('lat').value = meta.lat.toFixed(4);
+  el('lon').value = meta.lon.toFixed(4);
+  if (meta.name && el('name')) el('name').value = meta.name;
+  const note = document.createElement('p');
+  note.className = 'hint prefilled';
+  note.textContent = t('prefilled');
+  el('date').closest('.birth-fields, .person')?.querySelector('.prefilled')?.remove();
+  el('date').closest('.birth-fields, .person')?.prepend(note);
 }
 window.addEventListener('hashchange', route);
 route();
@@ -408,7 +435,7 @@ function renderResults({ chart, meta }) {
     </div>`;
 
   // --- palan (traditional readings): a prominent call-to-action, expanded on demand
-  const PALAN_ICON = { brief: '✦', now: '📍', months: '📅', ahead: '🗓️', areas: '🧭', safety: '🛡️', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
+  const PALAN_ICON = { brief: '✦', now: '📍', months: '📅', ahead: '🗓️', areas: '🧭', direction: '🎓', safety: '🛡️', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
   let palan = `
     <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
       <div>
