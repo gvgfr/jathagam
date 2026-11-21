@@ -43,6 +43,10 @@ Sevvai dosham are not applied. The result is shown as a traditional guide
 (score out of 10, rajju highlighted), never as a verdict.
 
 ## Privacy
+The site is **unlisted**: a `noindex, nofollow` robots meta tag and a
+`robots.txt` ask search engines not to list it, so it is reached only by link.
+This is not access control — anyone with the URL can open it.
+
 Everything runs in the browser. No storage (no cookies/localStorage), no
 analytics. The only network request is the place-name search to the
 [Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api); the
