@@ -69,3 +69,4 @@ export { dms } from './nakshatra.js';
 export { porutham, rasisForNakshatra } from './porutham.js';
 export { doshams } from './dosham.js';
 export { gocharam } from './transit.js';
+export { dailyPanchangam } from './today.js';

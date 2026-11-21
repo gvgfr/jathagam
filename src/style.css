@@ -228,8 +228,24 @@ body.no-scroll { overflow: hidden; }
 .tc-buttons .btn-ghost { color: var(--cream); border-color: var(--gold); }
 .tc-status { color: var(--gold); min-height: 1em; margin: 8px 0 0; }
 
+/* today */
+.loc-btn { width: 100%; margin-top: 22px; color: var(--maroon); }
+.today-head { text-align: center; margin-bottom: 12px; }
+.tamil-date { font-size: 1.6rem; font-weight: 700; color: var(--maroon); }
+.periods { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.period { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px solid var(--line); border-left: 5px solid #a01818; }
+.period span { font-weight: 700; color: #a01818; }
+.period strong { font-variant-numeric: tabular-nums; }
+.period.active { background: #fde2dd; border-color: #a01818; }
+.today-kv { margin-top: 12px; }
+.today-kv dd { font-weight: 400; line-height: 1.6; }
+.today-kv strong { color: var(--maroon); }
+.today-kv .till { color: var(--muted); font-size: 0.88rem; }
+.today-kv .then { color: var(--muted); font-size: 0.8rem; }
+@media (min-width: 640px) { .periods { grid-template-columns: repeat(3, 1fr); } }
+
 /* tabs */
-.tabs { display: flex; gap: 4px; margin-top: 10px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
 .tabs a {
   color: var(--cream); text-decoration: none; padding: 8px 14px; border-radius: 8px 8px 0 0;
   font-weight: 600; font-size: 0.92rem; opacity: 0.8; min-height: 40px; display: inline-flex; align-items: center;
@@ -285,8 +301,8 @@ details.remedies li { margin-bottom: 6px; }
 .st-present { background: #fde2dd; color: #a01818; }
 .st-cancelled { background: #fff1d6; color: #8a5200; }
 .st-absent { background: #e3f1e5; color: var(--ok); }
-.tabs { overflow-x: auto; }
 .tabs a { white-space: nowrap; }
+@media (max-width: 639px) { .tabs a { background: rgba(255, 255, 255, 0.08); padding: 7px 10px; font-size: 0.88rem; border-radius: 8px; } .tabs a[aria-current='page'] { border-radius: 8px; } .tabs { padding-bottom: 8px; } }
 
 /* footer */
 .site-footer { background: #3d1010; color: #f3e3c8; font-size: 0.85rem; padding: 16px 0 24px; }

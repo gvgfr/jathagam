@@ -4,13 +4,14 @@ import '@fontsource/noto-sans-tamil/700.css';
 import './style.css';
 import { DateTime } from 'luxon';
 import { computeChart, localToUtc, zoneFor, offsetZone, parseClock, activePeriod, yearsToYMD, dms } from './engine/index.js';
-import { NAMES, UI, PUI, DUI, thithiName } from './i18n.js';
+import { NAMES, UI, PUI, DUI, TUI, thithiName } from './i18n.js';
 import { southIndianChart } from './ui/chart.js';
 import { attachAutocomplete } from './ui/geocode.js';
 import { generatePalan } from './palan/index.js';
 import { initPorutham } from './ui/porutham.js';
 import { initDosham } from './ui/dosham.js';
 import { openTempleCard } from './ui/templeCard.js';
+import { initToday } from './ui/today.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -21,7 +22,7 @@ const state = {
   last: null, // last computed {chart, meta}
   showPalan: false,
 };
-const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? k;
+const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? TUI[state.lang][k] ?? k;
 // Matches the 640px breakpoint in style.css: palan sections start collapsed below it.
 const isMobile = () => window.matchMedia('(max-width: 639px)').matches;
 const nm = (table, i) => NAMES[table][state.lang][i];
@@ -35,6 +36,7 @@ function applyLang() {
   $('lang-toggle').textContent = t('lang');
   porutham.relabel();
   dosham.relabel();
+  today.relabel();
   if (state.last) renderResults(state.last);
 }
 $('lang-toggle').addEventListener('click', () => {
@@ -53,14 +55,18 @@ applyLang();
 // ---------------------------------------------------------------- views
 const porutham = initPorutham($('porutham-view'), { lang: () => state.lang, t });
 const dosham = initDosham($('dosham-view'), { lang: () => state.lang, t });
-const VIEWS = ['jathagam', 'porutham', 'dosham'];
+const today = initToday($('today-view'), { lang: () => state.lang, t });
+const VIEWS = ['jathagam', 'today', 'porutham', 'dosham'];
+// #palan and #temple are the jathagam page with the palan open / the temple card shown
+const ON_JATHAGAM = ['palan', 'temple'];
 function route() {
   const h = location.hash.slice(1);
-  // #palan is the jathagam page with the palan readings open
-  const tab = h === 'palan' || VIEWS.includes(h) ? h : 'jathagam';
-  const view = tab === 'palan' ? 'jathagam' : tab;
+  const tab = ON_JATHAGAM.includes(h) || VIEWS.includes(h) ? h : 'jathagam';
+  const view = ON_JATHAGAM.includes(tab) ? 'jathagam' : tab;
   for (const v of VIEWS) $(`${v}-view`).hidden = v !== view;
   $('palan-hint').hidden = !(tab === 'palan' && !state.last);
+  $('temple-hint').hidden = !(tab === 'temple' && !state.last);
+  if (tab === 'temple' && state.last) openTempleCard(state.last.chart, state.last.meta.name, state.lang);
   if (tab === 'palan' && state.last && !state.showPalan) {
     state.showPalan = true;
     renderResults(state.last);
@@ -134,7 +140,9 @@ $('birth-form').addEventListener('submit', (e) => {
   };
   state.showPalan = location.hash === '#palan';
   $('palan-hint').hidden = true;
+  $('temple-hint').hidden = true;
   renderResults(state.last);
+  if (location.hash === '#temple') openTempleCard(chart, state.last.meta.name, state.lang);
   $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 

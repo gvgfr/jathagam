@@ -31,8 +31,15 @@ Significations follow classical conventions (BPHS, Phaladeepika). Every line
 is phrased as what tradition says, with a note that these are cultural
 beliefs, not proven predictions. Health and lifespan are left out.
 
+## Today's panchangam
+The **Today** tab (`#today`) shows the panchangam for any place and date
+(`src/engine/today.js`): Tamil month and date, weekday, sunrise and sunset,
+thithi, nakshatram, yogam and karanam with their end times, and Raagu kaalam,
+Yamagandam and Kuligai (daytime split into eight parts by weekday). The place
+comes from the geocoder or the browser's location, which stays on the device.
+
 ## Temple card
-A **Temple card (for archanai)** button on every chart opens a large card with
+The **Temple** tab (`#temple`), or the **Temple card (for archanai)** button on every chart, opens a large card with
 name, nakshatram + padam, rasi, optional gothram and lagnam in Tamil with
 English underneath — easy to show a priest. It can be saved as a PNG or shared;
 the image is drawn on the device (`src/ui/templeCard.js`) and nothing is uploaded.
