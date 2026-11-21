@@ -46,8 +46,10 @@ export function kpChart(chart) {
   const { utc, lat, lon } = chart.input;
   const cusps = placidusCusps(utc, lat, lon);
   const pl = {};
+  // positions are shifted to the KP ayanamsa unless the chart already uses it
+  const shift = chart.input.options?.ayanamsa === 'kp' ? 0 : KP_OFFSET;
   for (const p of chart.planets) {
-    const l = norm(p.lon + KP_OFFSET);
+    const l = norm(p.lon + shift);
     pl[p.key] = { lon: l, house: houseIn(cusps, l), ...lords(l) };
   }
   const owner = (h) => SIGN_LORDS[Math.floor(cusps[h - 1] / 30)];

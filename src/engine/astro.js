@@ -43,7 +43,13 @@ export function kpAyanamsaMean(jdTT) {
 
 // Registry so further ayanamsas (Raman, KP, ...) or a Vakya engine can be added
 // without touching callers.
-export const AYANAMSAS = { lahiri: lahiriAyanamsaMean, kp: kpAyanamsaMean };
+/** B. V. Raman ayanamsa: Lahiri minus 1.446301° (Swiss Ephemeris SIDM_RAMAN). */
+export const RAMAN_OFFSET = 1.446301;
+export function ramanAyanamsaMean(jdTT) {
+  return lahiriAyanamsaMean(jdTT) - RAMAN_OFFSET;
+}
+
+export const AYANAMSAS = { lahiri: lahiriAyanamsaMean, kp: kpAyanamsaMean, raman: ramanAyanamsaMean };
 
 // ---------------------------------------------------------------------------
 // Time helpers

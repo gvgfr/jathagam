@@ -311,6 +311,9 @@ button.term:hover, button.term:focus-visible { background: #cfe2fa; }
 .b-bar.stated span { font-weight: 700; }
 .b-bar.used i { background: var(--maroon); }
 .b-bar em { font-style: normal; color: var(--muted); text-align: right; }
+.b-models .b-bar { grid-template-columns: 1fr 5em 3.5em; }
+.b-model { font-size: 0.78rem; line-height: 1.3; }
+.b-yes { border: 1.5px solid var(--line); background: #fff; border-radius: 8px; padding: 4px 12px; min-height: 36px; margin-left: 4px; }
 .b-rules { padding-left: 1.2em; margin: 6px 0; }
 .b-rules li { margin-bottom: 10px; line-height: 1.55; }
 .b-rules em { color: var(--muted); }

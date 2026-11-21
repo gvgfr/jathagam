@@ -1,11 +1,27 @@
 // Bayesian tab: calibrate the traditional rules against the person's own life.
 import { DateTime } from 'luxon';
-import { calibrate, EVENT_KINDS } from '../bayes/model.js';
+import { EVENT_KINDS } from '../bayes/model.js';
+import { robustCheck, brier } from '../bayes/robust.js';
 import { BUI } from '../i18n.js';
 import { birthFields, wireBirth, readBirth } from './birthInput.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const STORE = 'jathagam.bayes.v1';
+const FSTORE = 'jathagam.bayes.forecasts.v1';
+const loadF = () => {
+  try {
+    return JSON.parse(localStorage.getItem(FSTORE) || '[]');
+  } catch {
+    return [];
+  }
+};
+const saveF = (v) => {
+  try {
+    localStorage.setItem(FSTORE, JSON.stringify(v));
+  } catch {
+    /* storage unavailable */
+  }
+};
 const load = () => {
   try {
     return JSON.parse(localStorage.getItem(STORE) || 'null');
@@ -153,9 +169,20 @@ export function initBayes(root, ctx) {
     }
     $('b-error').textContent = t.working;
     setTimeout(() => {
-      const r = calibrate({ utc: b.conv.utc, lat: b.lat, lon: b.lon }, reported, { toleranceMin: state.tol, stepMin: 5 });
+      const r = robustCheck({ utc: b.conv.utc, lat: b.lat, lon: b.lon }, reported, { toleranceMin: state.tol });
       state.last = { r, b, reported };
-      ctx.setWinner?.(r.kpVsParasari > 3 && r.systems.kp.overall.bf > 3 ? 'kp' : r.kpVsParasari < 1 / 3 && r.systems.parasari.overall.bf > 3 ? 'parasari' : null);
+      // which rule system the Palan should use for this person: only when the evidence is real
+      const sysPost = (sys) => r.models.filter((m) => m.system === sys).reduce((a, m) => a + m.post, 0);
+      ctx.setWinner?.(r.avgBF > 3 ? (sysPost('kp') > 0.75 ? 'kp' : sysPost('parasari') > 0.75 ? 'parasari' : null) : null);
+      // E. keep the forecasts (only if the person asked to remember) so they can be scored later
+      if ($('b-remember').checked) {
+        const rec = loadF();
+        for (const f of r.forecast) {
+          const id = `${f.kind}|${new Date().getUTCFullYear()}-${new Date().getUTCMonth() + 1}`;
+          if (!rec.some((x) => x.id === id)) rec.push({ id, kind: f.kind, p: f.p, base: f.base, from: Date.now(), to: Date.now() + 365.25 * 86400000 });
+        }
+        saveF(rec);
+      }
       $('b-error').textContent = '';
       renderResults();
       $('bayes-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -165,73 +192,101 @@ export function initBayes(root, ctx) {
   function renderResults() {
     if (!state.last) return;
     const t = T();
-    const { r, b, reported } = state.last;
+    const { r, b } = state.last;
     const L = ctx.lang();
     const tm = (utc) => DateTime.fromJSDate(utc, { zone: b.zone }).toFormat('hh:mm a');
     const pct = (x) => `${(x * 100).toFixed(x < 0.1 ? 1 : 0)}%`;
     const fmtBF = (bf) => (bf >= 100 ? bf.toFixed(0) : bf >= 10 ? bf.toFixed(1) : bf.toFixed(2));
     const dfmt = (d) => DateTime.fromJSDate(d, { zone: b.zone }).setLocale(L === 'ta' ? 'ta-IN' : 'en-GB').toFormat('LLL yyyy');
-
-    const SYS = ['parasari', 'kp'];
-    const vKind = (v) => (v.logBF > Math.log(20) ? 'strong' : v.logBF > Math.log(3) ? 'moderate' : v.logBF < Math.log(1 / 3) ? 'against' : 'none');
     const one = (x) => (x > 0 && x < 0.1 ? x.toFixed(2) : Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : x.toFixed(1));
+    const verdictOf = (bf) => (bf > 20 ? 'strong' : bf > 3 ? 'moderate' : bf < 1 / 3 ? 'against' : 'none');
+    const modelName = (m) => t.modelName(t.sysShort[m.system], t.ayanName[m.ayanamsa], t.nodeName[m.node], m.yearDays);
 
-    // 1. honest score, for each rule system, and which fits better
-    const better = r.kpVsParasari > 3 ? 'kp' : r.kpVsParasari < 1 / 3 ? 'parasari' : null;
-    const anyWorks = SYS.some((sys) => r.systems[sys].overall.bf > 3);
+    // 1. honest score (model average) and rule strength
+    const lam = r.lambda;
     const score = `<div class="card b-res">
         <h2>${t.rScore}</h2>
-        ${SYS.map((sys) => `<div class="b-sys"><h3>${t.sysName[sys]}</h3><p class="b-verdict">${t.verdicts[r.systems[sys].overall.verdict]}</p><p class="hint">${t.bfShort(fmtBF(r.systems[sys].overall.bf))}</p></div>`).join('')}
-        <p class="b-compare">${better ? t.compareBetter(t.sysName[better], fmtBF(better === 'kp' ? r.kpVsParasari : 1 / r.kpVsParasari)) : t.compareNeither}${anyWorks ? '' : ` ${t.neitherWorks}`}</p>
-        <p class="hint">${t.bfLine(fmtBF(Math.max(r.systems.parasari.overall.bf, r.systems.kp.overall.bf)))}</p>
-        <p class="hint">${t.sysExplain}</p>
+        <p class="b-verdict">${t.verdicts[verdictOf(r.avgBF)]}</p>
+        <p>${t.strengthLine(Math.round(lam.mean * 100), Math.round(lam.lo * 100), Math.round(lam.hi * 100))}</p>
+        <p class="hint">${t.bfLine(fmtBF(r.avgBF))} ${t.avgNote(r.models.length)}</p>
       </div>`;
 
-    // 2. birth time
-    const statedUtc = r.candidates.find((c) => c.offsetMin === 0).utc;
-    const maxPost = Math.max(...r.candidates.map((c) => c.post));
-    const bars = r.candidates.length > 1
-      ? `<p class="hint">${t.timeTable}</p><div class="b-bars">${r.candidates
-          .map((c) => `<div class="b-bar${c.offsetMin === 0 ? ' stated' : ''}${c.offsetMin === r.usedOffsetMin ? ' used' : ''}"><span>${tm(c.utc)}</span><i style="width:${Math.max(2, (c.post / maxPost) * 100)}%"></i><em>${pct(c.post)}</em></div>`)
+    // 2. which model fits best (A)
+    const sysPost = (sys) => r.models.filter((m) => m.system === sys).reduce((a, m) => a + m.post, 0);
+    const rows = r.models
+      .slice(0, 6)
+      .map((m) => `<div class="b-bar"><span class="b-model">${esc(modelName(m))}</span><i style="width:${Math.max(2, (m.post / r.models[0].post) * 100)}%"></i><em>${pct(m.post)}</em></div>`)
+      .join('');
+    const modelsCard = `<div class="card b-res">
+        <h2>${t.rModels}</h2>
+        <p>${t.modelsIntro(r.models.length)}</p>
+        <p><strong>${t.sysSplit(pct(sysPost('parasari')), pct(sysPost('kp')))}</strong></p>
+        <div class="b-bars b-models">${rows}</div>
+        <p class="hint">${r.avgBF > 3 ? t.modelsMeaningful : t.modelsNotMeaningful}</p>
+      </div>`;
+
+    // 3. out-of-sample (C)
+    const o = r.oos;
+    const oosCard = `<div class="card b-res">
+        <h2>${t.rOos}</h2>
+        ${o ? `<p>${t.oosLine(o.splitYear, o.nTrain, esc(modelName(o.trainModel)), o.nTest, fmtBF(o.testBF))}</p><p class="b-verdict">${t.oosVerdict[verdictOf(o.testBF)]}</p>` : `<p>${t.oosNeedMore}</p>`}
+      </div>`;
+
+    // 4. birth time
+    const maxPost = Math.max(...r.times.map((c) => c.post));
+    const statedUtc = r.times.find((c) => c.offsetMin === 0).utc;
+    const bestT = r.times.find((c) => c.offsetMin === r.bestOffsetMin);
+    const bars = r.times.length > 1
+      ? `<p class="hint">${t.timeTable}</p><div class="b-bars">${r.times
+          .map((c) => `<div class="b-bar${c.offsetMin === 0 ? ' stated' : ''}"><span>${tm(c.utc)}</span><i style="width:${Math.max(2, (c.post / maxPost) * 100)}%"></i><em>${pct(c.post)}</em></div>`)
           .join('')}</div>`
       : '';
     const time = `<div class="card b-res">
         <h2>${t.rTime}</h2>
-        <p>${r.movedTime ? t.timeMoved(tm(r.best.utc), tm(statedUtc), r.best.ratio.toFixed(1)) : t.timeKept(tm(statedUtc))}</p>
-        ${r.movedTime ? `<button type="button" class="btn-ghost dark" id="b-use">${t.useTime(tm(r.best.utc))}</button>` : ''}
+        <p>${r.timeMoved ? t.timeMoved(tm(bestT.utc), tm(statedUtc), '3+') : t.timeKept(tm(statedUtc))}</p>
+        ${r.timeMoved ? `<button type="button" class="btn-ghost dark" id="b-use">${t.useTime(tm(bestT.utc))}</button>` : ''}
         ${bars}
       </div>`;
 
-    // 3. per-rule results, both systems
-    const rules = Object.keys(reported)
-      .map((k) => {
-        const n = reported[k].length;
-        const lines = SYS.map((sys) => {
-          const v = r.systems[sys].kinds[k];
-          const fired = v.table.a + v.table.b;
-          if (!v.promised) return `<div class="b-rule-sys"><span class="b-tag">${t.sysShort[sys]}</span> ${n ? t.notPromised : t.notPromisedNever}</div>`;
-          const body = n ? t.ruleLine(Math.round(fired), Math.round(v.share * 100), one(v.expected), one(v.hits), n) : t.ruleNever(Math.round(fired));
-          return `<div class="b-rule-sys"><span class="b-tag">${t.sysShort[sys]}</span> ${body}${n ? ` <em>${t.ruleVerdict[vKind(v)]}</em>` : ''}</div>`;
-        }).join('');
-        return `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${n ? t.reported(n) : t.never})</span>${lines}</li>`;
-      })
+    // 5. each kind of event, under the best model, against age-aware chance (B)
+    const detail = Object.entries(r.detail)
+      .map(([k, v]) => `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${t.reported(Math.round(v.E))})</span><br>${t.ruleLineAge(Math.round(v.firedShare * 100), one(v.expected), one(v.h), Math.round(v.E))} <em>${t.ruleVerdict[verdictOf(Math.exp(v.logBF))]}</em></li>`)
       .join('');
-    const rulesCard = `<div class="card b-res"><h2>${t.rRules}</h2><ul class="b-rules">${rules}</ul></div>`;
+    const rulesCard = `<div class="card b-res"><h2>${t.rRules}</h2><p class="hint">${t.detailNote(esc(modelName(r.bestModel)))}</p><ul class="b-rules">${detail}</ul></div>`;
 
-    // 4. personal forecast: only rules that clearly worked for this person
-    const seen = new Set();
-    const items = r.forecast
-      .filter((f) => (seen.has(f.key + f.start.getTime()) ? false : seen.add(f.key + f.start.getTime())))
-      .slice(0, 8)
-      .map((f) => `<li><strong>${dfmt(f.start)} – ${dfmt(f.end)}: ${esc(t.kinds[f.key])}</strong><br>${t.fLine(fmtBF(f.bf))} <span class="b-tag">${t.sysShort[f.system]}</span></li>`)
+    // 6. probability forecasts (E)
+    const fc = r.forecast
+      .map((f) => `<li><strong>${esc(t.kinds[f.kind])}: ${pct(f.p)}</strong> <span class="hint">${t.vsNormal(pct(f.base))}</span>${f.window && f.p > f.base * 1.2 ? `<br>${t.favouredWindow(dfmt(f.window.start), dfmt(f.window.end))}` : ''}</li>`)
       .join('');
-    const fc = `<div class="card b-res"><h2>${t.rForecast}</h2>
-        ${items ? `<p class="hint">${t.forecastNote}</p><ul class="b-rules">${items}</ul>` : `<p>${t.forecastNone}</p>`}
-        <p class="hint">${t.limits}</p></div>`;
+    const fcCard = `<div class="card b-res"><h2>${t.rForecast12}</h2>
+        <p class="hint">${t.forecastExplain}</p>
+        ${fc ? `<ul class="b-rules">${fc}</ul>` : `<p>${t.forecastNoneAge}</p>`}
+        <p class="hint">${$('b-remember').checked ? t.savedForScoring : t.rememberToScore}</p>
+      </div>`;
 
-    $('bayes-results').innerHTML = score + time + rulesCard + fc;
+    // 7. forecast record (Brier score)
+    const rec = loadF();
+    const due = rec.filter((x) => x.to < Date.now() && x.outcome === undefined);
+    const bs = brier(rec);
+    const recCard = rec.length
+      ? `<div class="card b-res"><h2>${t.rRecord}</h2>
+          ${due.length ? `<p>${t.recordAsk}</p><ul class="b-rules">${due.map((x) => `<li>${esc(t.kinds[x.kind])} (${dfmt(new Date(x.from))} – ${dfmt(new Date(x.to))}): <button type="button" class="b-yes" data-id="${x.id}" data-v="1">${t.yes}</button> <button type="button" class="b-yes" data-id="${x.id}" data-v="0">${t.no}</button></li>`).join('')}</ul>` : ''}
+          <p>${bs ? t.brierLine(bs.n, bs.model.toFixed(3), bs.chance.toFixed(3)) : t.recordWaiting(rec.length)}</p>
+        </div>`
+      : '';
+
+    $('bayes-results').innerHTML = score + modelsCard + oosCard + time + rulesCard + fcCard + recCard + `<div class="card b-res"><p class="hint">${t.limits}</p></div>`;
     $('bayes-results').hidden = false;
-    $('b-use')?.addEventListener('click', () => ctx.useTime(DateTime.fromJSDate(r.best.utc, { zone: b.zone }), b));
+    $('b-use')?.addEventListener('click', () => ctx.useTime(DateTime.fromJSDate(bestT.utc, { zone: b.zone }), b));
+    $('bayes-results').querySelectorAll('.b-yes').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        const all = loadF();
+        const x = all.find((y) => y.id === btn.dataset.id);
+        if (x) x.outcome = Number(btn.dataset.v);
+        saveF(all);
+        renderResults();
+      })
+    );
   }
 
   renderForm();

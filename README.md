@@ -54,42 +54,37 @@ lifespan is not covered. These are traditional rules: they are not shown to
 predict events, and the page says so.
 
 ## Bayesian check (`#bayes`)
-A tab that tests the traditional rules against the person's own life
-(`src/bayes/model.js`, UI `src/ui/bayes.js`). The person lists when big events
-happened (marriage, children, job changes, property, moves, injuries, illness,
-losses, parents…), with "never happened" for kinds that didn't occur.
+A tab that tests astrology against the person's own life (`src/bayes/robust.js`,
+UI `src/ui/bayes.js`). The person lists when big events happened (marriage,
+children, job changes, property, moves, studies, illness, injuries, losses,
+parents…), with the year and ideally the month.
 
-* **Model.** For each event kind the person reports: q = share of the checked
-  time during which the palan's rule for that kind fired (by antaram), E =
-  number of events (a year-only date is spread over the periods it overlaps),
-  h = events that fell in fired time. H0 (no connection): each event lands in
-  fired time with probability q. H1 (rule works): probability θ > q with
-  θ ~ Uniform(q, 1). Bayes factor = ∫_q^1 θ^h(1−θ)^(E−h)dθ/(1−q) ÷ q^h(1−q)^(E−h),
-  multiplied across kinds (<1/3 favours no connection, >3 some support, >20
-  strong). Kinds marked "never happened" cannot be tested and are not scored.
-  The page shows, per kind, how many events chance would put in the rule's
-  periods versus how many actually fell there.
-* **Two rule systems tested side by side.** The simplified traditional rules
-  (whole-sign houses) and full **KP** (`src/engine/kp.js`): Placidus cusps and
-  the KP ayanamsa (both checked against Swiss Ephemeris: cusps within 1′ on 40
-  random charts), star and sub lords, four-level significators (planets in the
-  star of occupants, occupants, planets in the star of the owner, owner;
-  Raagu/Kethu as agents), cusp sub-lord "promise", and dasa–bhukti–antaram
-  significators for timing. The page reports a Bayes factor for each system and
-  between them ("which fits your life better").
-* **Birth-time correction.** Candidate times every 5 minutes within the stated
-  uncertainty (±15/30/60 min) get posterior ∝ prior × Bayes factor (prior
-  highest at the stated time). The site only suggests another time when it beats
-  the stated one by a Bayes factor > 3 *and* the rules beat chance there;
-  otherwise it says keep your time. A tested synthetic life recovers a true time
-  20 minutes away from the stated one.
-* **Per-rule results** in plain counts ("fired in 17 periods; 1 of your 2
-  events fell in them") with the verdict.
-* **Personal forecast** for the next 2 years using only rules with Bayes factor
-  > 3 for this person, and only age-appropriate events. If none qualify it says
-  so plainly.
-* Entries stay on the device; they are saved in the browser only if the person
-  ticks "Remember my entries on this phone" (with a "Forget" button).
+* **A. Many models, fairly compared.** 18 models: the simplified whole-sign rules
+  with Lahiri or Raman ayanamsa, and full KP (KP ayanamsa, Placidus cusps,
+  sub-lords; see below), each with mean or true nodes and a 365.25, 360 or
+  365.2564-day dasa year — at every birth time within the stated uncertainty.
+  Equal prior over models, so the overall score is a model average and testing
+  many models cannot manufacture a winner.
+* **B. Age-aware chance.** Under "no connection", each kind of event follows a
+  realistic age curve (marriage late 20s, children early 30s, a parent's illness
+  in one's 50s…). A rule's chance level is the share of *expected events* in its
+  periods, so rules that merely fire at common ages get no credit.
+* **C. Out-of-sample test.** Models are ranked using events before the median
+  event date, then scored on the later events they never saw.
+* **D. Partial pooling.** One rule strength λ ∈ [0,1] is shared by all event
+  kinds (event lands in rule periods with probability θ = q + λ(1−q); λ = 0 is
+  chance), with λ ~ Uniform(0,1). The pooled Bayes factor and λ's posterior
+  (mean and 90% range) are reported.
+* **E. Probability forecasts and a running record.** For the next 12 months,
+  per kind: chance of at least one event with the rules (model average) vs the
+  person's own age-adjusted normal rate. Forecasts are saved on the phone (only
+  if "remember" is ticked); when a period ends the page asks whether it
+  happened and reports a Brier score for the model vs chance.
+* Tests: a synthetic life that follows the rules is detected (Bayes factor > 3,
+  right rule family, out-of-sample > 1); an arbitrary life is not.
+* KP (`src/engine/kp.js`): Placidus cusps and KP ayanamsa checked against Swiss
+  Ephemeris (cusps within 1′ on 40 random charts), star/sub lords, four-level
+  significators, cusp sub-lord promise, period significators for timing.
 
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
