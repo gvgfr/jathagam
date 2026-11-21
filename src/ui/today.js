@@ -2,7 +2,7 @@
 import { DateTime } from 'luxon';
 import { dailyPanchangam, zoneFor } from '../engine/index.js';
 import { NAMES, TAMIL_MONTHS, thithiName } from '../i18n.js';
-import { attachAutocomplete } from './geocode.js';
+import { attachAutocomplete, parseCoords } from './geocode.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -45,7 +45,9 @@ export function initToday(root, ctx) {
     },
     () => ($('t-error').textContent = ctx.t('geoError'))
   );
-  $('t-place').addEventListener('input', () => (place = null));
+  $('t-place').addEventListener('input', () => {
+    if (!parseCoords($('t-place').value)) place = null;
+  });
 
   $('t-loc').addEventListener('click', () => {
     if (!navigator.geolocation) {

@@ -115,9 +115,11 @@ have to sit at the domain root, and blocking crawling would hide the noindex tag
 This is not access control — anyone with the URL can open it.
 
 Everything runs in the browser. No storage (no cookies/localStorage), no
-analytics. The only network request is the place-name search to the
-[Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api); the
-font is self-hosted. Latitude/longitude can be typed in manually instead.
+analytics. The only network requests are the place-name search: the
+[Open-Meteo geocoding API](https://open-meteo.com/en/docs/geocoding-api) first,
+and, when it returns few results (often for small villages),
+[Photon](https://photon.komoot.io) with OpenStreetMap data. The font is
+self-hosted. Coordinates can also be pasted straight into the place box (e.g. `10.7672, 79.6371` from Google Maps), or typed under Settings.
 
 ## Layout
 ```

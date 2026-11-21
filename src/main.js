@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { computeChart, localToUtc, zoneFor, offsetZone, parseClock, activePeriod, yearsToYMD, dms } from './engine/index.js';
 import { NAMES, UI, PUI, DUI, TUI, thithiName } from './i18n.js';
 import { southIndianChart } from './ui/chart.js';
-import { attachAutocomplete } from './ui/geocode.js';
+import { attachAutocomplete, parseCoords } from './ui/geocode.js';
 import { generatePalan } from './palan/index.js';
 import { initPorutham } from './ui/porutham.js';
 import { initDosham } from './ui/dosham.js';
@@ -127,6 +127,7 @@ attachAutocomplete(
   }
 );
 $('f-place').addEventListener('input', () => {
+  if (parseCoords($('f-place').value)) return; // pasted coordinates were already applied
   state.place = null;
   $('place-picked').textContent = '';
 });

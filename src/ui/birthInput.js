@@ -29,6 +29,7 @@ export function birthFields(p) {
         <label for="${p}-place" data-i18n="pob"></label>
         <input id="${p}-place" type="text" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${p}-list" data-i18n-placeholder="placeHint" />
         <ul id="${p}-list" class="place-list" role="listbox" hidden></ul>
+        <p class="hint" data-i18n="villageHint"></p>
       </div>
       <details class="more">
         <summary data-i18n="manualCoords"></summary>
