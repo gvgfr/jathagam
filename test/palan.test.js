@@ -29,14 +29,21 @@ describe('palan text for reference charts', () => {
       it(`${c.name} (${lang})`, () => {
         const now = new Date(new Date(c.utc).getTime() + 30 * 365.25 * 86400000);
         const p = generatePalan(chart, lang, fmt, now);
-        expect(p.sections.map((x) => x.key)).toEqual(['highlights', 'dasa', 'gochara', 'yogas', 'areas', 'nature', 'houses', 'planets']);
-        expect(p.sections.find((x) => x.key === 'houses').items).toHaveLength(12);
-        const text = [p.note, p.excluded, ...p.sections.flatMap((s) => [s.title, ...s.items])].join('\n');
+        expect(p.sections.map((x) => x.key)).toEqual(['brief', 'now', 'ahead', 'areas', 'transits', 'nature', 'dasa', 'gochara', 'yogas', 'areasTech', 'houses', 'planets']);
+        const flat = (i) => (typeof i === 'string' ? [i] : [i.h, ...(i.p || []), ...(i.tips || [])].filter(Boolean));
+        const text = [p.note, p.excluded, ...p.sections.flatMap((s) => [s.title, ...s.items.flatMap(flat)])].join('\n');
         expect(text).not.toMatch(/undefined|NaN|null|\[object/);
+        expect(p.sections.find((x) => x.key === 'houses').items).toHaveLength(12);
         expect(p.sections.find((x) => x.key === 'planets').items).toHaveLength(9);
+        // plain sections: every period and life area gives advice
+        for (const k of ['now', 'ahead', 'areas']) {
+          const objs = p.sections.find((x) => x.key === k).items.filter((i) => typeof i === 'object' && i.h);
+          objs.forEach((o) => expect(o.tips.length, `${k} tips`).toBeGreaterThan(0));
+        }
+        expect(p.sections.find((x) => x.key === 'areas').items).toHaveLength(6);
         // Interpretations never assert death, lifespan or illness outcomes
         if (lang === 'en') {
-          const body = p.sections.flatMap((s) => s.items).join(' ');
+          const body = p.sections.flatMap((s) => s.items.flatMap(flat)).join(' ');
           expect(body).not.toMatch(/\b(death|die|dies|lifespan|longevity|disease|illness|accident)\b/i);
           expect(body).toMatch(/tradition/i);
         }

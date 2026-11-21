@@ -5,9 +5,10 @@
 import { SIGN_LORDS } from '../engine/constants.js';
 import { activePeriod } from '../engine/dasa.js';
 import { gocharam } from '../engine/transit.js';
+import { plainPalan } from './plain.js';
 import { NAMES } from '../i18n.js';
 import {
-  KARAKA, HOUSE, HOUSE_SHORT, LORD_IN, SIGN_TRAITS, NAK_TRAITS, DASA_THEME,
+  KARAKA, HOUSE, HOUSE_SHORT, LORD_IN, DASA_THEME,
   EXALTATION, BENEFICS, UPACHAYA, YOGA, GOCHARA,
 } from './texts.js';
 
@@ -91,7 +92,8 @@ export function analyse(chart) {
 
 const T = {
   en: {
-    note: 'These readings apply traditional jothidam rules to this chart: house lords, placements, yogas, the running dasa and today’s transits. They are cultural beliefs, not scientifically proven predictions — please don’t base major decisions on them alone.',
+    note: 'Based on traditional Tamil astrology rules applied to your chart. These are cultural beliefs, not proven predictions — please don’t base major decisions on them alone.',
+    techTitle: 'For astrologers: technical details',
     excluded: 'Not covered on purpose: health, lifespan and dosham verdicts (see the Dosham tab).',
     sec: { highlights: 'Key points', nature: 'Nature and temperament', dasa: 'Your current period (dasa / bhukti)', gochara: 'Transits today (gocharam)', yogas: 'Yogams in your chart', areas: 'Areas of life', houses: 'House by house', planets: 'Planet by planet' },
     lagnam: (s, tr) => `Lagnam in ${s}: tradition describes the personality as ${tr}.`,
@@ -139,7 +141,8 @@ const T = {
     hlMarriage: (l, h) => `Marriage lord ${l} in the ${ord(h)} house.`,
   },
   ta: {
-    note: 'இவை இந்த ஜாதகத்துக்கு பாரம்பரிய ஜோதிட விதிகளைப் பொருத்திய பலன்கள்: வீட்டு அதிபதிகள், கிரக நிலைகள், யோகங்கள், நடப்பு தசை, இன்றைய கோசாரம். இவை கலாச்சார நம்பிக்கைகள்; அறிவியல் ரீதியாக நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல — முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
+    note: 'உங்கள் ஜாதகத்துக்குப் பாரம்பரிய தமிழ் ஜோதிட விதிகளைப் பொருத்திய பலன்கள். இவை கலாச்சார நம்பிக்கைகள்; நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல — முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
+    techTitle: 'ஜோதிடர்களுக்கு: தொழில்நுட்ப விவரங்கள்',
     excluded: 'வேண்டுமென்றே சேர்க்கப்படாதவை: உடல்நலம், ஆயுள், தோஷ தீர்ப்புகள் (தோஷம் பகுதியைப் பார்க்கவும்).',
     sec: { highlights: 'முக்கிய அம்சங்கள்', nature: 'குணமும் இயல்பும்', dasa: 'நடப்பு காலம் (தசை / புக்தி)', gochara: 'இன்றைய கோசாரம்', yogas: 'உங்கள் ஜாதகத்தில் யோகங்கள்', areas: 'வாழ்க்கைப் பகுதிகள்', houses: 'வீடு வாரியாக', planets: 'கிரக வாரியாக' },
     lagnam: (s, tr) => `லக்னம் ${s}: பாரம்பரியமாக குணம் — ${tr}.`,
@@ -221,15 +224,6 @@ export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate =
     const hsList = k === 'rahu' || k === 'ketu' ? [house(k)] : [...owns(k), house(k)];
     return [...new Set(hsList)].map(hs).join('; ');
   };
-
-  // ---------------- nature
-  const ll = lordOf(1);
-  const nature = [
-    t.lagnam(sign(lag), SIGN_TRAITS[lag][lang]),
-    t.lagnaLord(g(ll), house(ll), HOUSE[house(ll)][lang]) + digText(ll),
-    t.rasi(sign(s.rasi), SIGN_TRAITS[s.rasi][lang]),
-    t.nak(NAMES.nakshatra[lang][s.nakshatra], s.pada, NAK_TRAITS[s.nakshatra][lang], g(s.nakshatraLord)),
-  ];
 
   // ---------------- dasa
   const dasa = [];
@@ -342,27 +336,19 @@ export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate =
     return line;
   });
 
-  // ---------------- highlights
-  const hl = [];
-  const strong = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn'].filter((k) => ['own', 'exalted'].includes(dignity(k, by[k].sign)));
-  if (strong.length) hl.push(t.hlStrong(strong.map(g).join(', ')));
-  if (A.yogas.length) hl.push(t.hlYogas([...new Set(A.yogas.map(yogaName))].join(', ')));
-  if (act && act.bhukti) hl.push(t.hlDasa(g(act.dasa.lord), g(act.bhukti.lord), fmtDate(act.bhukti.end)));
-  hl.push(gochara[0]);
-  hl.push(t.hlCareer(g(l10), house(l10)) + ' ' + t.hlMarriage(g(l7), house(l7)));
-
+  const plain = plainPalan(chart, A, go, lang, fmtRange, fmtDate, now);
   return {
     note: t.note,
     excluded: t.excluded,
+    techTitle: t.techTitle,
     sections: [
-      { key: 'highlights', title: t.sec.highlights, items: hl },
-      { key: 'dasa', title: t.sec.dasa, items: dasa },
-      { key: 'gochara', title: t.sec.gochara, items: gochara },
-      { key: 'yogas', title: t.sec.yogas, items: yogas },
-      { key: 'areas', title: t.sec.areas, items: areas },
-      { key: 'nature', title: t.sec.nature, items: nature },
-      { key: 'houses', title: t.sec.houses, items: housesSec },
-      { key: 'planets', title: t.sec.planets, items: planets },
+      ...plain,
+      { key: 'dasa', title: t.sec.dasa, items: dasa, technical: true },
+      { key: 'gochara', title: t.sec.gochara, items: gochara, technical: true },
+      { key: 'yogas', title: t.sec.yogas, items: yogas, technical: true },
+      { key: 'areasTech', title: t.sec.areas, items: areas, technical: true },
+      { key: 'houses', title: t.sec.houses, items: housesSec, technical: true },
+      { key: 'planets', title: t.sec.planets, items: planets, technical: true },
     ],
   };
 }

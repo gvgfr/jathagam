@@ -49,7 +49,7 @@ $('lang-toggle').addEventListener('click', () => {
   // Expand every dasa for printing (also when printing from the browser menu).
 let closedForPrint = [];
 window.addEventListener('beforeprint', () => {
-  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open])')];
+  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open]), details.palan-tech:not([open])')];
   closedForPrint.forEach((d) => (d.open = true));
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));
@@ -341,7 +341,8 @@ function renderResults({ chart, meta }) {
     </div>`;
 
   // --- palan (traditional readings): a prominent call-to-action, expanded on demand
-  const PALAN_ICON = { highlights: '✦', dasa: '⏳', gochara: '🪐', yogas: '🌟', areas: '🧭', nature: '🌿', houses: '🏠', planets: '☉' };
+  const PALAN_ICON = { brief: '✦', now: '📍', ahead: '🗓️', areas: '🧭', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
+  const PALAN_TONE = { good: t('toneGood'), mixed: t('toneMixed'), hard: t('toneHard') };
   let palan = `
     <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
       <div>
@@ -352,18 +353,31 @@ function renderResults({ chart, meta }) {
     </div>`;
   if (state.showPalan) {
     const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt));
-    const openByDefault = (key, i) => (isMobile() ? i === 0 : !['houses', 'planets'].includes(key));
+    const plainSecs = pl.sections.filter((x) => !x.technical);
+    const techSecs = pl.sections.filter((x) => x.technical);
+    // plain sections: on phones only the first two start open
+    const openPlain = (i) => !isMobile() || i < 2;
+    const item = (x) => {
+      if (typeof x === 'string') return `<li>${esc(x)}</li>`;
+      const tone = x.tone ? `<span class="tone tone-${x.tone}">${esc(PALAN_TONE[x.tone])}</span>` : '';
+      return `<li class="pl-item${x.tone ? ` t-${x.tone}` : ''}">
+        ${x.h ? `<div class="pl-head"><strong>${esc(x.h)}</strong>${tone}</div>` : ''}
+        ${(x.p || []).length ? `${x.h ? `<div class="pl-label">${t('plExpect')}</div>` : ''}<ul class="pl-p">${x.p.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
+        ${(x.tips || []).length ? `<div class="pl-label pl-do">✅ ${t('plDo')}</div><ul class="pl-tips">${x.tips.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
+      </li>`;
+    };
+    const secHtml = (sec, open) => `<details class="palan-sec sec-${sec.key}" ${open ? 'open' : ''}>
+        <summary><span class="ico" aria-hidden="true">${PALAN_ICON[sec.key] || '•'}</span><h3>${esc(sec.title)}</h3></summary>
+        <ul class="pl-list">${sec.items.map(item).join('')}</ul>
+      </details>`;
     palan += `
     <div class="card palan" id="palan">
       <p class="palan-note">${esc(pl.note)}</p>
-      ${pl.sections
-        .map(
-          (sec, i) => `<details class="palan-sec sec-${sec.key}" ${openByDefault(sec.key, i) ? 'open' : ''}>
-        <summary><span class="ico" aria-hidden="true">${PALAN_ICON[sec.key] || '•'}</span><h3>${esc(sec.title)}</h3></summary>
-        <ul>${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
-      </details>`
-        )
-        .join('')}
+      ${plainSecs.map((sec, i) => secHtml(sec, openPlain(i))).join('')}
+      <details class="palan-tech">
+        <summary>🔭 ${esc(pl.techTitle)}</summary>
+        ${techSecs.map((sec) => secHtml(sec, false)).join('')}
+      </details>
       <p class="hint">${esc(pl.excluded)}</p>
     </div>`;
   }
@@ -387,7 +401,7 @@ function renderResults({ chart, meta }) {
 // Expand every dasa for printing (also when printing from the browser menu).
 let closedForPrint = [];
 window.addEventListener('beforeprint', () => {
-  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open])')];
+  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open]), details.palan-tech:not([open])')];
   closedForPrint.forEach((d) => (d.open = true));
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));

@@ -9,27 +9,28 @@ both modes).
 and deploys every push to `main` (`.github/workflows/pages.yml`).
 
 ## Palan (predictions)
-The **Palan** tab (`#palan`, also the gold call-to-action card on every chart)
-shows rule-based traditional readings generated in `src/palan/` (Tamil and
-English). They are specific to the chart:
+The **Palan** tab (`#palan`, also the gold card on every chart) is written for
+people, not astrologers (`src/palan/plain.js`, texts in `plainTexts.js`):
 
-* **Key points:** strong planets, yogams, running dasa–bhukti, Saturn transit,
-  career and marriage lords.
-* **Dasa / bhukti:** what the dasa lord rules and where it sits, its dignity,
-  and the current plus next three bhuktis with dates.
-* **Gocharam (transits today):** Saturn, Guru and Raagu from the Moon sign with
-  ingress/egress dates; Ezharai Sani phase and span (or when the next starts),
-  Ashtama and Arthashtama Sani (`src/engine/transit.js`).
-* **Yogams:** Gajakesari, Budha-Aditya, Chandra-Mangala, the five
-  Mahapurusha yogams, Yogakarakan, Raja, Dhana, Parivarthana, Neecha bhanga.
-* **Areas of life:** career, marriage, children, education, wealth, home —
-  house lord placement and dignity, occupants, aspects (drishti), significators,
-  and the coming dasa/bhukti periods traditionally linked with each.
-* **House by house** (lord of each house and where it sits) and **planet by planet**.
+* **Your reading in brief** — nature, life focus, what now is about, strongest
+  areas, areas needing patience, and the next turning point.
+* **Right now** — the big-picture dasa and the current bhukti: *what to expect*
+  and *what you can do*, rated 🟢 favourable / 🟡 mixed / 🟠 needs care.
+* **The next few years** — the next five periods with dates, focus, what to
+  expect and a tip.
+* **Life areas** — career (with kinds of work the chart traditionally suits),
+  money (main income source), marriage, home, children and studies: tone,
+  what to expect, good times with dates (only where relevant to age) and a tip.
+* **Planets moving now** — Saturn (incl. Ezharai / Ashtama / Arthashtama
+  Sani), Jupiter and Raagu with end dates and tips.
 
-Significations follow classical conventions (BPHS, Phaladeepika). Every line
-is phrased as what tradition says, with a note that these are cultural
-beliefs, not proven predictions. Health and lifespan are left out.
+How it works: each planet gets a simple strength score from traditional rules
+(natural benefic/malefic, uchcham/aatchi/neecham, house placement, lordship of
+difficult houses, yogakarakan, neecha bhanga). A period's tone combines its
+dasa and bhukti lords; it is described through the life areas (houses) its
+bhukti lord sits in and rules. The technical readings (dasa lordships,
+gocharam, 13 yogams, house lords, aspects) are kept in a collapsed
+**For astrologers** section. Health and lifespan are left out.
 
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
