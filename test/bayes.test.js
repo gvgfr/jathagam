@@ -75,6 +75,8 @@ describe('calibration on synthetic lives', () => {
     const truth = r.candidates.find((c) => c.offsetMin === -20);
     expect(truth.post).toBeGreaterThan(r.stated.post);
     expect(Math.abs(r.best.offsetMin + 20)).toBeLessThanOrEqual(10);
+    // the life was generated from the simplified rules, so they should win
+    expect(r.systemPost.parasari).toBeGreaterThan(r.systemPost.kp);
   });
 });
 
@@ -84,7 +86,7 @@ describe('personal forecast', () => {
     const utc = new Date('1977-07-27T19:00:00Z');
     // random, unpatterned life: no rule should be trusted
     const r = calibrate({ utc, lat, lon }, { childbirth: [{ year: 2007 }, { year: 2011, month: 6 }], jobChange: [{ year: 2008 }], setback: [] }, { toleranceMin: 0, now });
-    for (const f of r.forecast) expect(r.kinds[f.key].logBF).toBeGreaterThan(Math.log(3));
+    for (const f of r.forecast) expect(r.systems[f.system].kinds[f.key].logBF).toBeGreaterThan(Math.log(3));
     expect(r.forecast.some((f) => f.key === 'childbirth')).toBe(false); // age 49+
   });
 });
@@ -111,5 +113,24 @@ describe('event-in-rule-time test', () => {
     const q = 0.11;
     const num = (1 / 6 - (q * q / 2 - q ** 3 / 3)) / (1 - q);
     expect(logBFbinom(1, 2, q)).toBeCloseTo(Math.log(num / (q * (1 - q))), 4);
+  });
+});
+
+describe('KP in the Bayesian check', () => {
+  it('a life generated from KP rules is recognised as KP', () => {
+    const lat = 13.0827, lon = 80.2707, now = new Date('2026-11-21T00:00:00Z');
+    const utc = new Date('1977-07-27T19:00:00Z');
+    const chart = computeChart({ utc, lat, lon });
+    const sc = scoreChart(chart, { promotion: [], property: [], marriage: [] }, now, 'kp');
+    const rep = { promotion: [], property: [], marriage: [], jobChange: [] };
+    for (const an of sc.ants) {
+      const mid = new Date((an.start.getTime() + an.end.getTime()) / 2);
+      const age = (mid - utc) / (365.25 * 86400000);
+      if (age < 18 || mid > now) continue;
+      for (const k of Object.keys(rep)) if (sc.fires(k, an.bl, an.lord) && rep[k].length < 3) rep[k].push({ year: mid.getUTCFullYear(), month: mid.getUTCMonth() + 1 });
+    }
+    const r = calibrate({ utc, lat, lon }, rep, { toleranceMin: 0, now });
+    expect(r.systems.kp.overall.logBF).toBeGreaterThan(Math.log(3));
+    expect(r.kpVsParasari).toBeGreaterThan(1);
   });
 });

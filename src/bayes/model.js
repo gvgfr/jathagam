@@ -16,6 +16,10 @@ import { antarams } from '../engine/dasa.js';
 import { analyse } from '../palan/index.js';
 import { ruleFires } from '../palan/plain.js';
 import { EVENTS } from '../palan/eventTexts.js';
+import { kpChart, kpFires, kpPromise, KP_EVENTS } from '../engine/kp.js';
+
+/** The two rule systems tested side by side. */
+export const SYSTEMS = ['parasari', 'kp'];
 
 const YEAR = 365.25 * 86400000;
 
@@ -108,8 +112,10 @@ export function eventWindow(ev) {
  * @param {Record<string, {year:number, month?:number}[]>} reported events by kind; [] = "never happened"
  * @param {Date} now
  */
-export function scoreChart(chart, reported, now) {
+export function scoreChart(chart, reported, now, system = 'parasari') {
   const A = analyse(chart);
+  const K = system === 'kp' ? kpChart(chart) : null;
+  const fires = (k, bl, al) => (K ? kpFires(K, k, bl, al) : ruleFires(A, k, bl, al));
   const birth = chart.input.utc.getTime();
   const fromT = birth + 16 * YEAR; // adult life; earlier reported events extend it below
   const ants = lifeAntarams(chart).filter((a) => a.end.getTime() > birth && a.start.getTime() < now.getTime());
@@ -125,7 +131,7 @@ export function scoreChart(chart, reported, now) {
       const s = Math.max(an.start.getTime(), start);
       const e = Math.min(an.end.getTime(), now.getTime());
       if (e <= s) continue;
-      const fired = ruleFires(A, k, an.bl, an.lord);
+      const fired = fires(k, an.bl, an.lord);
       // share of each reported event that falls in this antaram
       let y = 0;
       for (const [w0, w1] of wins) {
@@ -147,9 +153,10 @@ export function scoreChart(chart, reported, now) {
     const E = t.a + t.c;
     const lbf = logBFbinom(t.a, E, q);
     total += lbf;
-    kinds[k] = { table: t, logBF: lbf, n: evs.length, share: q, expected: E * q, hits: t.a, events: E };
+    const promised = K && KP_EVENTS[k] ? kpPromise(K, k) : true;
+    kinds[k] = { table: t, logBF: lbf, n: evs.length, share: q, expected: E * q, hits: t.a, events: E, promised };
   }
-  return { kinds, logBF: total, A, ants };
+  return { kinds, logBF: total, A, K, ants, fires };
 }
 
 /**
@@ -163,29 +170,50 @@ export function calibrate(birth, reported, opts = {}) {
   const tol = opts.toleranceMin ?? 30;
   const step = opts.stepMin ?? 5;
   const now = opts.now || new Date();
+  // Joint posterior over (birth time, rule system), equal prior on the systems.
   const cands = [];
   for (let m = -tol; m <= tol; m += step) {
     const utc = new Date(birth.utc.getTime() + m * 60000);
     const chart = computeChart({ utc, lat: birth.lat, lon: birth.lon });
-    const sc = scoreChart(chart, reported, now);
-    // prior: highest at the stated time, half as likely at the edge of the tolerance
     const prior = tol ? 1 - (0.5 * Math.abs(m)) / tol : 1;
-    cands.push({ offsetMin: m, utc, chart, score: sc, logPost: Math.log(prior) + sc.logBF });
+    const bySys = {};
+    for (const sys of SYSTEMS) bySys[sys] = scoreChart(chart, reported, now, sys);
+    cands.push({ offsetMin: m, utc, chart, prior, bySys });
   }
-  const mx = Math.max(...cands.map((c) => c.logPost));
-  const z = cands.reduce((s, c) => s + Math.exp(c.logPost - mx), 0);
-  cands.forEach((c) => (c.post = Math.exp(c.logPost - mx) / z));
+  const terms = cands.flatMap((c) => SYSTEMS.map((sys) => Math.log(c.prior) + c.bySys[sys].logBF));
+  const mx = Math.max(...terms);
+  let z = 0;
+  for (const c of cands) {
+    c.postBySys = {};
+    for (const sys of SYSTEMS) {
+      c.postBySys[sys] = Math.exp(Math.log(c.prior) + c.bySys[sys].logBF - mx);
+      z += c.postBySys[sys];
+    }
+  }
+  const systemPost = Object.fromEntries(SYSTEMS.map((sys) => [sys, 0]));
+  for (const c of cands) {
+    c.post = 0;
+    for (const sys of SYSTEMS) {
+      c.postBySys[sys] /= z;
+      c.post += c.postBySys[sys];
+      systemPost[sys] += c.postBySys[sys];
+    }
+    // best evidence at this time across systems (for the "rules beat chance" check)
+    c.bestLogBF = Math.max(...SYSTEMS.map((sys) => c.bySys[sys].logBF));
+  }
   const best = cands.reduce((a, c) => (c.post > a.post ? c : a));
   const stated = cands.find((c) => c.offsetMin === 0);
-  // Only move away from the stated time when the data clearly prefer another
-  // (Bayes factor > 3 against the stated time) AND the rules beat chance there;
-  // otherwise the "best" time is just the luckiest coincidence among candidates.
-  const useBest = best !== stated && best.score.logBF - stated.score.logBF > Math.log(3) && best.score.logBF > Math.log(3);
+  // Move away from the stated time only with clear evidence (>3x) and rules beating chance there
+  const useBest = best !== stated && Math.log(best.post / best.prior) - Math.log(stated.post / stated.prior) > Math.log(3) && best.bestLogBF > Math.log(3);
   const chosen = useBest ? best : stated;
 
-  // Personal forecast: upcoming antarams where a rule that clearly worked for
-  // this person (Bayes factor > 3 and more events when it fired) fires again,
-  // at an age where that kind of event makes sense.
+  const systems = {};
+  for (const sys of SYSTEMS) {
+    const sc = chosen.bySys[sys];
+    systems[sys] = { kinds: sc.kinds, overall: { logBF: sc.logBF, bf: Math.exp(sc.logBF), verdict: verdict(Math.exp(sc.logBF)) } };
+  }
+
+  // Personal forecast: rules (from either system) that clearly worked for this person
   const horizon = now.getTime() + (opts.horizonMonths ?? 24) * (YEAR / 12);
   const birthT = chosen.chart.input.utc.getTime();
   const ageOk = (k, t) => {
@@ -193,25 +221,30 @@ export function calibrate(birth, reported, opts = {}) {
     const age = (t - birthT) / YEAR;
     return k === 'parents' ? age >= 25 && age <= 85 : !e || (age >= e.age[0] && age <= e.age[1]);
   };
-  const trusted = Object.entries(chosen.score.kinds).filter(([, v]) => v.logBF > Math.log(3) && v.hits > v.expected);
   const forecast = [];
-  for (const an of lifeAntarams(chosen.chart)) {
-    if (an.end.getTime() <= now.getTime() || an.start.getTime() > horizon) continue;
-    for (const [k, info] of trusted) {
-      if (!ageOk(k, an.start.getTime()) || !ruleFires(chosen.score.A, k, an.bl, an.lord)) continue;
-      forecast.push({ key: k, start: an.start, end: an.end, bf: Math.exp(info.logBF) });
+  for (const sys of SYSTEMS) {
+    const sc = chosen.bySys[sys];
+    const trusted = Object.entries(sc.kinds).filter(([, v]) => v.logBF > Math.log(3) && v.hits > v.expected);
+    for (const an of lifeAntarams(chosen.chart)) {
+      if (an.end.getTime() <= now.getTime() || an.start.getTime() > horizon) continue;
+      for (const [k, info] of trusted) {
+        if (!ageOk(k, an.start.getTime()) || !sc.fires(k, an.bl, an.lord)) continue;
+        forecast.push({ key: k, system: sys, start: an.start, end: an.end, bf: Math.exp(info.logBF) });
+      }
     }
   }
   forecast.sort((x, y) => x.start - y.start);
 
   return {
-    candidates: cands.map(({ offsetMin, utc, post, score }) => ({ offsetMin, utc, post, logBF: score.logBF })),
-    best: { offsetMin: best.offsetMin, utc: best.utc, post: best.post },
-    stated: { post: stated.post, logBF: stated.score.logBF },
+    candidates: cands.map(({ offsetMin, utc, post, prior }) => ({ offsetMin, utc, post, prior })),
+    best: { offsetMin: best.offsetMin, utc: best.utc, post: best.post, ratio: best.post / best.prior / (stated.post / stated.prior) },
+    stated: { post: stated.post },
     usedOffsetMin: chosen.offsetMin,
     movedTime: useBest,
-    kinds: chosen.score.kinds,
-    overall: { logBF: chosen.score.logBF, bf: Math.exp(chosen.score.logBF), verdict: verdict(Math.exp(chosen.score.logBF)) },
+    systems,
+    systemPost,
+    // Bayes factor KP vs simplified rules at the chosen birth time
+    kpVsParasari: Math.exp(chosen.bySys.kp.logBF - chosen.bySys.parasari.logBF),
     forecast,
   };
 }

@@ -57,6 +57,14 @@ losses, parents…), with "never happened" for kinds that didn't occur.
   strong). Kinds marked "never happened" cannot be tested and are not scored.
   The page shows, per kind, how many events chance would put in the rule's
   periods versus how many actually fell there.
+* **Two rule systems tested side by side.** The simplified traditional rules
+  (whole-sign houses) and full **KP** (`src/engine/kp.js`): Placidus cusps and
+  the KP ayanamsa (both checked against Swiss Ephemeris: cusps within 1′ on 40
+  random charts), star and sub lords, four-level significators (planets in the
+  star of occupants, occupants, planets in the star of the owner, owner;
+  Raagu/Kethu as agents), cusp sub-lord "promise", and dasa–bhukti–antaram
+  significators for timing. The page reports a Bayes factor for each system and
+  between them ("which fits your life better").
 * **Birth-time correction.** Candidate times every 5 minutes within the stated
   uncertainty (±15/30/60 min) get posterior ∝ prior × Bayes factor (prior
   highest at the stated time). The site only suggests another time when it beats

@@ -171,11 +171,19 @@ export function initBayes(root, ctx) {
     const fmtBF = (bf) => (bf >= 100 ? bf.toFixed(0) : bf >= 10 ? bf.toFixed(1) : bf.toFixed(2));
     const dfmt = (d) => DateTime.fromJSDate(d, { zone: b.zone }).setLocale(L === 'ta' ? 'ta-IN' : 'en-GB').toFormat('LLL yyyy');
 
-    // 1. honest score
+    const SYS = ['parasari', 'kp'];
+    const vKind = (v) => (v.logBF > Math.log(20) ? 'strong' : v.logBF > Math.log(3) ? 'moderate' : v.logBF < Math.log(1 / 3) ? 'against' : 'none');
+    const one = (x) => (x > 0 && x < 0.1 ? x.toFixed(2) : Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : x.toFixed(1));
+
+    // 1. honest score, for each rule system, and which fits better
+    const better = r.kpVsParasari > 3 ? 'kp' : r.kpVsParasari < 1 / 3 ? 'parasari' : null;
+    const anyWorks = SYS.some((sys) => r.systems[sys].overall.bf > 3);
     const score = `<div class="card b-res">
         <h2>${t.rScore}</h2>
-        <p class="b-verdict">${t.verdicts[r.overall.verdict]}</p>
-        <p class="hint">${t.bfLine(fmtBF(r.overall.bf))}</p>
+        ${SYS.map((sys) => `<div class="b-sys"><h3>${t.sysName[sys]}</h3><p class="b-verdict">${t.verdicts[r.systems[sys].overall.verdict]}</p><p class="hint">${t.bfShort(fmtBF(r.systems[sys].overall.bf))}</p></div>`).join('')}
+        <p class="b-compare">${better ? t.compareBetter(t.sysName[better], fmtBF(better === 'kp' ? r.kpVsParasari : 1 / r.kpVsParasari)) : t.compareNeither}${anyWorks ? '' : ` ${t.neitherWorks}`}</p>
+        <p class="hint">${t.bfLine(fmtBF(Math.max(r.systems.parasari.overall.bf, r.systems.kp.overall.bf)))}</p>
+        <p class="hint">${t.sysExplain}</p>
       </div>`;
 
     // 2. birth time
@@ -186,24 +194,25 @@ export function initBayes(root, ctx) {
           .map((c) => `<div class="b-bar${c.offsetMin === 0 ? ' stated' : ''}${c.offsetMin === r.usedOffsetMin ? ' used' : ''}"><span>${tm(c.utc)}</span><i style="width:${Math.max(2, (c.post / maxPost) * 100)}%"></i><em>${pct(c.post)}</em></div>`)
           .join('')}</div>`
       : '';
-    const ratio = Math.exp(r.candidates.find((c) => c.offsetMin === r.best.offsetMin).logBF - r.stated.logBF);
     const time = `<div class="card b-res">
         <h2>${t.rTime}</h2>
-        <p>${r.movedTime ? t.timeMoved(tm(r.best.utc), tm(statedUtc), ratio.toFixed(1)) : t.timeKept(tm(statedUtc))}</p>
+        <p>${r.movedTime ? t.timeMoved(tm(r.best.utc), tm(statedUtc), r.best.ratio.toFixed(1)) : t.timeKept(tm(statedUtc))}</p>
         ${r.movedTime ? `<button type="button" class="btn-ghost dark" id="b-use">${t.useTime(tm(r.best.utc))}</button>` : ''}
         ${bars}
       </div>`;
 
-    // 3. per-rule results
-    const rules = Object.entries(r.kinds)
-      .map(([k, v]) => {
-        const fired = v.table.a + v.table.b;
-        const verdict = v.logBF > Math.log(20) ? 'strong' : v.logBF > Math.log(3) ? 'moderate' : v.logBF < Math.log(1 / 3) ? 'against' : 'none';
-        const one = (x) => (x > 0 && x < 0.1 ? x.toFixed(2) : Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : x.toFixed(1));
-        const line = reported[k].length
-          ? t.ruleLine(Math.round(fired), Math.round(v.share * 100), one(v.expected), one(v.hits), reported[k].length)
-          : t.ruleNever(Math.round(fired));
-        return `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${reported[k].length ? t.reported(reported[k].length) : t.never})</span><br>${line}${reported[k].length ? ` <em>${t.ruleVerdict[verdict]}</em>` : ''}</li>`;
+    // 3. per-rule results, both systems
+    const rules = Object.keys(reported)
+      .map((k) => {
+        const n = reported[k].length;
+        const lines = SYS.map((sys) => {
+          const v = r.systems[sys].kinds[k];
+          const fired = v.table.a + v.table.b;
+          if (!v.promised) return `<div class="b-rule-sys"><span class="b-tag">${t.sysShort[sys]}</span> ${n ? t.notPromised : t.notPromisedNever}</div>`;
+          const body = n ? t.ruleLine(Math.round(fired), Math.round(v.share * 100), one(v.expected), one(v.hits), n) : t.ruleNever(Math.round(fired));
+          return `<div class="b-rule-sys"><span class="b-tag">${t.sysShort[sys]}</span> ${body}${n ? ` <em>${t.ruleVerdict[vKind(v)]}</em>` : ''}</div>`;
+        }).join('');
+        return `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${n ? t.reported(n) : t.never})</span>${lines}</li>`;
       })
       .join('');
     const rulesCard = `<div class="card b-res"><h2>${t.rRules}</h2><ul class="b-rules">${rules}</ul></div>`;
@@ -212,9 +221,8 @@ export function initBayes(root, ctx) {
     const seen = new Set();
     const items = r.forecast
       .filter((f) => (seen.has(f.key + f.start.getTime()) ? false : seen.add(f.key + f.start.getTime())))
-      .sort((a, b2) => a.start - b2.start)
       .slice(0, 8)
-      .map((f) => `<li><strong>${dfmt(f.start)} – ${dfmt(f.end)}: ${esc(t.kinds[f.key])}</strong><br>${t.fLine(fmtBF(f.bf))}</li>`)
+      .map((f) => `<li><strong>${dfmt(f.start)} – ${dfmt(f.end)}: ${esc(t.kinds[f.key])}</strong><br>${t.fLine(fmtBF(f.bf))} <span class="b-tag">${t.sysShort[f.system]}</span></li>`)
       .join('');
     const fc = `<div class="card b-res"><h2>${t.rForecast}</h2>
         ${items ? `<p class="hint">${t.forecastNote}</p><ul class="b-rules">${items}</ul>` : `<p>${t.forecastNone}</p>`}

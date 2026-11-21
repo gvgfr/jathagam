@@ -35,9 +35,15 @@ export function lahiriAyanamsaMean(jdTT) {
   return LAHIRI_AYAN_T0 + (generalPrecessionArcsec(jdTT) - P_T0) / 3600;
 }
 
+/** Krishnamurti (KP) ayanamsa: Lahiri minus 0.09685° (5′48.7″), as in Swiss Ephemeris SIDM_KRISHNAMURTI. */
+export const KP_OFFSET = 0.09685;
+export function kpAyanamsaMean(jdTT) {
+  return lahiriAyanamsaMean(jdTT) - KP_OFFSET;
+}
+
 // Registry so further ayanamsas (Raman, KP, ...) or a Vakya engine can be added
 // without touching callers.
-export const AYANAMSAS = { lahiri: lahiriAyanamsaMean };
+export const AYANAMSAS = { lahiri: lahiriAyanamsaMean, kp: kpAyanamsaMean };
 
 // ---------------------------------------------------------------------------
 // Time helpers
@@ -197,4 +203,51 @@ export function siderealLongitude(key, date, opts = {}) {
   const ayan = AYANAMSAS[opts.ayanamsa || 'lahiri'](jdTT(time));
   const trop = key === 'rahu' ? meanNodeTropical(time) : tropicalMeanLon(key, time);
   return norm360(trop - ayan);
+}
+
+/**
+ * Placidus house cusps (sidereal), as used by KP. Returns 12 longitudes,
+ * index 0 = 1st cusp (ascendant). Intermediate cusps by the classical
+ * semi-arc iteration: cusp 11/12 are the points 1/3 and 2/3 of their diurnal
+ * semi-arc east of the MC; cusps 2/3 likewise in the nocturnal semi-arc.
+ * Valid for |latitude| < ~66°.
+ */
+export function placidusCusps(date, lat, lon, opts = {}) {
+  const ayanFn = AYANAMSAS[opts.ayanamsa || 'kp'];
+  const time = makeTime(date);
+  const { dpsiDeg, tobl } = tilt(time);
+  const ramcDeg = norm360(A.SiderealTime(time) * 15 + lon);
+  const eps = tobl * DEG;
+  const phi = lat * DEG;
+  const ramc = ramcDeg * DEG;
+  const lonFromRA = (ra) => norm360(Math.atan2(Math.sin(ra * DEG), Math.cos(ra * DEG) * Math.cos(eps)) / DEG);
+  const decl = (l) => Math.asin(Math.sin(eps) * Math.sin(l * DEG));
+  const ad = (l) => {
+    const x = Math.tan(phi) * Math.tan(decl(l));
+    return Math.asin(Math.max(-1, Math.min(1, x))) / DEG; // ascensional difference
+  };
+  const iterate = (f, below) => {
+    let ra = ramcDeg + (below ? 180 - (1 - f) * 90 : f * 90);
+    for (let i = 0; i < 50; i++) {
+      const l = lonFromRA(ra);
+      const dsa = 90 + ad(l);
+      const nsa = 180 - dsa;
+      const next = below ? ramcDeg + 180 - (1 - f) * nsa : ramcDeg + f * dsa;
+      if (Math.abs(next - ra) < 1e-7) {
+        ra = next;
+        break;
+      }
+      ra = next;
+    }
+    return lonFromRA(ra);
+  };
+  const mc = lonFromRA(ramcDeg);
+  const asc = norm360(Math.atan2(Math.cos(ramc), -(Math.sin(ramc) * Math.cos(eps) + Math.tan(phi) * Math.sin(eps))) / DEG);
+  const c11 = iterate(1 / 3, false);
+  const c12 = iterate(2 / 3, false);
+  const c2 = iterate(1 / 3, true);
+  const c3 = iterate(2 / 3, true);
+  const trop = [asc, c2, c3, mc + 180, c11 + 180, c12 + 180, asc + 180, c2 + 180, c3 + 180, mc, c11, c12];
+  const shift = ayanFn(jdTT(time)) + dpsiDeg;
+  return trop.map((x) => norm360(x - shift));
 }
