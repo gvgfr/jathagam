@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { computeChart } from '../src/engine/index.js';
-import { generatePalan, houseOf, dignity } from '../src/palan/index.js';
+import { generatePalan, houseOf, dignity, analyse } from '../src/palan/index.js';
 
 const refs = JSON.parse(readFileSync(new URL('./reference-charts.json', import.meta.url))).charts;
 const fmt = (a, b) => `${a.toISOString().slice(0, 10)} - ${b.toISOString().slice(0, 10)}`;
@@ -29,10 +29,11 @@ describe('palan text for reference charts', () => {
       it(`${c.name} (${lang})`, () => {
         const now = new Date(new Date(c.utc).getTime() + 30 * 365.25 * 86400000);
         const p = generatePalan(chart, lang, fmt, now);
-        expect(p.sections).toHaveLength(4);
+        expect(p.sections.map((x) => x.key)).toEqual(['highlights', 'dasa', 'gochara', 'yogas', 'areas', 'nature', 'houses', 'planets']);
+        expect(p.sections.find((x) => x.key === 'houses').items).toHaveLength(12);
         const text = [p.note, p.excluded, ...p.sections.flatMap((s) => [s.title, ...s.items])].join('\n');
         expect(text).not.toMatch(/undefined|NaN|null|\[object/);
-        expect(p.sections[3].items).toHaveLength(9);
+        expect(p.sections.find((x) => x.key === 'planets').items).toHaveLength(9);
         // Interpretations never assert death, lifespan or illness outcomes
         if (lang === 'en') {
           const body = p.sections.flatMap((s) => s.items).join(' ');
@@ -42,4 +43,48 @@ describe('palan text for reference charts', () => {
       });
     }
   }
+});
+
+// Synthetic chart for yoga rules: signs only
+function chartOf(lagna, signs) {
+  return {
+    lagnam: { sign: lagna },
+    planets: Object.entries(signs).map(([key, sign]) => ({ key, sign, lon: sign * 30 + 10 })),
+  };
+}
+const base = { sun: 0, moon: 0, mars: 0, mercury: 0, jupiter: 0, venus: 0, saturn: 0, rahu: 2, ketu: 8 };
+const keys = (c) => analyse(c).yogas.map((y) => y.key);
+
+describe('yogams', () => {
+  it('Gajakesari: Guru in a kendra from the Moon', () => {
+    expect(keys(chartOf(0, { ...base, moon: 1, jupiter: 7 }))).toContain('gajakesari');
+    expect(keys(chartOf(0, { ...base, moon: 1, jupiter: 2 }))).not.toContain('gajakesari');
+  });
+  it('Hamsa: Guru exalted in Kadagam in a kendra (Mesham lagnam, 4th)', () => {
+    expect(keys(chartOf(0, { ...base, jupiter: 3 }))).toContain('hamsa');
+  });
+  it('Yogakarakan: Sani for Rishabam lagnam (9th and 10th lord)', () => {
+    const y = analyse(chartOf(1, base)).yogas.find((x) => x.key === 'yogakaraka');
+    expect(y.planets).toEqual(['saturn']);
+  });
+  it('Parivarthana: Sevvai in Rishabam, Sukkiran in Mesham', () => {
+    expect(keys(chartOf(0, { ...base, mars: 1, venus: 0, sun: 4, moon: 5, mercury: 6, jupiter: 8, saturn: 10 }))).toContain('parivarthana');
+  });
+  it('Neecha bhanga: Guru in Magaram with Sani in a kendra', () => {
+    expect(keys(chartOf(0, { ...base, jupiter: 9, saturn: 3 }))).toContain('neechaBhanga');
+  });
+});
+
+describe('lordship', () => {
+  it('Mesham lagnam: Sevvai owns 1st and 8th, Sani owns 10th and 11th', () => {
+    const a = analyse(chartOf(0, base));
+    expect(a.owns('mars')).toEqual([1, 8]);
+    expect(a.owns('saturn')).toEqual([10, 11]);
+    expect(a.lordOf(7)).toBe('venus');
+  });
+  it('aspects: Sani in 1st aspects 3rd, 7th and 10th', () => {
+    const a = analyse(chartOf(0, { ...base, saturn: 0, mars: 5, jupiter: 5 }));
+    expect([3, 7, 10].every((h) => a.aspectsOn(h).includes('saturn'))).toBe(true);
+    expect(a.aspectsOn(4)).not.toContain('saturn');
+  });
 });

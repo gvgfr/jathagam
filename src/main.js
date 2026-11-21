@@ -55,9 +55,17 @@ const dosham = initDosham($('dosham-view'), { lang: () => state.lang, t });
 const VIEWS = ['jathagam', 'porutham', 'dosham'];
 function route() {
   const h = location.hash.slice(1);
-  const view = VIEWS.includes(h) ? h : 'jathagam';
+  // #palan is the jathagam page with the palan readings open
+  const tab = h === 'palan' || VIEWS.includes(h) ? h : 'jathagam';
+  const view = tab === 'palan' ? 'jathagam' : tab;
   for (const v of VIEWS) $(`${v}-view`).hidden = v !== view;
-  document.querySelectorAll('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === view ? 'page' : 'false'));
+  $('palan-hint').hidden = !(tab === 'palan' && !state.last);
+  if (tab === 'palan' && state.last && !state.showPalan) {
+    state.showPalan = true;
+    renderResults(state.last);
+    requestAnimationFrame(() => $('palan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+  document.querySelectorAll('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === tab ? 'page' : 'false'));
 }
 window.addEventListener('hashchange', route);
 route();
@@ -123,7 +131,8 @@ $('birth-form').addEventListener('submit', (e) => {
       conv,
     },
   };
-  state.showPalan = false;
+  state.showPalan = location.hash === '#palan';
+  $('palan-hint').hidden = true;
   renderResults(state.last);
   $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
@@ -280,22 +289,29 @@ function renderResults({ chart, meta }) {
 
   const actions = `<div class="actions no-print">
       <button type="button" class="btn-primary" id="btn-print">${t('print')}</button>
-      <button type="button" class="btn-palan" id="btn-palan" aria-expanded="${state.showPalan}" aria-controls="palan">${state.showPalan ? t('palanHide') : t('palanShow')}</button>
       <button type="button" class="btn-ghost dark" id="btn-edit">${t('edit')}</button>
     </div>`;
 
-  // --- palan (traditional readings), shown on demand
-  let palan = '';
+  // --- palan (traditional readings): a prominent call-to-action, expanded on demand
+  const PALAN_ICON = { highlights: '✦', dasa: '⏳', gochara: '🪐', yogas: '🌟', areas: '🧭', nature: '🌿', houses: '🏠', planets: '☉' };
+  let palan = `
+    <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
+      <div>
+        <h2>${t('palanCtaTitle')}</h2>
+        <p>${t('palanCtaText')}</p>
+      </div>
+      <button type="button" class="btn-cta" id="btn-palan" aria-expanded="${state.showPalan}" aria-controls="palan">${state.showPalan ? t('palanHide') : t('palanShow')}</button>
+    </div>`;
   if (state.showPalan) {
-    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`);
-    palan = `
+    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt));
+    const openByDefault = (key, i) => (isMobile() ? i === 0 : !['houses', 'planets'].includes(key));
+    palan += `
     <div class="card palan" id="palan">
-      <h2>${t('palan')}</h2>
-      <p class="warn">${esc(pl.note)}</p>
+      <p class="palan-note">${esc(pl.note)}</p>
       ${pl.sections
         .map(
-          (sec, i) => `<details class="palan-sec" ${!isMobile() || i === 0 ? 'open' : ''}>
-        <summary><h3>${esc(sec.title)}</h3></summary>
+          (sec, i) => `<details class="palan-sec sec-${sec.key}" ${openByDefault(sec.key, i) ? 'open' : ''}>
+        <summary><span class="ico" aria-hidden="true">${PALAN_ICON[sec.key] || '•'}</span><h3>${esc(sec.title)}</h3></summary>
         <ul>${sec.items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
       </details>`
         )
@@ -310,6 +326,9 @@ function renderResults({ chart, meta }) {
   $('btn-print').addEventListener('click', () => window.print());
   $('btn-palan').addEventListener('click', () => {
     state.showPalan = !state.showPalan;
+    if (state.showPalan && location.hash !== '#palan') history.replaceState(null, '', '#palan');
+    if (!state.showPalan && location.hash === '#palan') history.replaceState(null, '', '#jathagam');
+    route();
     renderResults(state.last);
     if (state.showPalan) $('palan').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });

@@ -68,3 +68,4 @@ export { activePeriod, yearsToYMD } from './dasa.js';
 export { dms } from './nakshatra.js';
 export { porutham, rasisForNakshatra } from './porutham.js';
 export { doshams } from './dosham.js';
+export { gocharam } from './transit.js';

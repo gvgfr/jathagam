@@ -113,6 +113,10 @@ export const UI = {
     palan: 'பலன்கள்',
     palanShow: 'பலன்கள் காண்க',
     palanHide: 'பலன்களை மறை',
+    palanCtaTitle: 'உங்கள் ஜாதக பலன்கள்',
+    palanCtaText: 'நடப்பு தசா–புக்தி, இன்றைய கோசாரம் (ஏழரைச் சனி உட்பட), யோகங்கள், தொழில், திருமணம், செல்வம் — உங்கள் ஜாதகத்துக்கே உரிய பாரம்பரிய பலன்கள், தேதிகளுடன்.',
+    palanHint: 'பலன்கள் காண, கீழே பிறப்பு விவரங்களை உள்ளிட்டு ஜாதகம் கணிக்கவும்.',
+    tabPalan: 'பலன்கள்',
     lang: 'English',
   },
   en: {
@@ -179,9 +183,13 @@ export const UI = {
     am: 'AM',
     pm: 'PM',
     sunrise: 'Sunrise',
-    palan: 'Palan (traditional readings)',
-    palanShow: 'Show palan',
+    palan: 'Palan (predictions)',
+    palanShow: 'Show my palan',
     palanHide: 'Hide palan',
+    palanCtaTitle: 'Your palan (predictions)',
+    palanCtaText: 'Your running dasa–bhukti, today’s transits (including Ezharai Sani), yogams, career, marriage and wealth — traditional readings specific to your chart, with dates.',
+    palanHint: 'To see your palan, enter the birth details below and cast the chart.',
+    tabPalan: 'Palan',
     lang: 'தமிழ்',
   },
 };
@@ -303,6 +311,27 @@ export const DUI = {
     nodeIn: (n, from, h) => `${n} ${from} ${h}`,
     kalaVariant: { sarpa: 'கிரகங்கள் ராகுவிலிருந்து கேது நோக்கி', amirtha: 'கிரகங்கள் கேதுவிலிருந்து ராகு நோக்கி (கால அமிர்தம் எனவும் அழைக்கப்படும்)' },
     kalaOutside: (list) => `அச்சின் மறுபக்கத்தில்: ${list}`,
+    remediesTitle: 'பாரம்பரிய பரிகாரங்கள்',
+    remediesNote: 'இவை பாரம்பரிய நம்பிக்கை சார்ந்த வழிபாடுகள் மட்டுமே; இவை எதையும் மாற்றும் என நிரூபிக்கப்படவில்லை. விருப்பமிருந்தால் மட்டும், இலவசமான அல்லது குறைந்த செலவான வழிகளைத் தேர்ந்தெடுக்கவும். பெரிய தொகை கேட்பவர்களிடமோ, கெடுதல் உறுதி என்று பயமுறுத்துபவர்களிடமோ எச்சரிக்கையாக இருக்கவும்.',
+    remedies: {
+      sevvai: [
+        'செவ்வாய்க்கிழமைகளில் முருகனை வழிபடுதல்; கந்த சஷ்டி கவசம் பாராயணம்.',
+        'வைத்தீஸ்வரன் கோயில் (அங்காரக / செவ்வாய் ஸ்தலம்) தரிசனம்.',
+        'செவ்வாய்க்கிழமை விரதம்; துவரம் பருப்பு, சிவப்பு ஆடை தானம்.',
+        'திருமணப் பொருத்தத்தில் "தோஷ சாம்யம்" — இருவருக்கும் ஒத்த அளவு செவ்வாய் தோஷம் இருந்தால் சமன்படும் என்பது பாரம்பரிய வழக்கம்.',
+      ],
+      raaguKethu: [
+        'ராகு காலத்தில் துர்க்கை அம்மனுக்கு எலுமிச்சை விளக்கு ஏற்றுதல் (குறிப்பாக செவ்வாய், வெள்ளி).',
+        'திருநாகேஸ்வரம் (ராகு ஸ்தலம்), கீழப்பெரும்பள்ளம் (கேது ஸ்தலம்) தரிசனம்.',
+        'நாகர் சிலை / புற்றுக்கு பால் அபிஷேகம், நாக சதுர்த்தி வழிபாடு.',
+        'விநாயகர் வழிபாடு (கேதுவுக்கு).',
+      ],
+      kalaSarpa: [
+        'ஸ்ரீகாளஹஸ்தியில் ராகு–கேது பூஜை.',
+        'திருநாகேஸ்வரம் தரிசனம்; பிரதோஷ நாட்களில் சிவ வழிபாடு.',
+        'மகா மிருத்யுஞ்சய மந்திரம் அல்லது ஓம் நமசிவாய ஜபம்.',
+      ],
+    },
     context: 'சூழல்: லக்னத்திலிருந்து மட்டும் பார்த்தாலே சுமார் 12-ல் 5 பேருக்கு (≈40%) செவ்வாய் தோஷம் விதிப்படி வரும்; சந்திரனிலிருந்தும் சேர்த்தால் இன்னும் அதிகம். இது மிகவும் பொதுவானது.',
   },
   en: {
@@ -339,6 +368,27 @@ export const DUI = {
     nodeIn: (n, from, h) => `${n}: ${from.toLowerCase()}, ${h}`,
     kalaVariant: { sarpa: 'planets run from Raagu towards Kethu', amirtha: 'planets run from Kethu towards Raagu (also called kala amirtha)' },
     kalaOutside: (list) => `On the other side of the axis: ${list}`,
+    remediesTitle: 'Traditional remedies (parigaram)',
+    remediesNote: 'These are traditional devotional practices only; they are not shown to change anything. If you wish, choose free or low-cost ones. Be wary of anyone who asks for large sums or says misfortune is certain unless you pay.',
+    remedies: {
+      sevvai: [
+        'Worship Lord Murugan on Tuesdays (Sevvai-kizhamai); recite Kanda Sashti Kavacham.',
+        'Visit Vaitheeswaran Koil, the Angaraka (Sevvai) sthalam.',
+        'Fast on Tuesdays; donate thuvaram paruppu (toor dal) or red cloth.',
+        'In marriage matching, “dosha saamyam”: tradition considers the dosham balanced when both partners have a similar Sevvai dosham.',
+      ],
+      raaguKethu: [
+        'Light a lemon lamp to Durga during Raagu kaalam (especially Tuesdays and Fridays).',
+        'Visit Thirunageswaram (Raagu sthalam) and Keezhaperumpallam (Kethu sthalam).',
+        'Offer milk at a Nagar idol or snake mound; observe Naga Chathurthi.',
+        'Worship Lord Vinayagar (for Kethu).',
+      ],
+      kalaSarpa: [
+        'Raagu–Kethu pooja at Sri Kalahasti.',
+        'Visit Thirunageswaram; worship Lord Shiva on Pradosham days.',
+        'Chant the Maha Mrityunjaya mantram or Om Namasivaya.',
+      ],
+    },
     context: 'Context: by the lagnam rule alone about 5 in 12 people (≈40%) have Sevvai dosham, and more when the Moon is counted too. It is very common.',
   },
 };

@@ -1,17 +1,22 @@
 // Palan: rule-based traditional readings for one chart, in Tamil or English.
+// Readings combine house lordship, placement, dignity, yogas, aspects, the
+// running dasa/bhukti and today's transits, so they are specific to the chart.
 // Every statement is phrased as what tradition says, never as a certainty.
 import { SIGN_LORDS } from '../engine/constants.js';
 import { activePeriod } from '../engine/dasa.js';
+import { gocharam } from '../engine/transit.js';
 import { NAMES } from '../i18n.js';
-import { KARAKA, HOUSE, SIGN_TRAITS, NAK_TRAITS, DASA_THEME, EXALTATION, BENEFICS, UPACHAYA } from './texts.js';
+import {
+  KARAKA, HOUSE, HOUSE_SHORT, LORD_IN, SIGN_TRAITS, NAK_TRAITS, DASA_THEME,
+  EXALTATION, BENEFICS, UPACHAYA, YOGA, GOCHARA,
+} from './texts.js';
 
-/** House (1-12, whole-sign from lagnam) of a sign index. */
-export const houseOf = (sign, lagnaSign) => ((sign - lagnaSign + 12) % 12) + 1;
-
-const ord = (n) => {
-  const s = n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th';
-  return `${n}${s}`;
-};
+/** House (1-12, whole-sign) of a sign counted from another sign. */
+export const houseOf = (sign, fromSign) => ((sign - fromSign + 12) % 12) + 1;
+const KENDRA = [1, 4, 7, 10];
+const TRIKONA = [1, 5, 9];
+const ord = (n) => `${n}${n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th'}`;
+const fill = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k]);
 
 export function dignity(key, sign) {
   if (!(key in EXALTATION)) return null;
@@ -21,56 +26,165 @@ export function dignity(key, sign) {
   return null;
 }
 
+// Special aspects (drishti): every planet aspects the 7th; Mars also 4th & 8th,
+// Jupiter 5th & 9th, Saturn 3rd & 10th (counted from its own house).
+const ASPECTS = { mars: [4, 7, 8], jupiter: [5, 7, 9], saturn: [3, 7, 10] };
+const aspectOffsets = (key) => ASPECTS[key] || [7];
+
+/** Analysis independent of language: lordships, placements, yogas. */
+export function analyse(chart) {
+  const lag = chart.lagnam.sign;
+  const by = Object.fromEntries(chart.planets.map((p) => [p.key, p]));
+  const house = (key) => houseOf(by[key].sign, lag);
+  const lordOf = (h) => SIGN_LORDS[(lag + h - 1) % 12];
+  const owns = (key) => [...Array(12).keys()].map((i) => i + 1).filter((h) => lordOf(h) === key);
+  const occupants = (h) => chart.planets.filter((p) => house(p.key) === h).map((p) => p.key);
+  const aspectsOn = (h) =>
+    chart.planets
+      .filter((p) => !['rahu', 'ketu'].includes(p.key))
+      .filter((p) => aspectOffsets(p.key).some((o) => ((house(p.key) - 1 + o - 1) % 12) + 1 === h))
+      .map((p) => p.key);
+
+  const yogas = [];
+  const moonSign = by.moon.sign;
+  if (KENDRA.includes(houseOf(by.jupiter.sign, moonSign))) yogas.push({ key: 'gajakesari' });
+  if (by.sun.sign === by.mercury.sign) yogas.push({ key: 'budhaAditya' });
+  if (by.moon.sign === by.mars.sign) yogas.push({ key: 'chandraMangala' });
+  const MAHA = { mars: 'ruchaka', mercury: 'bhadra', jupiter: 'hamsa', venus: 'malavya', saturn: 'sasa' };
+  for (const [k, y] of Object.entries(MAHA)) {
+    const d = dignity(k, by[k].sign);
+    if ((d === 'own' || d === 'exalted') && KENDRA.includes(house(k))) yogas.push({ key: y });
+  }
+  // Yogakarakan: one planet ruling a kendra and a trikona (other than the 1st)
+  for (const k of ['mars', 'venus', 'saturn', 'jupiter', 'mercury', 'moon', 'sun']) {
+    const o = owns(k);
+    if (o.some((h) => [4, 7, 10].includes(h)) && o.some((h) => [5, 9].includes(h))) yogas.push({ key: 'yogakaraka', planets: [k] });
+  }
+  // Raja yogam: a kendra lord and a trikona lord (different planets) in the same sign
+  const seven = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn'];
+  const pairs = (a, b) => {
+    const out = [];
+    for (const x of seven)
+      for (const y of seven)
+        if (x < y && by[x].sign === by[y].sign && ((a(x) && b(y)) || (a(y) && b(x)))) out.push([x, y]);
+    return out;
+  };
+  const isKendraL = (k) => owns(k).some((h) => [4, 7, 10].includes(h));
+  const isTrikonaL = (k) => owns(k).some((h) => [1, 5, 9].includes(h));
+  for (const pr of pairs(isKendraL, isTrikonaL)) yogas.push({ key: 'raja', planets: pr });
+  const isDhanaL = (k) => owns(k).some((h) => [2, 11].includes(h));
+  const isBhagyaL = (k) => owns(k).some((h) => [5, 9].includes(h));
+  for (const pr of pairs(isDhanaL, isBhagyaL)) yogas.push({ key: 'dhana', planets: pr });
+  // Parivarthana: exchange of signs
+  for (const x of seven)
+    for (const y of seven)
+      if (x < y && SIGN_LORDS[by[x].sign] === y && SIGN_LORDS[by[y].sign] === x)
+        yogas.push({ key: 'parivarthana', planets: [x, y], houses: [house(x), house(y)] });
+  // Neecha bhanga: debilitated planet whose sign lord is in a kendra from lagnam or Moon
+  for (const k of seven) {
+    if (dignity(k, by[k].sign) !== 'debilitated') continue;
+    const l = SIGN_LORDS[by[k].sign];
+    if (KENDRA.includes(house(l)) || KENDRA.includes(houseOf(by[l].sign, moonSign))) yogas.push({ key: 'neechaBhanga', planets: [k] });
+  }
+  return { lag, by, house, lordOf, owns, occupants, aspectsOn, yogas };
+}
+
 const T = {
   en: {
-    note: 'These readings are traditional jothidam meanings applied to this chart. They are cultural beliefs, not scientifically proven predictions. Please don’t base major decisions on them alone.',
-    excluded: 'Not covered on purpose: health, lifespan and dosham verdicts. For these, please consult a doctor or a trusted elder or astrologer who knows the whole family context.',
-    sec: { nature: 'Nature and temperament', dasa: 'Current period (dasa / bhukti)', areas: 'Areas of life', planets: 'Planet by planet' },
+    note: 'These readings apply traditional jothidam rules to this chart: house lords, placements, yogas, the running dasa and today’s transits. They are cultural beliefs, not scientifically proven predictions — please don’t base major decisions on them alone.',
+    excluded: 'Not covered on purpose: health, lifespan and dosham verdicts (see the Dosham tab).',
+    sec: { highlights: 'Key points', nature: 'Nature and temperament', dasa: 'Your current period (dasa / bhukti)', gochara: 'Transits today (gocharam)', yogas: 'Yogams in your chart', areas: 'Areas of life', houses: 'House by house', planets: 'Planet by planet' },
     lagnam: (s, tr) => `Lagnam in ${s}: tradition describes the personality as ${tr}.`,
-    rasi: (s, tr) => `Moon in ${s} (your rasi): the mind and emotions are traditionally described as ${tr}.`,
-    nak: (n, p, tr, lord) => `Born in ${n} nakshatram, padam ${p}: traditionally ${tr}. Its lord ${lord} colours the outlook.`,
-    dasaNow: (l, r, th) => `You are in ${l} mahadasa (${r}). This period is traditionally associated with ${th}.`,
-    dasaHouse: (l, h, th) => `${l} sits in your ${ord(h)} house, so these themes are expected to touch ${th}.`,
-    bhukti: (b, r, th, h, hth) => `Current bhukti: ${b} (${r}) — traditionally brings ${th}, with focus on the ${ord(h)} house (${hth}).`,
+    lagnaLord: (l, h, ph) => `Your lagna lord ${l} sits in the ${ord(h)} house, so your life’s focus traditionally turns towards ${ph}.`,
+    rasi: (s, tr) => `Moon in ${s} (your rasi): the mind and emotions are traditionally ${tr}.`,
+    nak: (n, p, tr, lord) => `Born in ${n} nakshatram, padam ${p}: traditionally ${tr}. Its lord ${lord} sets your dasa sequence.`,
+    join: ' ',
+    rules: (l, hs) => `${l} rules your ${hs}`,
+    actsAs: (l, sl) => `${l} acts for its sign lord ${sl}`,
+    placed: (h, th) => `and sits in the ${ord(h)} house (${th})`,
+    dasaNow: (l, r) => `You are in ${l} mahadasa (${r}).`,
+    dasaExpect: (rule, th) => `${rule}. Tradition expects this period to bring forward ${th}.`,
+    dasaGeneral: (l, th) => `In general, ${l} dasa is associated with ${th}.`,
+    dasaStrength: { exalted: 'Its lord is exalted — traditionally a strong, productive period.', own: 'Its lord is in its own sign — traditionally a well-supported period.', debilitated: 'Its lord is debilitated — traditionally results come with effort and some delay.' },
+    bhuktiNow: 'Current bhukti',
+    bhuktiNext: 'Coming bhuktis',
+    bhukti: (b, r, rule, th) => `${r}: ${b} bhukti — ${rule}. Focus: ${th}.`,
     next: (l, r, th) => `Next mahadasa: ${l} (${r}) — traditionally ${th}.`,
-    noDasa: 'The current date is outside the computed 120-year dasa sequence.',
-    area: (h, sign, lord, lh, lth) => `Your ${ord(h)} house is ${sign}, ruled by ${lord}, placed in your ${ord(lh)} house. Tradition links this area with ${lth}.`,
-    occupants: (list) => `Planets here: ${list}.`,
-    karaka: (p, h, th) => `${p}, the natural significator, is in your ${ord(h)} house (${th}).`,
-    areas: { career: 'Career (10th house)', marriage: 'Marriage and partnership (7th house)', education: 'Education and intellect (5th house)', wealth: 'Wealth and income (2nd and 11th houses)', family: 'Home, mother and family (4th house)' },
+    noDasa: 'The current date is outside the computed dasa sequence.',
+    houses: (hs) => (hs.length === 1 ? `${ord(hs[0])} house` : `${hs.slice(0, -1).map(ord).join(', ')} and ${ord(hs.at(-1))} houses`),
+    since: (a, b) => `(${a} → about ${b})`,
+    sadeNext: (d) => `Ezharai Sani (7½-year Saturn) is not running now; the next one traditionally begins around ${d}.`,
+    sadeSpan: (a, b) => `Runs from about ${a} to ${b}.`,
+    yogaNone: 'None of the commonly listed yogams are formed. Tradition says the dasa periods of well-placed planets still bring their own results.',
+    area: (h, sign, lord, lh, lth) => `Your ${ord(h)} house is ${sign}; its lord ${lord} sits in the ${ord(lh)} house, so these matters ${lth}.`,
+    occupants: (list) => `Planets in this house: ${list}.`,
+    aspected: (list) => `Aspected by ${list}.`,
+    guruAspect: 'Guru’s aspect is traditionally protective here.',
+    saniAspect: 'Sani’s aspect traditionally brings delay but durable results.',
+    timing: (list) => `Periods traditionally linked with this: ${list}.`,
+    areas: { career: 'Career (10th house)', marriage: 'Marriage (7th house)', children: 'Children (5th house)', education: 'Education (4th & 5th)', wealth: 'Wealth (2nd & 11th)', home: 'Home and property (4th house)' },
+    houseLine: (h, hs, lord, lh, phrase, dig) => `${ord(h)} house (${hs}): lord ${lord} in the ${ord(lh)} — ${hs} ${phrase}.${dig}`,
     place: (p, k, h, th) => `${p} (${k}) is in your ${ord(h)} house — ${th}.`,
-    benefic: 'Tradition sees this as supportive: its qualities are expected to flow into these areas.',
-    malefic: 'Tradition sees this as an area of effort and testing, where results come through persistence.',
-    upachaya: (h) => `Malefics in the ${ord(h)} house are traditionally considered favourable — they give the drive to overcome and grow.`,
-    exalted: (p, s) => `${p} is exalted (uchcham) in ${s} — traditionally its strongest state.`,
-    own: (p, s) => `${p} is in its own sign (aatchi), ${s} — traditionally a strong state.`,
-    debilitated: (p, s) => `${p} is debilitated (neecham) in ${s} — tradition says its results come with delay or after effort.`,
-    retro: (p) => `${p} is vakram (retrograde) — traditionally its matters are revisited or come later.`,
+    benefic: 'Traditionally supportive here.',
+    malefic: 'Traditionally an area of effort and testing, where results come through persistence.',
+    upachaya: (h) => `Malefics in the ${ord(h)} house are traditionally favourable — they give the drive to overcome and grow.`,
+    exalted: (p, s) => ` ${p} is exalted (uchcham) in ${s} — traditionally its strongest state.`,
+    own: (p, s) => ` ${p} is in its own sign (aatchi), ${s} — traditionally strong.`,
+    debilitated: (p, s) => ` ${p} is debilitated (neecham) in ${s} — traditionally results come with delay or after effort.`,
+    retro: (p) => ` ${p} is vakram — traditionally its matters are revisited or come later.`,
+    hlStrong: (list) => `Strong planets: ${list}.`,
+    hlYogas: (list) => `Yogams: ${list}.`,
+    hlDasa: (d, b, until) => `Running ${d} dasa – ${b} bhukti until ${until}.`,
+    hlCareer: (l, h) => `Career lord ${l} in the ${ord(h)} house.`,
+    hlMarriage: (l, h) => `Marriage lord ${l} in the ${ord(h)} house.`,
   },
   ta: {
-    note: 'இவை இந்த ஜாதகத்திற்குப் பொருத்தப்பட்ட பாரம்பரிய ஜோதிடப் பலன்கள். இவை கலாச்சார நம்பிக்கைகள்; அறிவியல் ரீதியாக நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல. முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
-    excluded: 'வேண்டுமென்றே சேர்க்கப்படாதவை: உடல்நலம், ஆயுள், தோஷ தீர்ப்புகள். இவற்றுக்கு மருத்துவரையோ, குடும்பச் சூழலை அறிந்த நம்பகமான பெரியவரையோ ஜோதிடரையோ அணுகவும்.',
-    sec: { nature: 'குணமும் இயல்பும்', dasa: 'நடப்பு காலம் (தசை / புக்தி)', areas: 'வாழ்க்கைப் பகுதிகள்', planets: 'கிரக வாரியாக' },
+    note: 'இவை இந்த ஜாதகத்துக்கு பாரம்பரிய ஜோதிட விதிகளைப் பொருத்திய பலன்கள்: வீட்டு அதிபதிகள், கிரக நிலைகள், யோகங்கள், நடப்பு தசை, இன்றைய கோசாரம். இவை கலாச்சார நம்பிக்கைகள்; அறிவியல் ரீதியாக நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல — முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
+    excluded: 'வேண்டுமென்றே சேர்க்கப்படாதவை: உடல்நலம், ஆயுள், தோஷ தீர்ப்புகள் (தோஷம் பகுதியைப் பார்க்கவும்).',
+    sec: { highlights: 'முக்கிய அம்சங்கள்', nature: 'குணமும் இயல்பும்', dasa: 'நடப்பு காலம் (தசை / புக்தி)', gochara: 'இன்றைய கோசாரம்', yogas: 'உங்கள் ஜாதகத்தில் யோகங்கள்', areas: 'வாழ்க்கைப் பகுதிகள்', houses: 'வீடு வாரியாக', planets: 'கிரக வாரியாக' },
     lagnam: (s, tr) => `லக்னம் ${s}: பாரம்பரியமாக குணம் — ${tr}.`,
+    lagnaLord: (l, h, ph) => `லக்னாதிபதி ${l} ${h}-ஆம் வீட்டில் உள்ளதால், வாழ்க்கையின் கவனம் பாரம்பரியமாக ${ph} நோக்கித் திரும்பும்.`,
     rasi: (s, tr) => `சந்திரன் ${s} ராசியில் (உங்கள் ராசி): மனமும் உணர்வுகளும் பாரம்பரியமாக — ${tr}.`,
-    nak: (n, p, tr, lord) => `${n} நட்சத்திரம், ${p}-ஆம் பாதம்: பாரம்பரியமாக ${tr}. நட்சத்திர அதிபதி ${lord} கண்ணோட்டத்தை வடிவமைக்கிறார்.`,
-    dasaNow: (l, r, th) => `நீங்கள் ${l} மகா தசையில் இருக்கிறீர்கள் (${r}). இந்தக் காலம் பாரம்பரியமாக ${th} ஆகியவற்றுடன் தொடர்புடையது.`,
-    dasaHouse: (l, h, th) => `${l} உங்கள் ${h}-ஆம் வீட்டில் உள்ளதால், இந்தப் பலன்கள் ${th} ஆகியவற்றைத் தொடும் என்பது நம்பிக்கை.`,
-    bhukti: (b, r, th, h, hth) => `நடப்பு புக்தி: ${b} (${r}) — பாரம்பரியமாக ${th}; ${h}-ஆம் வீட்டு விஷயங்களில் (${hth}) கவனம்.`,
+    nak: (n, p, tr, lord) => `${n} நட்சத்திரம், ${p}-ஆம் பாதம்: பாரம்பரியமாக ${tr}. நட்சத்திர அதிபதி ${lord} உங்கள் தசா வரிசையைத் தொடங்குகிறார்.`,
+    join: '; ',
+    rules: (l, hs) => `${l} உங்கள் ${hs} அதிபதி`,
+    actsAs: (l, sl) => `${l} தான் இருக்கும் ராசியின் அதிபதி ${sl} போல் செயல்படும்`,
+    placed: (h, th) => `${h}-ஆம் வீட்டில் (${th}) உள்ளார்`,
+    dasaNow: (l, r) => `நீங்கள் ${l} மகா தசையில் இருக்கிறீர்கள் (${r}).`,
+    dasaExpect: (rule, th) => `${rule}. இந்தக் காலம் பாரம்பரியமாக ${th} ஆகியவற்றை முன்னுக்குக் கொண்டுவரும்.`,
+    dasaGeneral: (l, th) => `பொதுவாக ${l} தசை ${th} ஆகியவற்றுடன் தொடர்புடையது.`,
+    dasaStrength: { exalted: 'தசா நாதன் உச்சம் — பாரம்பரியமாக வலுவான, பலன் தரும் காலம்.', own: 'தசா நாதன் ஆட்சி — பாரம்பரியமாக நல்ல ஆதரவுள்ள காலம்.', debilitated: 'தசா நாதன் நீசம் — பாரம்பரியமாக முயற்சிக்குப் பின், சிறு தாமதத்துடன் பலன்.' },
+    bhuktiNow: 'நடப்பு புக்தி',
+    bhuktiNext: 'அடுத்து வரும் புக்திகள்',
+    bhukti: (b, r, rule, th) => `${r}: ${b} புக்தி — ${rule}. கவனம்: ${th}.`,
     next: (l, r, th) => `அடுத்த மகா தசை: ${l} (${r}) — பாரம்பரியமாக ${th}.`,
-    noDasa: 'இன்றைய தேதி கணிக்கப்பட்ட 120 ஆண்டு தசா வரிசைக்கு வெளியே உள்ளது.',
-    area: (h, sign, lord, lh, lth) => `${h}-ஆம் வீடு ${sign}, அதிபதி ${lord}, உங்கள் ${lh}-ஆம் வீட்டில் உள்ளார். பாரம்பரியமாக இந்தப் பகுதி ${lth} ஆகியவற்றுடன் இணைகிறது.`,
-    occupants: (list) => `இங்குள்ள கிரகங்கள்: ${list}.`,
-    karaka: (p, h, th) => `காரக கிரகம் ${p} உங்கள் ${h}-ஆம் வீட்டில் (${th}) உள்ளது.`,
-    areas: { career: 'தொழில் (10-ஆம் வீடு)', marriage: 'திருமணம், கூட்டாண்மை (7-ஆம் வீடு)', education: 'கல்வி, அறிவு (5-ஆம் வீடு)', wealth: 'செல்வம், வருமானம் (2, 11-ஆம் வீடுகள்)', family: 'வீடு, தாய், குடும்பம் (4-ஆம் வீடு)' },
+    noDasa: 'இன்றைய தேதி கணிக்கப்பட்ட தசா வரிசைக்கு வெளியே உள்ளது.',
+    houses: (hs) => `${hs.join(', ')}-ஆம் வீடுகளுக்கு`.replace(/வீடுகளுக்கு$/, hs.length === 1 ? 'வீட்டுக்கு' : 'வீடுகளுக்கு'),
+    since: (a, b) => `(${a} → சுமார் ${b})`,
+    sadeNext: (d) => `ஏழரைச் சனி இப்போது நடக்கவில்லை; அடுத்தது பாரம்பரியமாக சுமார் ${d} அன்று தொடங்கும்.`,
+    sadeSpan: (a, b) => `சுமார் ${a} முதல் ${b} வரை.`,
+    yogaNone: 'பொதுவாகக் குறிப்பிடப்படும் யோகங்கள் எதுவும் அமையவில்லை. நல்ல நிலையில் உள்ள கிரகங்களின் தசா காலங்கள் தங்கள் பலனைத் தரும் என்பது பாரம்பரியம்.',
+    area: (h, sign, lord, lh, lth) => `${h}-ஆம் வீடு ${sign}; அதிபதி ${lord} ${lh}-ஆம் வீட்டில் — இந்த விஷயங்கள் ${lth}.`,
+    occupants: (list) => `இந்த வீட்டில் உள்ள கிரகங்கள்: ${list}.`,
+    aspected: (list) => `பார்வை: ${list}.`,
+    guruAspect: 'குருவின் பார்வை பாரம்பரியமாக இங்கு பாதுகாப்பு தரும்.',
+    saniAspect: 'சனியின் பார்வை பாரம்பரியமாக தாமதம் தரும், ஆனால் நீடித்த பலன்.',
+    timing: (list) => `பாரம்பரியமாக இதற்குத் தொடர்புடைய காலங்கள்: ${list}.`,
+    areas: { career: 'தொழில் (10-ஆம் வீடு)', marriage: 'திருமணம் (7-ஆம் வீடு)', children: 'குழந்தைகள் (5-ஆம் வீடு)', education: 'கல்வி (4, 5-ஆம் வீடுகள்)', wealth: 'செல்வம் (2, 11-ஆம் வீடுகள்)', home: 'வீடு, சொத்து (4-ஆம் வீடு)' },
+    houseLine: (h, hs, lord, lh, phrase, dig) => `${h}-ஆம் வீடு (${hs}): அதிபதி ${lord} ${lh}-இல் — ${hs} விஷயங்கள் ${phrase}.${dig}`,
     place: (p, k, h, th) => `${p} (${k}) உங்கள் ${h}-ஆம் வீட்டில் — ${th}.`,
-    benefic: 'பாரம்பரியமாக இது சாதகமாகக் கருதப்படுகிறது — இதன் குணங்கள் இந்த விஷயங்களில் வெளிப்படும் என்பது நம்பிக்கை.',
-    malefic: 'பாரம்பரியமாக இது முயற்சியும் சோதனையும் உள்ள பகுதி — விடாமுயற்சியால் பலன் கிடைக்கும் என்பது நம்பிக்கை.',
-    upachaya: (h) => `${h}-ஆம் வீட்டில் பாவ கிரகங்கள் இருப்பது பாரம்பரியமாக நல்லதாகக் கருதப்படுகிறது — தடைகளை வென்று வளர உந்துதல் தரும்.`,
-    exalted: (p, s) => `${p} ${s} ராசியில் உச்சம் — பாரம்பரியமாக மிக வலுவான நிலை.`,
-    own: (p, s) => `${p} சொந்த ராசியான ${s} ராசியில் ஆட்சி — பாரம்பரியமாக வலுவான நிலை.`,
-    debilitated: (p, s) => `${p} ${s} ராசியில் நீசம் — பாரம்பரியமாக இதன் பலன்கள் தாமதமாகவோ முயற்சிக்குப் பின்னரோ கிடைக்கும்.`,
-    retro: (p) => `${p} வக்ரம் — பாரம்பரியமாக இதன் விஷயங்கள் மீண்டும் கவனத்துக்கு வரும் அல்லது தாமதமாகக் கிடைக்கும்.`,
+    benefic: 'பாரம்பரியமாக இங்கு சாதகம்.',
+    malefic: 'பாரம்பரியமாக முயற்சியும் சோதனையும் உள்ள பகுதி — விடாமுயற்சியால் பலன்.',
+    upachaya: (h) => `${h}-ஆம் வீட்டில் பாவ கிரகங்கள் பாரம்பரியமாக நல்லது — தடைகளை வென்று வளர உந்துதல் தரும்.`,
+    exalted: (p, s) => ` ${p} ${s} ராசியில் உச்சம் — பாரம்பரியமாக மிக வலுவான நிலை.`,
+    own: (p, s) => ` ${p} சொந்த ராசியான ${s} ராசியில் ஆட்சி — பாரம்பரியமாக வலுவான நிலை.`,
+    debilitated: (p, s) => ` ${p} ${s} ராசியில் நீசம் — பாரம்பரியமாக பலன்கள் தாமதமாகவோ முயற்சிக்குப் பின்னரோ கிடைக்கும்.`,
+    retro: (p) => ` ${p} வக்ரம் — பாரம்பரியமாக இதன் விஷயங்கள் மீண்டும் கவனத்துக்கு வரும் அல்லது தாமதமாகக் கிடைக்கும்.`,
+    hlStrong: (list) => `பலமான கிரகங்கள்: ${list}.`,
+    hlYogas: (list) => `யோகங்கள்: ${list}.`,
+    hlDasa: (d, b, until) => `${d} தசை – ${b} புக்தி, ${until} வரை.`,
+    hlCareer: (l, h) => `தொழில் அதிபதி ${l} ${h}-ஆம் வீட்டில்.`,
+    hlMarriage: (l, h) => `திருமண அதிபதி ${l} ${h}-ஆம் வீட்டில்.`,
   },
 };
 
@@ -79,84 +193,176 @@ const T = {
  * @param {'ta'|'en'} lang
  * @param {(start: Date, end: Date) => string} fmtRange date range formatter
  * @param {Date} [now]
- * @returns {{note: string, excluded: string, sections: {title: string, items: string[]}[]}}
+ * @param {(d: Date) => string} [fmtDate] single date formatter
+ * @returns {{note: string, excluded: string, sections: {key: string, title: string, items: string[]}[]}}
  */
-export function generatePalan(chart, lang, fmtRange, now = new Date()) {
+export function generatePalan(chart, lang, fmtRange, now = new Date(), fmtDate = (d) => d.toISOString().slice(0, 10)) {
   const t = T[lang];
   const g = (k) => NAMES.graha[lang][k];
   const sign = (i) => NAMES.rasi[lang][i];
-  const lag = chart.lagnam.sign;
-  const by = Object.fromEntries(chart.planets.map((p) => [p.key, p]));
-  const hOf = (key) => houseOf(by[key].sign, lag);
-  const occupants = (h) => chart.planets.filter((p) => houseOf(p.sign, lag) === h);
-
-  // --- nature
+  const A = analyse(chart);
+  const { lag, by, house, lordOf, owns, occupants, aspectsOn } = A;
   const s = chart.summary;
+  const hs = (h) => HOUSE_SHORT[h][lang];
+  const digText = (k) => {
+    const d = dignity(k, by[k].sign);
+    return d ? t[d](g(k), sign(by[k].sign)) : '';
+  };
+
+  // Rule description for a dasa/bhukti lord (lordship + placement)
+  const ruleOf = (k) => {
+    if (k === 'rahu' || k === 'ketu') {
+      const sl = SIGN_LORDS[by[k].sign];
+      return `${t.actsAs(g(k), g(sl))}${t.join}${t.placed(house(k), hs(house(k)))}`;
+    }
+    return `${t.rules(g(k), t.houses(owns(k)))}${t.join}${t.placed(house(k), hs(house(k)))}`;
+  };
+  const themesOf = (k) => {
+    const hsList = k === 'rahu' || k === 'ketu' ? [house(k)] : [...owns(k), house(k)];
+    return [...new Set(hsList)].map(hs).join('; ');
+  };
+
+  // ---------------- nature
+  const ll = lordOf(1);
   const nature = [
     t.lagnam(sign(lag), SIGN_TRAITS[lag][lang]),
+    t.lagnaLord(g(ll), house(ll), HOUSE[house(ll)][lang]) + digText(ll),
     t.rasi(sign(s.rasi), SIGN_TRAITS[s.rasi][lang]),
     t.nak(NAMES.nakshatra[lang][s.nakshatra], s.pada, NAK_TRAITS[s.nakshatra][lang], g(s.nakshatraLord)),
   ];
 
-  // --- dasa
+  // ---------------- dasa
   const dasa = [];
   const act = activePeriod(chart.dasa, now);
   if (act) {
     const L = act.dasa.lord;
-    dasa.push(t.dasaNow(g(L), fmtRange(act.dasa.start, act.dasa.end), DASA_THEME[L][lang]));
-    dasa.push(t.dasaHouse(g(L), hOf(L), HOUSE[hOf(L)][lang]));
-    if (act.bhukti) {
-      const B = act.bhukti.lord;
-      dasa.push(t.bhukti(g(B), fmtRange(act.bhukti.start, act.bhukti.end), DASA_THEME[B][lang], hOf(B), HOUSE[hOf(B)][lang]));
-    }
+    dasa.push(t.dasaNow(g(L), fmtRange(act.dasa.start, act.dasa.end)));
+    dasa.push(t.dasaExpect(ruleOf(L), themesOf(L)));
+    dasa.push(t.dasaGeneral(g(L), DASA_THEME[L][lang]));
+    const dg = dignity(L, by[L].sign);
+    if (dg) dasa.push(t.dasaStrength[dg]);
+    const all = chart.dasa.periods.flatMap((p) => p.bhuktis.map((b) => ({ ...b, dasaLord: p.lord })));
+    const bi = all.findIndex((b) => b.start <= now && now < b.end);
+    all.slice(bi, bi + 4).forEach((b, i) => {
+      const label = i === 0 ? `${t.bhuktiNow} · ` : '';
+      dasa.push(label + t.bhukti(`${g(b.dasaLord)}–${g(b.lord)}`, fmtRange(b.start, b.end), ruleOf(b.lord), themesOf(b.lord)));
+    });
     const i = chart.dasa.periods.indexOf(act.dasa);
     const nx = chart.dasa.periods[i + 1];
     if (nx) dasa.push(t.next(g(nx.lord), fmtRange(nx.start, nx.end), DASA_THEME[nx.lord][lang]));
   } else dasa.push(t.noDasa);
 
-  // --- life areas
-  const area = (name, houses, karakas) => {
-    const items = [];
+  // ---------------- gocharam (transits now, from the Moon sign)
+  const go = gocharam(s.rasi, now);
+  const gochara = [];
+  const span = (x) => (x.since && x.until ? ` ${t.since(fmtDate(x.since), fmtDate(x.until))}` : '');
+  const st = go.saturn;
+  const sh = st.house;
+  const hTxt = (h) => (lang === 'en' ? ord(h) : String(h));
+  let satLine;
+  if (go.sadeSati.active) satLine = `${GOCHARA.saturn.sade[go.sadeSati.phase][lang]} ${t.sadeSpan(fmtDate(go.sadeSati.start), fmtDate(go.sadeSati.end))}`;
+  else if (sh === 4 || sh === 8) satLine = GOCHARA.saturn[sh][lang];
+  else satLine = fill(GOCHARA.saturn[[3, 6, 11].includes(sh) ? 'good' : 'mixed'][lang], { h: hTxt(sh) });
+  gochara.push(`${g('saturn')} → ${sign(st.sign)}${span(st)}: ${satLine}`);
+  if (!go.sadeSati.active && go.sadeSati.nextStart) gochara.push(t.sadeNext(fmtDate(go.sadeSati.nextStart)));
+  const jt = go.jupiter;
+  gochara.push(`${g('jupiter')} → ${sign(jt.sign)}${span(jt)}: ${fill(GOCHARA.jupiter[[2, 5, 7, 9, 11].includes(jt.house) ? 'good' : 'weak'][lang], { h: hTxt(jt.house) })}`);
+  const rt = go.rahu;
+  gochara.push(`${g('rahu')} → ${sign(rt.sign)}${span(rt)}: ${fill(GOCHARA.rahu[[3, 6, 11].includes(rt.house) ? 'good' : 'weak'][lang], { h: hTxt(rt.house) })}`);
+
+  // ---------------- yogas
+  const yogaName = (y) => YOGA[y.key].name[lang];
+  const yogas = A.yogas.length
+    ? A.yogas.map((y) => {
+        const p = (y.planets || []).map(g).join(lang === 'en' ? ' + ' : ' + ');
+        const h = y.houses ? (lang === 'en' ? `${hs(y.houses[0])} and ${hs(y.houses[1])}` : `${hs(y.houses[0])}, ${hs(y.houses[1])}`) : '';
+        return `${yogaName(y)} — ${fill(YOGA[y.key][lang], { p, h })}`;
+      })
+    : [t.yogaNone];
+
+  // ---------------- life areas, with timing from future dasa/bhuktis
+  const birth = chart.input.utc;
+  const age = (d) => (d - birth) / (365.25 * 86400000);
+  const future = chart.dasa.periods.flatMap((p) => p.bhuktis.map((b) => ({ ...b, dasaLord: p.lord }))).filter((b) => b.end > now);
+  const timingFor = (lords, minAge, maxAge) => {
+    const list = future
+      .filter((b) => lords.includes(b.lord) && age(b.start) <= maxAge && age(b.end) >= minAge)
+      .slice(0, 3)
+      .map((b) => `${g(b.dasaLord)}–${g(b.lord)} (${fmtRange(b.start, b.end)})`);
+    return list.length ? t.timing(list.join('; ')) : '';
+  };
+  const area = (name, houses, karakas, timing) => {
+    const parts = [];
     for (const h of houses) {
       const sg = (lag + h - 1) % 12;
       const lord = SIGN_LORDS[sg];
-      const lh = hOf(lord);
-      items.push(t.area(h, sign(sg), g(lord), lh, HOUSE[lh][lang]));
+      const lh = house(lord);
+      parts.push(t.area(h, sign(sg), g(lord), lh, LORD_IN[lh][lang]) + digText(lord));
       const occ = occupants(h);
-      if (occ.length) items.push(t.occupants(occ.map((p) => `${g(p.key)} (${KARAKA[p.key][lang]})`).join('; ')));
+      if (occ.length) parts.push(t.occupants(occ.map((k) => `${g(k)} (${KARAKA[k][lang]})`).join('; ')));
+      const asp = aspectsOn(h).filter((k) => !occ.includes(k));
+      if (asp.length) {
+        parts.push(t.aspected(asp.map(g).join(', ')));
+        if (asp.includes('jupiter')) parts.push(t.guruAspect);
+        if (asp.includes('saturn')) parts.push(t.saniAspect);
+      }
     }
-    for (const k of karakas) items.push(t.karaka(g(k), hOf(k), HOUSE[hOf(k)][lang]));
-    return `${name} — ${items.join(' ')}`;
+    for (const k of karakas) parts.push(t.place(g(k), KARAKA[k][lang], house(k), hs(house(k))));
+    if (timing) parts.push(timing);
+    return `${name} — ${parts.join(' ')}`;
   };
+  const l7 = lordOf(7);
+  const l10 = lordOf(10);
+  const l5 = lordOf(5);
   const areas = [
-    area(t.areas.career, [10], ['sun', 'saturn']),
-    area(t.areas.marriage, [7], ['venus']),
-    area(t.areas.education, [5], ['mercury', 'jupiter']),
-    area(t.areas.wealth, [2, 11], ['jupiter']),
-    area(t.areas.family, [4], ['moon']),
+    area(t.areas.career, [10], ['sun', 'saturn'], timingFor([l10, ...occupants(10)], 18, 65)),
+    area(t.areas.marriage, [7], ['venus'], timingFor([l7, 'venus', ...occupants(7)], 20, 40)),
+    area(t.areas.children, [5], ['jupiter'], timingFor([l5, 'jupiter'], 22, 45)),
+    area(t.areas.education, [4, 5], ['mercury'], ''),
+    area(t.areas.wealth, [2, 11], [], timingFor([lordOf(2), lordOf(11)], 18, 80)),
+    area(t.areas.home, [4], ['mars'], ''),
   ];
 
-  // --- planet by planet
-  const planets = chart.planets.map((p) => {
-    const h = houseOf(p.sign, lag);
-    const parts = [t.place(g(p.key), KARAKA[p.key][lang], h, HOUSE[h][lang])];
-    if (BENEFICS.has(p.key)) parts.push(t.benefic);
-    else if (UPACHAYA.has(h)) parts.push(t.upachaya(h));
-    else parts.push(t.malefic);
-    const d = dignity(p.key, p.sign);
-    if (d) parts.push(t[d](g(p.key), sign(p.sign)));
-    if (p.retro && p.key !== 'rahu' && p.key !== 'ketu') parts.push(t.retro(g(p.key)));
-    return parts.join(' ');
+  // ---------------- house by house (bhava lords)
+  const housesSec = [...Array(12).keys()].map((i) => {
+    const h = i + 1;
+    const lord = lordOf(h);
+    return t.houseLine(h, hs(h), g(lord), lang === 'en' ? house(lord) : house(lord), LORD_IN[house(lord)][lang], digText(lord));
   });
+
+  // ---------------- planet by planet
+  const planets = chart.planets.map((p) => {
+    const h = house(p.key);
+    let line = t.place(g(p.key), KARAKA[p.key][lang], h, HOUSE[h][lang]) + ' ';
+    if (BENEFICS.has(p.key)) line += t.benefic;
+    else if (UPACHAYA.has(h)) line += t.upachaya(h);
+    else line += t.malefic;
+    line += digText(p.key);
+    if (p.retro && p.key !== 'rahu' && p.key !== 'ketu') line += t.retro(g(p.key));
+    return line;
+  });
+
+  // ---------------- highlights
+  const hl = [];
+  const strong = ['sun', 'moon', 'mars', 'mercury', 'jupiter', 'venus', 'saturn'].filter((k) => ['own', 'exalted'].includes(dignity(k, by[k].sign)));
+  if (strong.length) hl.push(t.hlStrong(strong.map(g).join(', ')));
+  if (A.yogas.length) hl.push(t.hlYogas([...new Set(A.yogas.map(yogaName))].join(', ')));
+  if (act && act.bhukti) hl.push(t.hlDasa(g(act.dasa.lord), g(act.bhukti.lord), fmtDate(act.bhukti.end)));
+  hl.push(gochara[0]);
+  hl.push(t.hlCareer(g(l10), house(l10)) + ' ' + t.hlMarriage(g(l7), house(l7)));
 
   return {
     note: t.note,
     excluded: t.excluded,
     sections: [
-      { title: t.sec.nature, items: nature },
-      { title: t.sec.dasa, items: dasa },
-      { title: t.sec.areas, items: areas },
-      { title: t.sec.planets, items: planets },
+      { key: 'highlights', title: t.sec.highlights, items: hl },
+      { key: 'dasa', title: t.sec.dasa, items: dasa },
+      { key: 'gochara', title: t.sec.gochara, items: gochara },
+      { key: 'yogas', title: t.sec.yogas, items: yogas },
+      { key: 'areas', title: t.sec.areas, items: areas },
+      { key: 'nature', title: t.sec.nature, items: nature },
+      { key: 'houses', title: t.sec.houses, items: housesSec },
+      { key: 'planets', title: t.sec.planets, items: planets },
     ],
   };
 }

@@ -77,6 +77,11 @@ export function initDosham(root, ctx) {
         if (d.variant) body += `<p>${t('kalaVariant')[d.variant]}</p>`;
         else if (d.outside.length) body += `<p>${t('kalaOutside')(d.outside.map(g).join(', '))}</p>`;
       }
+      if (d.triggered) {
+        body += `<details class="remedies"><summary>${t('remediesTitle')}</summary>
+          <p class="hint">${t('remediesNote')}</p>
+          <ul>${t('remedies')[d.key].map((r) => `<li>${r}</li>`).join('')}</ul></details>`;
+      }
       return `<div class="dosham-block"><h3>${t(d.key)}</h3>${status(d)}${body}</div>`;
     });
 

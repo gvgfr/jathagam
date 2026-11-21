@@ -189,3 +189,12 @@ export function nextSunrise(date, lat, lon, limitDays = 1.2) {
   const t = A.SearchRiseSet(A.Body.Sun, new A.Observer(lat, lon, 0), +1, date, limitDays);
   return t ? t.date : null;
 }
+
+/** Sidereal longitude of a single body (cheap; used for transit searches).
+ *  key: sun..saturn or 'rahu' (mean node). */
+export function siderealLongitude(key, date, opts = {}) {
+  const time = makeTime(date);
+  const ayan = AYANAMSAS[opts.ayanamsa || 'lahiri'](jdTT(time));
+  const trop = key === 'rahu' ? meanNodeTropical(time) : tropicalMeanLon(key, time);
+  return norm360(trop - ayan);
+}

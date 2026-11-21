@@ -8,16 +8,28 @@ both modes).
 **Live:** `https://gvgfr.github.io/jathagam/` — GitHub Actions tests, builds
 and deploys every push to `main` (`.github/workflows/pages.yml`).
 
-## Palan (traditional readings)
-A **Palan** button on the result page shows readings for that chart, generated
-by rules in `src/palan/` (Tamil and English): lagnam, rasi and nakshatra traits;
-the current dasa/bhukti with dates and the house it acts through; career,
-marriage, education, wealth and home from the relevant houses, their lords and
-significators; and each planet's house, uchcham/neecham/aatchi and vakram.
-Significations follow classical conventions (BPHS, Phaladeepika). Every line is
-phrased as what tradition says, with a note that these are cultural beliefs, not
-proven predictions. Health, lifespan and dosham verdicts are deliberately left
-out (a test checks this).
+## Palan (predictions)
+The **Palan** tab (`#palan`, also the gold call-to-action card on every chart)
+shows rule-based traditional readings generated in `src/palan/` (Tamil and
+English). They are specific to the chart:
+
+* **Key points:** strong planets, yogams, running dasa–bhukti, Saturn transit,
+  career and marriage lords.
+* **Dasa / bhukti:** what the dasa lord rules and where it sits, its dignity,
+  and the current plus next three bhuktis with dates.
+* **Gocharam (transits today):** Saturn, Guru and Raagu from the Moon sign with
+  ingress/egress dates; Ezharai Sani phase and span (or when the next starts),
+  Ashtama and Arthashtama Sani (`src/engine/transit.js`).
+* **Yogams:** Gajakesari, Budha-Aditya, Chandra-Mangala, the five
+  Mahapurusha yogams, Yogakarakan, Raja, Dhana, Parivarthana, Neecha bhanga.
+* **Areas of life:** career, marriage, children, education, wealth, home —
+  house lord placement and dignity, occupants, aspects (drishti), significators,
+  and the coming dasa/bhukti periods traditionally linked with each.
+* **House by house** (lord of each house and where it sits) and **planet by planet**.
+
+Significations follow classical conventions (BPHS, Phaladeepika). Every line
+is phrased as what tradition says, with a note that these are cultural
+beliefs, not proven predictions. Health and lifespan are left out.
 
 ## Thirumana porutham (marriage matching)
 The **Marriage porutham** tab (`#porutham`) runs the ten traditional Tamil
@@ -58,8 +70,10 @@ ticks an acknowledgement box.
 * **Kala sarpa dosham:** all seven planets on one side of the Raagu–Kethu axis.
 
 Results say only whether the rule is met, with the reason, plus context
-(about 40% of people have Sevvai dosham by the lagnam rule alone). No remedies
-are suggested.
+(about 40% of people have Sevvai dosham by the lagnam rule alone). For a
+triggered dosham, common traditional remedies (temple visits, worship,
+fasting, dosha saamyam in matching) are listed with a note that they are
+devotional practices, optional, and that large paid remedies should be avoided.
 
 ## Privacy
 The site is **unlisted**: a `noindex, nofollow` robots meta tag asks search

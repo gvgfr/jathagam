@@ -92,3 +92,75 @@ export const DASA_THEME = {
 export const EXALTATION = { sun: 0, moon: 1, mars: 9, mercury: 5, jupiter: 3, venus: 11, saturn: 6 };
 export const BENEFICS = new Set(['moon', 'mercury', 'jupiter', 'venus']);
 export const UPACHAYA = new Set([3, 6, 10, 11]);
+
+// Short labels for houses, used in compositions
+export const HOUSE_SHORT = [
+  null,
+  { en: 'self and personality', ta: 'தன்னிலை, ஆளுமை' },
+  { en: 'wealth, family and speech', ta: 'தனம், குடும்பம், வாக்கு' },
+  { en: 'courage, effort and siblings', ta: 'தைரியம், முயற்சி, உடன்பிறப்புகள்' },
+  { en: 'home, mother and property', ta: 'வீடு, தாய், சொத்து' },
+  { en: 'children, intellect and creativity', ta: 'குழந்தைகள், அறிவு, படைப்பாற்றல்' },
+  { en: 'work, service and competition', ta: 'பணி, சேவை, போட்டி' },
+  { en: 'marriage and partnerships', ta: 'திருமணம், கூட்டாண்மை' },
+  { en: 'inheritance and transformation', ta: 'பரம்பரைச் சொத்து, மாற்றங்கள்' },
+  { en: 'fortune, father and dharma', ta: 'பாக்கியம், தந்தை, தர்மம்' },
+  { en: 'career and status', ta: 'தொழில், அந்தஸ்து' },
+  { en: 'gains and friendships', ta: 'லாபம், நட்பு' },
+  { en: 'expenses, foreign lands and spirituality', ta: 'செலவு, வெளிநாடு, ஆன்மிகம்' },
+];
+
+// "Lord of X placed in house Y": what tradition says matters of X do, by Y
+export const LORD_IN = [
+  null,
+  { en: 'come through your own effort and personality', ta: 'சொந்த முயற்சி, ஆளுமை மூலம் அமையும்' },
+  { en: 'are tied to family and accumulated wealth', ta: 'குடும்பம், சேமிப்புடன் இணைந்திருக்கும்' },
+  { en: 'come through initiative, communication and siblings', ta: 'முன்முயற்சி, தொடர்புத் திறன், உடன்பிறப்புகள் மூலம் அமையும்' },
+  { en: 'are tied to home, property and comfort', ta: 'வீடு, சொத்து, சுகத்துடன் இணைந்திருக்கும்' },
+  { en: 'are supported by intelligence, creativity and past merit', ta: 'அறிவு, படைப்பாற்றல், பூர்வ புண்ணியத்தால் துணைபெறும்' },
+  { en: 'come after competition, service and overcoming obstacles', ta: 'போட்டி, சேவை, தடைகளை வென்ற பின் அமையும்' },
+  { en: 'are linked to spouse, partners and public dealings', ta: 'வாழ்க்கைத் துணை, கூட்டாளிகள், பொது உறவுகளுடன் இணைந்திருக்கும்' },
+  { en: 'move through ups and downs, research or unexpected events', ta: 'ஏற்ற இறக்கங்கள், ஆராய்ச்சி அல்லது எதிர்பாராத நிகழ்வுகள் மூலம் அமையும்' },
+  { en: 'are blessed by fortune, elders and dharma', ta: 'அதிர்ஷ்டம், பெரியோர், தர்மத்தால் ஆசீர்வதிக்கப்படும்' },
+  { en: 'are expressed through career and public standing', ta: 'தொழில், சமூக அந்தஸ்து மூலம் வெளிப்படும்' },
+  { en: 'bring gains and support from friends', ta: 'லாபமும் நண்பர்களின் ஆதரவும் தரும்' },
+  { en: 'are linked to expenses, foreign lands or spiritual pursuits', ta: 'செலவுகள், வெளிநாடு அல்லது ஆன்மிகத்துடன் இணைந்திருக்கும்' },
+];
+
+export const YOGA = {
+  gajakesari: { name: { en: 'Gajakesari yogam', ta: 'கஜகேசரி யோகம்' }, en: 'Guru in a kendra from the Moon. Traditionally gives reputation, wisdom and lasting respect.', ta: 'சந்திரனுக்குக் கேந்திரத்தில் குரு. பாரம்பரியமாக புகழ், ஞானம், நீடித்த மரியாதை தரும்.' },
+  budhaAditya: { name: { en: 'Budha-Aditya yogam', ta: 'புத ஆதித்ய யோகம்' }, en: 'Suriyan and Budhan together. Traditionally gives sharp intelligence and recognition for learning.', ta: 'சூரியனும் புதனும் சேர்க்கை. பாரம்பரியமாக கூர்மையான அறிவும் கல்விக்கான அங்கீகாரமும் தரும்.' },
+  chandraMangala: { name: { en: 'Chandra-Mangala yogam', ta: 'சந்திர மங்கள யோகம்' }, en: 'Chandiran and Sevvai together. Traditionally gives earning ability and enterprise.', ta: 'சந்திரனும் செவ்வாயும் சேர்க்கை. பாரம்பரியமாக சம்பாதிக்கும் திறனும் தொழில் முனைப்பும் தரும்.' },
+  ruchaka: { name: { en: 'Ruchaka yogam', ta: 'ருசக யோகம்' }, en: 'Sevvai strong in a kendra. Traditionally gives courage, leadership and success in competitive fields.', ta: 'செவ்வாய் கேந்திரத்தில் பலமாக. பாரம்பரியமாக தைரியம், தலைமை, போட்டித் துறைகளில் வெற்றி தரும்.' },
+  bhadra: { name: { en: 'Bhadra yogam', ta: 'பத்ர யோகம்' }, en: 'Budhan strong in a kendra. Traditionally gives intellect, eloquence and business skill.', ta: 'புதன் கேந்திரத்தில் பலமாக. பாரம்பரியமாக அறிவு, பேச்சுத்திறன், வியாபாரத் திறமை தரும்.' },
+  hamsa: { name: { en: 'Hamsa yogam', ta: 'ஹம்ச யோகம்' }, en: 'Guru strong in a kendra. Traditionally gives wisdom, righteousness and respect from others.', ta: 'குரு கேந்திரத்தில் பலமாக. பாரம்பரியமாக ஞானம், நேர்மை, பிறரின் மரியாதை தரும்.' },
+  malavya: { name: { en: 'Malavya yogam', ta: 'மாளவ்ய யோகம்' }, en: 'Sukkiran strong in a kendra. Traditionally gives comforts, charm, artistic talent and a happy family life.', ta: 'சுக்கிரன் கேந்திரத்தில் பலமாக. பாரம்பரியமாக சுகபோகம், வசீகரம், கலைத்திறன், மகிழ்ச்சியான குடும்ப வாழ்வு தரும்.' },
+  sasa: { name: { en: 'Sasa yogam', ta: 'சச யோகம்' }, en: 'Sani strong in a kendra. Traditionally gives authority earned through hard work and organising power.', ta: 'சனி கேந்திரத்தில் பலமாக. பாரம்பரியமாக கடின உழைப்பால் பெறும் அதிகாரமும் நிர்வாகத் திறனும் தரும்.' },
+  raja: { name: { en: 'Raja yogam', ta: 'ராஜ யோகம்' }, en: 'Lords of a kendra and a trikona joined ({p}). Traditionally gives rise in status and authority, especially in their dasa/bhukti.', ta: 'கேந்திர, திரிகோண அதிபதிகள் சேர்க்கை ({p}). பாரம்பரியமாக அந்தஸ்தும் அதிகாரமும் உயரும், குறிப்பாக அவர்களின் தசா/புக்தியில்.' },
+  yogakaraka: { name: { en: 'Yogakarakan', ta: 'யோககாரகன்' }, en: '{p} rules both a kendra and a trikona for your lagnam. Traditionally its dasa/bhukti is among the most fruitful periods.', ta: 'உங்கள் லக்னத்துக்கு {p} கேந்திரம், திரிகோணம் இரண்டுக்கும் அதிபதி. பாரம்பரியமாக இதன் தசா/புக்தி மிகவும் பலன் தரும் காலம்.' },
+  dhana: { name: { en: 'Dhana yogam', ta: 'தன யோகம்' }, en: 'Wealth lords (2nd/11th) joined with fortune lords (5th/9th): {p}. Traditionally gives accumulation of wealth.', ta: 'தன அதிபதிகள் (2/11) பாக்கிய அதிபதிகளுடன் (5/9) சேர்க்கை: {p}. பாரம்பரியமாக செல்வச் சேர்க்கை தரும்.' },
+  parivarthana: { name: { en: 'Parivarthana yogam', ta: 'பரிவர்த்தனை யோகம்' }, en: '{p} are in each other’s signs. Traditionally the {h} strongly support each other.', ta: '{p} ஒருவர் ராசியில் மற்றவர் உள்ளனர். பாரம்பரியமாக {h} ஒன்றையொன்று வலுவாகத் தாங்கும்.' },
+  neechaBhanga: { name: { en: 'Neecha bhanga raja yogam', ta: 'நீச பங்க ராஜ யோகம்' }, en: '{p} is debilitated, but the lord of that sign is in a kendra. Traditionally early struggles in its areas turn into success.', ta: '{p} நீசம், ஆனால் அந்த ராசி அதிபதி கேந்திரத்தில். பாரம்பரியமாக ஆரம்பச் சிரமங்கள் பின்னர் வெற்றியாக மாறும்.' },
+};
+
+export const GOCHARA = {
+  saturn: {
+    sade: {
+      1: { en: 'Ezharai Sani, first phase (Saturn in the 12th from your Moon): traditionally a time of rising expenses and changes in surroundings.', ta: 'ஏழரைச் சனி, முதல் கட்டம் (விரய சனி): பாரம்பரியமாக செலவுகள் அதிகரிக்கும், சூழல் மாறும் காலம்.' },
+      2: { en: 'Ezharai Sani, middle phase (Janma Sani, Saturn over your Moon): traditionally the most demanding phase, calling for patience and steady discipline.', ta: 'ஏழரைச் சனி, நடுக் கட்டம் (ஜென்ம சனி): பாரம்பரியமாக அதிக பொறுமையும் ஒழுக்கமும் தேவைப்படும் காலம்.' },
+      3: { en: 'Ezharai Sani, last phase (Patha Sani, Saturn in the 2nd from your Moon): traditionally things steady, while finances and family words need care.', ta: 'ஏழரைச் சனி, கடைசிக் கட்டம் (பாத சனி): பாரம்பரியமாக நிலைமை சீராகும்; பணம், குடும்பப் பேச்சில் கவனம் தேவை.' },
+    },
+    4: { en: 'Arthashtama Sani (Saturn in the 4th from your Moon): traditionally home matters and peace of mind need attention.', ta: 'அர்த்தாஷ்டம சனி (சந்திரனுக்கு 4-இல் சனி): பாரம்பரியமாக வீட்டு விஷயங்களிலும் மன நிம்மதியிலும் கவனம் தேவை.' },
+    8: { en: 'Ashtama Sani (Saturn in the 8th from your Moon): traditionally a period of obstacles; caution and patience are advised.', ta: 'அஷ்டம சனி (சந்திரனுக்கு 8-இல் சனி): பாரம்பரியமாக தடைகள் வரும் காலம்; கவனமும் பொறுமையும் தேவை.' },
+    good: { en: 'Saturn in the {h} from your Moon is traditionally favourable: effort brings success and gains.', ta: 'சந்திரனுக்கு {h}-இல் சனி பாரம்பரியமாக சாதகம்: முயற்சி வெற்றியும் லாபமும் தரும்.' },
+    mixed: { en: 'Saturn in the {h} from your Moon gives traditionally mixed results; steady work is advised.', ta: 'சந்திரனுக்கு {h}-இல் சனி பாரம்பரியமாக கலவையான பலன்; நிலையான உழைப்பு நல்லது.' },
+  },
+  jupiter: {
+    good: { en: 'Guru in the {h} from your Moon is traditionally favourable: growth, good news and support from elders.', ta: 'சந்திரனுக்கு {h}-இல் குரு பாரம்பரியமாக சாதகம்: வளர்ச்சி, நல்ல செய்திகள், பெரியோர் ஆதரவு.' },
+    weak: { en: 'Guru in the {h} from your Moon is traditionally less supportive: growth is slower and patience helps.', ta: 'சந்திரனுக்கு {h}-இல் குரு பாரம்பரியமாக குறைந்த ஆதரவு: வளர்ச்சி மெதுவாக இருக்கும்; பொறுமை உதவும்.' },
+  },
+  rahu: {
+    good: { en: 'Raagu in the {h} from your Moon is traditionally favourable for bold moves and gains.', ta: 'சந்திரனுக்கு {h}-இல் ராகு பாரம்பரியமாக துணிச்சலான முயற்சிகளுக்கும் லாபத்துக்கும் சாதகம்.' },
+    weak: { en: 'Raagu in the {h} from your Moon traditionally brings some restlessness; avoid hasty decisions.', ta: 'சந்திரனுக்கு {h}-இல் ராகு பாரம்பரியமாக சிறிது அமைதியின்மை தரும்; அவசர முடிவுகளைத் தவிர்க்கவும்.' },
+  },
+};
