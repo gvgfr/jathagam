@@ -117,6 +117,7 @@ export const UI = {
     palanCtaText: 'நடப்பு தசா–புக்தி, இன்றைய கோசாரம் (ஏழரைச் சனி உட்பட), யோகங்கள், தொழில், திருமணம், செல்வம் — உங்கள் ஜாதகத்துக்கே உரிய பாரம்பரிய பலன்கள், தேதிகளுடன்.',
     palanHint: 'பலன்கள் காண, கீழே பிறப்பு விவரங்களை உள்ளிட்டு ஜாதகம் கணிக்கவும்.',
     tabPalan: 'பலன்கள்',
+    templeCard: 'அர்ச்சனை அட்டை (கோயிலுக்கு)',
     lang: 'English',
   },
   en: {
@@ -190,6 +191,7 @@ export const UI = {
     palanCtaText: 'Your running dasa–bhukti, today’s transits (including Ezharai Sani), yogams, career, marriage and wealth — traditional readings specific to your chart, with dates.',
     palanHint: 'To see your palan, enter the birth details below and cast the chart.',
     tabPalan: 'Palan',
+    templeCard: 'Temple card (for archanai)',
     lang: 'தமிழ்',
   },
 };

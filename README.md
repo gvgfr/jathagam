@@ -31,6 +31,12 @@ Significations follow classical conventions (BPHS, Phaladeepika). Every line
 is phrased as what tradition says, with a note that these are cultural
 beliefs, not proven predictions. Health and lifespan are left out.
 
+## Temple card
+A **Temple card (for archanai)** button on every chart opens a large card with
+name, nakshatram + padam, rasi, optional gothram and lagnam in Tamil with
+English underneath — easy to show a priest. It can be saved as a PNG or shared;
+the image is drawn on the device (`src/ui/templeCard.js`) and nothing is uploaded.
+
 ## Thirumana porutham (marriage matching)
 The **Marriage porutham** tab (`#porutham`) runs the ten traditional Tamil
 checks for a bride and groom, from birth details or directly from a known

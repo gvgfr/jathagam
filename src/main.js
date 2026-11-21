@@ -10,6 +10,7 @@ import { attachAutocomplete } from './ui/geocode.js';
 import { generatePalan } from './palan/index.js';
 import { initPorutham } from './ui/porutham.js';
 import { initDosham } from './ui/dosham.js';
+import { openTempleCard } from './ui/templeCard.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -186,6 +187,7 @@ function renderResults({ chart, meta }) {
         <div class="tile"><span>${t('rasiLord')}</span><strong>${gName(s.rasiLord)}</strong></div>
         <div class="tile"><span>${t('nakLord')}</span><strong>${gName(s.nakshatraLord)}</strong></div>
       </div>
+      <button type="button" class="btn-temple no-print" id="btn-temple">🙏 ${t('templeCard')}</button>
     </div>`;
 
   // --- charts
@@ -324,6 +326,7 @@ function renderResults({ chart, meta }) {
   res.innerHTML = actions + summary + palan + charts + verify + table + panch + dasa;
   res.hidden = false;
   $('btn-print').addEventListener('click', () => window.print());
+  $('btn-temple').addEventListener('click', () => openTempleCard(chart, meta.name, L));
   $('btn-palan').addEventListener('click', () => {
     state.showPalan = !state.showPalan;
     if (state.showPalan && location.hash !== '#palan') history.replaceState(null, '', '#palan');
