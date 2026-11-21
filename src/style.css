@@ -244,6 +244,39 @@ body.no-scroll { overflow: hidden; }
 .today-kv .then { color: var(--muted); font-size: 0.8rem; }
 @media (min-width: 640px) { .periods { grid-template-columns: repeat(3, 1fr); } }
 
+/* help: intros, card helps, glossary terms, pop-up, FAQ */
+.intro { background: #eef5ff; border: 1px solid #c9dcf3; border-left: 5px solid #2f5d9a; border-radius: 10px; padding: 0 14px; margin-bottom: 14px; }
+.intro summary { cursor: pointer; font-weight: 700; color: #234a7d; padding: 10px 0; min-height: 44px; display: flex; align-items: center; }
+.intro ul { margin: 0 0 6px; padding-left: 1.2em; }
+.intro li { margin-bottom: 4px; line-height: 1.55; }
+.intro-tip { font-size: 0.82rem; color: #4a6b93; margin: 4px 0 10px; }
+.form-card ~ .intro, #jathagam-view .intro, #today-view .intro, #dosham-view .intro, #porutham-view .intro { max-width: 720px; margin-left: auto; margin-right: auto; }
+.card-help { font-size: 0.86rem; color: var(--muted); margin: -4px 0 10px; line-height: 1.5; }
+button.term {
+  font: inherit; color: #1f5aa6; background: #e6f0fc; border: 0; border-bottom: 1.5px dotted #1f5aa6;
+  padding: 0 2px; margin: 0; border-radius: 3px; cursor: help; line-height: inherit; display: inline; text-align: inherit;
+}
+button.term:hover, button.term:focus-visible { background: #cfe2fa; }
+.tile button.term, .planets button.term, .kv button.term { font-weight: inherit; }
+#gloss-pop {
+  position: fixed; z-index: 60; left: 50%; bottom: 16px; transform: translateX(-50%);
+  width: min(460px, calc(100vw - 32px)); background: #fff; color: var(--ink);
+  border: 2px solid #2f5d9a; border-radius: 14px; padding: 12px 16px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+#gloss-pop .gp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #234a7d; font-size: 1.05rem; }
+#gloss-pop p { margin: 8px 0; line-height: 1.6; }
+#gloss-pop .gp-close { background: none; border: 0; font-size: 1.2rem; width: 40px; height: 40px; color: #234a7d; }
+#gloss-pop .gp-more { font-size: 0.88rem; }
+.faq-item { border-top: 1px solid var(--line); }
+.faq-item summary { cursor: pointer; font-weight: 700; color: var(--maroon); padding: 12px 0; min-height: 44px; }
+.faq-item ul { margin: 0 0 12px; padding-left: 1.2em; }
+.faq-item li { margin-bottom: 6px; line-height: 1.55; }
+.gloss-list { margin: 0; }
+.gloss-list dt { font-weight: 700; color: #234a7d; margin-top: 12px; }
+.gloss-list dd { margin: 2px 0 0; line-height: 1.55; }
+.site-footer a { color: var(--gold); }
+@media print { .intro-slot, .card-help, #gloss-pop { display: none !important; } button.term { background: none; border: 0; color: inherit; } }
+
 /* tabs */
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
 .tabs a {

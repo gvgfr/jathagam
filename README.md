@@ -31,6 +31,16 @@ Significations follow classical conventions (BPHS, Phaladeepika). Every line
 is phrased as what tradition says, with a note that these are cultural
 beliefs, not proven predictions. Health and lifespan are left out.
 
+## Plain-language help
+For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
+
+* Every tab opens with a short **"What is this?"** bullet list.
+* Result cards have a one-line plain explanation under their heading.
+* Tamil/Sanskrit terms (about 55, in both scripts) are **highlighted in blue**
+  the first time they appear in each section; tapping one opens a pop-up with a
+  simple explanation. Highlighting runs automatically on new content.
+* A **FAQ** tab (`#faq`) answers common questions and lists every term.
+
 ## Today's panchangam
 The **Today** tab (`#today`) shows the panchangam for any place and date
 (`src/engine/today.js`): Tamil month and date, weekday, sunrise and sunset,

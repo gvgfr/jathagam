@@ -12,6 +12,8 @@ import { initPorutham } from './ui/porutham.js';
 import { initDosham } from './ui/dosham.js';
 import { openTempleCard } from './ui/templeCard.js';
 import { initToday } from './ui/today.js';
+import { initGlossary } from './ui/glossary.js';
+import { INTROS, CARD_HELP, FAQ, GLOSSARY } from './help.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -22,6 +24,7 @@ const state = {
   last: null, // last computed {chart, meta}
   showPalan: false,
 };
+const help = (k) => CARD_HELP[state.lang][k];
 const t = (k) => UI[state.lang][k] ?? PUI[state.lang][k] ?? DUI[state.lang][k] ?? TUI[state.lang][k] ?? k;
 // Matches the 640px breakpoint in style.css: palan sections start collapsed below it.
 const isMobile = () => window.matchMedia('(max-width: 639px)').matches;
@@ -34,6 +37,8 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.i18nPlaceholder)));
   $('lang-toggle').textContent = t('lang');
+  renderIntros();
+  renderFaq();
   porutham.relabel();
   dosham.relabel();
   today.relabel();
@@ -49,6 +54,7 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));
 
+initGlossary(document.querySelector('main'), () => state.lang, () => ({ close: t('close'), more: t('allTerms') }));
 applyLang();
 });
 
@@ -56,13 +62,40 @@ applyLang();
 const porutham = initPorutham($('porutham-view'), { lang: () => state.lang, t });
 const dosham = initDosham($('dosham-view'), { lang: () => state.lang, t });
 const today = initToday($('today-view'), { lang: () => state.lang, t });
-const VIEWS = ['jathagam', 'today', 'porutham', 'dosham'];
+const VIEWS = ['jathagam', 'today', 'porutham', 'dosham', 'faq'];
+
+// "What is this?" boxes: one per view; the jathagam one follows the active tab
+for (const v of ['today', 'porutham', 'dosham', 'faq']) {
+  const d = document.createElement('div');
+  d.className = 'intro-slot';
+  d.dataset.intro = v;
+  $(`${v}-view`).prepend(d);
+}
+function renderIntros() {
+  document.querySelectorAll('.intro-slot').forEach((el) => {
+    const items = INTROS[state.lang][el.dataset.intro] || [];
+    el.innerHTML = `<details class="intro" open><summary>${t('whatIsThis')}</summary><ul>${items.map((x) => `<li>${esc(x)}</li>`).join('')}</ul><p class="intro-tip">${t('tapWords')}</p></details>`;
+  });
+}
+function renderFaq() {
+  const L = state.lang;
+  const terms = Object.values(GLOSSARY)
+    .map((g) => `<dt>${esc(g.forms[0])}${g.forms.length > 1 ? ` · ${esc(g.forms.at(-1))}` : ''}</dt><dd>${esc(g[L])}</dd>`)
+    .join('');
+  $('faq-body').innerHTML = `
+    <div class="card"><h2>${t('faqTitle')}</h2>
+      ${FAQ[L].map(([q, a]) => `<details class="faq-item"><summary>${esc(q)}</summary><ul>${a.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>`).join('')}
+    </div>
+    <div class="card"><h2>${t('termsTitle')}</h2><dl class="gloss-list">${terms}</dl></div>`;
+}
 // #palan and #temple are the jathagam page with the palan open / the temple card shown
 const ON_JATHAGAM = ['palan', 'temple'];
 function route() {
   const h = location.hash.slice(1);
   const tab = ON_JATHAGAM.includes(h) || VIEWS.includes(h) ? h : 'jathagam';
   const view = ON_JATHAGAM.includes(tab) ? 'jathagam' : tab;
+  $('jathagam-intro').dataset.intro = tab === 'palan' || tab === 'temple' ? tab : 'jathagam';
+  renderIntros();
   for (const v of VIEWS) $(`${v}-view`).hidden = v !== view;
   $('palan-hint').hidden = !(tab === 'palan' && !state.last);
   $('temple-hint').hidden = !(tab === 'temple' && !state.last);
@@ -172,6 +205,7 @@ function renderResults({ chart, meta }) {
   const verify = `
     <div class="card verify">
       <h2>${t('verify')}</h2>
+      <p class="card-help">${help('verify')}</p>
       <dl class="kv">
         <dt>${t('pob')}</dt><dd>${esc(meta.place || '—')}</dd>
         <dt>${t('coords')}</dt><dd>${meta.lat.toFixed(4)}°, ${meta.lon.toFixed(4)}°</dd>
@@ -188,6 +222,7 @@ function renderResults({ chart, meta }) {
     <div class="card summary">
       <h2>${meta.name ? esc(meta.name) : t('summary')}</h2>
       <p class="sub">${dateLine} · ${esc(meta.place || `${meta.lat.toFixed(2)}, ${meta.lon.toFixed(2)}`)}</p>
+      <p class="card-help">${help('summary')}</p>
       <div class="tiles">
         <div class="tile"><span>${t('rasi')}</span><strong>${nm('rasi', s.rasi)}</strong></div>
         <div class="tile"><span>${t('nakshatra')}</span><strong>${nm('nakshatra', s.nakshatra)}</strong><em>${t('pada')} ${s.pada}</em></div>
@@ -227,8 +262,8 @@ function renderResults({ chart, meta }) {
   });
   const charts = `
     <div class="charts">
-      <div class="card chart-card"><h2>${t('rasiChart')}</h2>${rasiChart}</div>
-      <div class="card chart-card"><h2>${t('navamsaChart')}</h2>${navChart}</div>
+      <div class="card chart-card"><h2>${t('rasiChart')}</h2><p class="card-help">${help('rasiChart')}</p>${rasiChart}</div>
+      <div class="card chart-card"><h2>${t('navamsaChart')}</h2><p class="card-help">${help('navamsaChart')}</p>${navChart}</div>
     </div>`;
 
   // --- planet table
@@ -247,6 +282,7 @@ function renderResults({ chart, meta }) {
   const table = `
     <div class="card">
       <h2>${t('planets')}</h2>
+      <p class="card-help">${help('planets')}</p>
       <div class="table-wrap"><table class="planets">
         <thead><tr><th>${t('graha')}</th><th>${t('rasi')}</th><th>${t('degree')}</th><th>${t('nakshatra')}</th><th>${t('pada')}</th><th>${t('retro')}</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -277,6 +313,7 @@ function renderResults({ chart, meta }) {
   const dasa = `
     <div class="card">
       <h2>${t('dasa')}</h2>
+      <p class="card-help">${help('dasa')}</p>
       <p class="balance">* ${t('balance')}: <strong>${gName(chart.dasa.firstLord)}</strong> ${bal.y} ${t('years')} ${bal.m} ${t('months')} ${bal.d} ${t('days')}</p>
       <div class="dasa-list">${dasaRows}</div>
     </div>`;
@@ -287,6 +324,7 @@ function renderResults({ chart, meta }) {
   const panch = `
     <div class="card">
       <h2>${t('panchangam')}</h2>
+      <p class="card-help">${help('panchangam')}</p>
       <dl class="kv">
         <dt>${t('thithi')}</dt><dd>${pak} ${thithiName(pc.thithi, L)}</dd>
         <dt>${t('vaaram')}</dt><dd>${nm('vaaram', pc.vaaram)}${pc.beforeSunrise ? ` <small>(${t('beforeSunrise')})</small>` : ''}</dd>
@@ -354,4 +392,5 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));
 
+initGlossary(document.querySelector('main'), () => state.lang, () => ({ close: t('close'), more: t('allTerms') }));
 applyLang();

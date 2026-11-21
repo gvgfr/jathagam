@@ -26,11 +26,13 @@
       <a href="#temple" data-view="temple" data-i18n="tabTemple"></a>
       <a href="#porutham" data-view="porutham" data-i18n="tabPorutham"></a>
       <a href="#dosham" data-view="dosham" data-i18n="tabDosham"></a>
+      <a href="#faq" data-view="faq" data-i18n="tabFaq"></a>
     </nav>
   </header>
 
   <main class="wrap">
    <div id="jathagam-view">
+    <div class="intro-slot" id="jathagam-intro" data-intro="jathagam"></div>
     <p id="palan-hint" class="palan-hint" data-i18n="palanHint" hidden></p>
     <p id="temple-hint" class="palan-hint" data-i18n="templeHint" hidden></p>
     <form id="birth-form" class="card form-card" novalidate>
@@ -108,11 +110,13 @@
    <div id="today-view" hidden></div>
    <div id="porutham-view" hidden></div>
    <div id="dosham-view" hidden></div>
+   <div id="faq-view" hidden><div id="faq-body"></div></div>
   </main>
 
   <footer class="site-footer">
     <div class="wrap">
       <p data-i18n="disclaimer"></p>
+      <p><a href="#faq" data-i18n="footerFaq"></a></p>
       <p class="small">Ephemeris: <a href="https://github.com/cosinekitty/astronomy">Astronomy Engine</a> (MIT) · Places: <a href="https://open-meteo.com/en/docs/geocoding-api">Open-Meteo</a> · Time zones: tz-lookup + IANA tzdb</p>
     </div>
   </footer>
