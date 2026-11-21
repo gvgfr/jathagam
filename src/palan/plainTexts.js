@@ -18,59 +18,6 @@ export const AREA = [
   { en: 'expenses and travel abroad', ta: 'செலவுகளும் வெளிநாட்டுப் பயணமும்' },
 ];
 
-// [expect, do] per tone
-export const HOUSE_PLAIN = [
-  null,
-  {
-    good: { en: ['You feel confident and noticed; personal plans move forward.', 'Take the lead on things you have been putting off.'], ta: ['தன்னம்பிக்கை கூடும்; உங்கள் சொந்தத் திட்டங்கள் முன்னேறும்.', 'தள்ளிப்போட்ட காரியங்களை முன்னின்று தொடங்குங்கள்.'] },
-    hard: { en: ['You may feel under pressure or unsure of yourself.', 'Keep routines simple, rest well and avoid ego clashes.'], ta: ['அழுத்தமோ தயக்கமோ உணரலாம்.', 'எளிய நடைமுறை, போதுமான ஓய்வு; வீண் கௌரவப் போட்டிகளைத் தவிருங்கள்.'] },
-  },
-  {
-    good: { en: ['Savings grow and family life is warm; your words carry weight.', 'Save regularly and spend time with family.'], ta: ['சேமிப்பு வளரும்; குடும்பத்தில் அன்பு நிலவும்; உங்கள் சொல்லுக்கு மதிப்பு.', 'தவறாமல் சேமியுங்கள்; குடும்பத்துடன் நேரம் செலவிடுங்கள்.'] },
-    hard: { en: ['Money may feel tight, or family talks may get tense.', 'Watch spending and think before you speak.'], ta: ['பணம் இறுக்கமாக இருக்கலாம் அல்லது குடும்பப் பேச்சில் பதற்றம் வரலாம்.', 'செலவைக் கவனியுங்கள்; பேசும் முன் யோசியுங்கள்.'] },
-  },
-  {
-    good: { en: ['Good energy for new efforts, short trips, writing or selling; siblings help.', 'Start that side project, pitch your ideas, travel for opportunities.'], ta: ['புதிய முயற்சிகள், குறுகிய பயணம், எழுத்து, விற்பனைக்கு நல்ல உற்சாகம்; உடன்பிறப்புகள் உதவுவர்.', 'பக்க முயற்சியைத் தொடங்குங்கள்; உங்கள் யோசனைகளை முன்வையுங்கள்.'] },
-    hard: { en: ['Efforts need extra push; misunderstandings with siblings or neighbours are possible.', 'Be patient and double-check messages and contracts.'], ta: ['முயற்சிகளுக்கு கூடுதல் உழைப்பு தேவை; உடன்பிறப்புகள், அண்டை வீட்டாருடன் தவறான புரிதல் வரலாம்.', 'பொறுமை; செய்திகள், ஒப்பந்தங்களை இருமுறை சரிபாருங்கள்.'] },
-  },
-  {
-    good: { en: ['Home life is comfortable; buying a house or vehicle is favoured.', 'Good time for property, home improvements and time with your mother.'], ta: ['வீட்டில் சுகம்; வீடு, வாகனம் வாங்க சாதகம்.', 'சொத்து, வீட்டுப் பணிகள், தாயுடன் நேரம் செலவிட நல்ல காலம்.'] },
-    hard: { en: ['Home matters or property may cause worry; peace of mind needs care.', 'Avoid hasty property deals; keep home calm.'], ta: ['வீட்டு விஷயங்கள் அல்லது சொத்து கவலை தரலாம்; மன நிம்மதியில் கவனம்.', 'அவசர சொத்து ஒப்பந்தங்களைத் தவிருங்கள்; வீட்டில் அமைதி காருங்கள்.'] },
-  },
-  {
-    good: { en: ['Good news about children, studies or creative work; investments can do well.', 'Study, create, and plan long-term investments.'], ta: ['குழந்தைகள், கல்வி, படைப்புப் பணியில் நல்ல செய்தி; முதலீடுகள் பலன் தரலாம்.', 'படியுங்கள், படையுங்கள்; நீண்டகால முதலீடுகளைத் திட்டமிடுங்கள்.'] },
-    hard: { en: ['Children or studies may need extra attention; speculative investments are risky.', 'Avoid risky trading; give time to children.'], ta: ['குழந்தைகள் அல்லது கல்விக்கு கூடுதல் கவனம் தேவை; ஊக முதலீடுகள் ஆபத்து.', 'அபாயமான வர்த்தகம் வேண்டாம்; குழந்தைகளுக்கு நேரம் கொடுங்கள்.'] },
-  },
-  {
-    good: { en: ['You beat competition and clear obstacles; good for exams, jobs and paying off loans.', 'Face challenges head-on and clear debts.'], ta: ['போட்டியை வெல்வீர்கள்; தடைகள் விலகும்; தேர்வு, வேலை, கடன் அடைப்புக்கு நல்லது.', 'சவால்களை நேரடியாக எதிர்கொள்ளுங்கள்; கடன்களை அடையுங்கள்.'] },
-    hard: { en: ['Workload, disputes or loans may weigh on you.', 'Avoid new loans and arguments; keep a steady routine.'], ta: ['வேலைச்சுமை, வாக்குவாதம் அல்லது கடன் சுமையாக இருக்கலாம்.', 'புதிய கடன், வாக்குவாதங்களைத் தவிருங்கள்; சீரான நடைமுறை.'] },
-  },
-  {
-    good: { en: ['Relationships and partnerships go well; marriage talks or a new business partner are favoured.', 'Invest time in your partner; sign partnerships with care.'], ta: ['உறவுகள், கூட்டாண்மை நன்றாக அமையும்; திருமணப் பேச்சு, புதிய கூட்டாளிக்கு சாதகம்.', 'துணைக்கு நேரம் கொடுங்கள்; கூட்டு ஒப்பந்தங்களைக் கவனமாகச் செய்யுங்கள்.'] },
-    hard: { en: ['Partnerships need patience; misunderstandings with spouse or partners are possible.', 'Listen more, avoid ultimatums, read agreements carefully.'], ta: ['உறவுகளில் பொறுமை தேவை; துணை, கூட்டாளிகளுடன் தவறான புரிதல் வரலாம்.', 'அதிகம் கேளுங்கள்; பிடிவாதம் வேண்டாம்; ஒப்பந்தங்களை நன்கு படியுங்கள்.'] },
-  },
-  {
-    good: { en: ['Unexpected gains are possible, such as inheritance, insurance or a breakthrough in research.', 'Good time for research and deep study.'], ta: ['பரம்பரைச் சொத்து, காப்பீடு, ஆராய்ச்சி போன்ற எதிர்பாராத லாபம் வரலாம்.', 'ஆராய்ச்சி, ஆழ்ந்த படிப்புக்கு நல்ல காலம்.'] },
-    hard: { en: ['Sudden changes or setbacks; things may not go to plan.', 'Keep an emergency fund, avoid risky ventures and double-check paperwork.'], ta: ['திடீர் மாற்றங்கள், பின்னடைவுகள்; திட்டப்படி நடக்காமல் போகலாம்.', 'அவசர நிதி வைத்திருங்கள்; ஆபத்தான முயற்சிகள் வேண்டாம்; ஆவணங்களைச் சரிபாருங்கள்.'] },
-  },
-  {
-    good: { en: ['Luck is on your side; help from elders, teachers or your father; long journeys or pilgrimages.', 'Seek advice from mentors; plan a pilgrimage or higher studies.'], ta: ['அதிர்ஷ்டம் துணை நிற்கும்; பெரியோர், ஆசிரியர், தந்தையின் உதவி; நீண்ட பயணம், தீர்த்த யாத்திரை.', 'வழிகாட்டிகளின் ஆலோசனை பெறுங்கள்; யாத்திரை அல்லது உயர்கல்வி திட்டமிடுங்கள்.'] },
-    hard: { en: ['Luck feels slow; differences with your father or mentors are possible.', 'Stay humble and keep faith in long-term plans.'], ta: ['அதிர்ஷ்டம் மெதுவாக இருக்கும்; தந்தை, வழிகாட்டிகளுடன் கருத்து வேறுபாடு வரலாம்.', 'பணிவுடன் இருங்கள்; நீண்டகாலத் திட்டங்களில் நம்பிக்கை வையுங்கள்.'] },
-  },
-  {
-    good: { en: ['Career growth, recognition or a better role is likely.', 'Ask for the promotion, apply for the role, or start the venture.'], ta: ['தொழில் வளர்ச்சி, அங்கீகாரம், நல்ல பதவி வரலாம்.', 'பதவி உயர்வு கேளுங்கள்; புதிய வேலை அல்லது தொழிலைத் தொடங்குங்கள்.'] },
-    hard: { en: ['Work pressure or a slower career phase.', 'Build skills, avoid clashes with bosses, and don’t quit in haste.'], ta: ['வேலை அழுத்தம் அல்லது தொழிலில் மந்த நிலை.', 'திறமையை வளருங்கள்; மேலதிகாரிகளுடன் மோதல் வேண்டாம்; அவசரமாக வேலையை விடாதீர்கள்.'] },
-  },
-  {
-    good: { en: ['Income rises and wishes come true; friends and contacts help.', 'Network, ask for support and set bigger goals.'], ta: ['வருமானம் உயரும்; ஆசைகள் நிறைவேறும்; நண்பர்கள் உதவுவர்.', 'தொடர்புகளை வளருங்கள்; உதவி கேளுங்கள்; பெரிய இலக்குகளை வையுங்கள்.'] },
-    hard: { en: ['Gains come slower than hoped; some friends may disappoint.', 'Keep expectations realistic and build more than one source of income.'], ta: ['லாபம் எதிர்பார்த்ததை விட மெதுவாக வரும்; சில நண்பர்கள் ஏமாற்றலாம்.', 'யதார்த்தமான எதிர்பார்ப்பு; ஒன்றுக்கு மேற்பட்ட வருமான வழிகள்.'] },
-  },
-  {
-    good: { en: ['Travel abroad, worthwhile spending (home, family, charity) and inner peace.', 'Good time for foreign plans, retreats and charity.'], ta: ['வெளிநாட்டுப் பயணம், நல்ல செலவுகள் (வீடு, குடும்பம், தானம்), மன அமைதி.', 'வெளிநாட்டுத் திட்டங்கள், ஆன்மிகப் பயணம், தானத்துக்கு நல்ல காலம்.'] },
-    hard: { en: ['Expenses rise and sleep or peace of mind may suffer.', 'Budget carefully, avoid lending money, and make time to rest.'], ta: ['செலவுகள் கூடும்; தூக்கம், மன நிம்மதி பாதிக்கலாம்.', 'கவனமாக பட்ஜெட்; கடன் கொடுக்காதீர்கள்; ஓய்வுக்கு நேரம்.'] },
-  },
-];
-
 // How a planet tends to deliver results, in plain words
 export const HOW = {
   sun: { en: 'through authority, government or your father', ta: 'அதிகாரம், அரசு அல்லது தந்தை மூலம்' },
@@ -150,13 +97,103 @@ export const TRANSIT_PLAIN = {
   rahuWeak: { en: ['Raagu may bring restlessness or confusion.', 'Avoid hasty decisions and get-rich-quick offers.'], ta: ['ராகு அமைதியின்மை அல்லது குழப்பம் தரலாம்.', 'அவசர முடிவுகள், விரைவுப் பணக்கார வாய்ப்புகளைத் தவிருங்கள்.'] },
 };
 
-export const TONE = {
-  good: { en: '🟢 Favourable', ta: '🟢 சாதகம்' },
-  mixed: { en: '🟡 Mixed', ta: '🟡 கலவை' },
-  hard: { en: '🟠 Needs care', ta: '🟠 கவனம் தேவை' },
+
+// ---------------------------------------------------------------------------
+// Six focus areas (the ones people ask about most)
+export const FOCUS = ['family', 'kids', 'health', 'career', 'finances', 'education'];
+
+export const FOCUS_NAME = {
+  family: { en: 'Family and relationships', ta: 'குடும்பம், உறவுகள்' },
+  kids: { en: 'Kids', ta: 'குழந்தைகள்' },
+  health: { en: 'Health and wellbeing', ta: 'உடல்நலம், நல்வாழ்வு' },
+  career: { en: 'Career', ta: 'தொழில்' },
+  finances: { en: 'Finances (home, savings, debt)', ta: 'பணம் (வீடு, சேமிப்பு, கடன்)' },
+  education: { en: 'Education', ta: 'கல்வி' },
 };
 
-export const STUDIES = {
-  good: { en: ['Learning comes easily; exams, courses and new skills go well.', 'Sign up for that course or exam; this is a good time to learn.'], ta: ['கல்வி எளிதாக வரும்; தேர்வுகள், படிப்புகள், புதிய திறன்கள் நன்றாக அமையும்.', 'அந்தப் படிப்பு அல்லது தேர்வுக்கு பதிவு செய்யுங்கள்; கற்க நல்ல காலம்.'] },
-  hard: { en: ['Studies need more discipline; distractions or changes of course are possible.', 'Keep a fixed study routine and ask teachers for help early.'], ta: ['கல்விக்கு அதிக ஒழுக்கம் தேவை; கவனச் சிதறல் அல்லது பாட மாற்றம் வரலாம்.', 'நிலையான படிப்பு நேரம்; ஆசிரியர்களிடம் முன்கூட்டியே உதவி கேளுங்கள்.'] },
+// Which houses feed each area, and which life areas a house touches
+export const FOCUS_HOUSES = { family: [2, 7, 4], kids: [5], health: [1, 6], career: [10, 6], finances: [2, 11, 4], education: [4, 5, 9] };
+export const HOUSE_TO_FOCUS = [null, ['health'], ['finances', 'family'], ['career'], ['family', 'finances', 'education'], ['kids', 'education'], ['career', 'health'], ['family'], ['finances', 'health'], ['education'], ['career'], ['finances'], ['finances', 'health']];
+
+// Overall picture of an area in the chart, by tone
+export const FOCUS_CHART = {
+  family: {
+    good: { en: 'Your chart traditionally supports a warm family life and lasting relationships.', ta: 'உங்கள் ஜாதகம் பாரம்பரியமாக அன்பான குடும்ப வாழ்வையும் நீடித்த உறவுகளையும் ஆதரிக்கிறது.' },
+    mixed: { en: 'Family life is generally good; relationships do best with patience and clear talk.', ta: 'குடும்ப வாழ்வு பொதுவாக நல்லது; பொறுமையும் தெளிவான பேச்சும் உறவுகளை வலுப்படுத்தும்.' },
+    hard: { en: 'Relationships ask for more patience and effort in your chart; small issues are best solved early.', ta: 'உங்கள் ஜாதகத்தில் உறவுகளுக்கு அதிக பொறுமையும் முயற்சியும் தேவை; சிறு பிரச்சினைகளை ஆரம்பத்திலேயே தீர்ப்பது நல்லது.' },
+  },
+  kids: {
+    good: { en: 'Children are traditionally a source of joy and pride in your chart.', ta: 'உங்கள் ஜாதகத்தில் குழந்தைகள் பாரம்பரியமாக மகிழ்ச்சியும் பெருமையும் தருவர்.' },
+    mixed: { en: 'Children bring joy; they do best with your time and attention.', ta: 'குழந்தைகள் மகிழ்ச்சி தருவர்; உங்கள் நேரமும் கவனமும் அவர்களுக்கு நல்லது.' },
+    hard: { en: 'Matters around children may need extra patience or come a little later.', ta: 'குழந்தைகள் தொடர்பான விஷயங்களுக்கு கூடுதல் பொறுமை தேவைப்படலாம் அல்லது சற்று தாமதமாகலாம்.' },
+  },
+  health: {
+    good: { en: 'Your chart traditionally shows good basic energy and resilience.', ta: 'உங்கள் ஜாதகம் பாரம்பரியமாக நல்ல அடிப்படை உற்சாகத்தையும் தாங்கும் திறனையும் காட்டுகிறது.' },
+    mixed: { en: 'Energy is generally steady; regular habits keep it that way.', ta: 'உற்சாகம் பொதுவாக சீராக இருக்கும்; தவறாத பழக்கங்கள் அதைக் காக்கும்.' },
+    hard: { en: 'Energy can dip under stress; routines and rest matter more for you.', ta: 'மன அழுத்தத்தில் உற்சாகம் குறையலாம்; உங்களுக்கு நடைமுறையும் ஓய்வும் அதிக முக்கியம்.' },
+  },
+  career: {
+    good: { en: 'Your chart traditionally supports a rising career and recognition.', ta: 'உங்கள் ஜாதகம் பாரம்பரியமாக வளரும் தொழிலையும் அங்கீகாரத்தையும் ஆதரிக்கிறது.' },
+    mixed: { en: 'Career grows steadily; consistent effort pays off over time.', ta: 'தொழில் சீராக வளரும்; தொடர்ந்த முயற்சி காலப்போக்கில் பலன் தரும்.' },
+    hard: { en: 'Career progress tends to come through persistence; it may be slower but lasts.', ta: 'தொழில் முன்னேற்றம் விடாமுயற்சியால் வரும்; மெதுவாக இருந்தாலும் நீடிக்கும்.' },
+  },
+  finances: {
+    good: { en: 'Your chart traditionally supports savings, property and steady income.', ta: 'உங்கள் ஜாதகம் பாரம்பரியமாக சேமிப்பு, சொத்து, நிலையான வருமானத்தை ஆதரிக்கிறது.' },
+    mixed: { en: 'Finances are generally stable; planning makes the difference.', ta: 'பணநிலை பொதுவாக நிலையானது; திட்டமிடலே வித்தியாசம் தரும்.' },
+    hard: { en: 'Money needs careful planning in your chart; avoid debt and keep a buffer.', ta: 'உங்கள் ஜாதகத்தில் பணத்துக்கு கவனமான திட்டமிடல் தேவை; கடனைத் தவிர்த்து சேமிப்பு வையுங்கள்.' },
+  },
+  education: {
+    good: { en: 'Learning comes naturally to you; studies traditionally go well.', ta: 'கற்றல் உங்களுக்கு இயல்பாக வரும்; கல்வி பாரம்பரியமாக நன்றாக அமையும்.' },
+    mixed: { en: 'Studies go well with discipline; you learn best by doing.', ta: 'ஒழுக்கத்துடன் படித்தால் கல்வி நன்றாக அமையும்; செய்து பார்த்துக் கற்பது உங்களுக்குச் சிறந்தது.' },
+    hard: { en: 'Studies need steady discipline; breaks or changes of course are possible but can be overcome.', ta: 'கல்விக்கு நிலையான ஒழுக்கம் தேவை; இடைவெளி அல்லது பாட மாற்றம் வரலாம், ஆனால் சமாளிக்கலாம்.' },
+  },
+};
+
+// What a period means for an area, by tone: [expect, do]
+export const FOCUS_PERIOD = {
+  family: {
+    good: { en: ['Family life feels warm; good for marriage talks, celebrations and reconnecting.', 'Plan family time, functions or a trip together.'], ta: ['குடும்பத்தில் அன்பு நிலவும்; திருமணப் பேச்சு, விழாக்கள், உறவுகளைப் புதுப்பிக்க நல்லது.', 'குடும்ப நேரம், விழா அல்லது ஒன்றாகப் பயணம் திட்டமிடுங்கள்.'] },
+    mixed: { en: ['Family life is steady, with the usual ups and downs.', 'Keep talking openly; small gestures go a long way.'], ta: ['குடும்ப வாழ்வு சீராக இருக்கும், வழக்கமான ஏற்ற இறக்கங்களுடன்.', 'மனம் திறந்து பேசுங்கள்; சிறு அன்புச் செயல்கள் பெரிய பலன் தரும்.'] },
+    hard: { en: ['Misunderstandings at home or with a partner are possible.', 'Listen more, avoid harsh words, and don’t take big family decisions in anger.'], ta: ['வீட்டில் அல்லது துணையுடன் தவறான புரிதல் வரலாம்.', 'அதிகம் கேளுங்கள்; கடும் சொற்கள் வேண்டாம்; கோபத்தில் பெரிய முடிவுகள் வேண்டாம்.'] },
+  },
+  kids: {
+    good: { en: ['Good news about children: progress at school, milestones, or family growth.', 'Spend quality time; encourage their interests.'], ta: ['குழந்தைகள் பற்றி நல்ல செய்தி: படிப்பில் முன்னேற்றம், முக்கியத் தருணங்கள், குடும்ப வளர்ச்சி.', 'தரமான நேரம் செலவிடுங்கள்; அவர்களின் ஆர்வங்களை ஊக்குவியுங்கள்.'] },
+    mixed: { en: ['Children need a bit more of your attention; things go well with guidance.', 'Stay involved in their studies and routines.'], ta: ['குழந்தைகளுக்கு உங்கள் கவனம் சற்று கூடுதலாகத் தேவை; வழிகாட்டினால் நன்றாக அமையும்.', 'அவர்களின் படிப்பு, நடைமுறையில் ஈடுபாடு காட்டுங்கள்.'] },
+    hard: { en: ['Children’s matters may cause some worry or delays.', 'Be patient and supportive; avoid pressure. Seek advice from teachers or doctors when needed.'], ta: ['குழந்தைகள் தொடர்பான விஷயங்கள் சற்று கவலை அல்லது தாமதம் தரலாம்.', 'பொறுமையும் ஆதரவும்; அழுத்தம் வேண்டாம். தேவையானால் ஆசிரியர், மருத்துவர் ஆலோசனை பெறுங்கள்.'] },
+  },
+  health: {
+    good: { en: ['Good energy and stamina; a good time to build healthy habits.', 'Start that exercise routine or health goal now.'], ta: ['நல்ல உற்சாகமும் சக்தியும்; நல்ல பழக்கங்களை உருவாக்க ஏற்ற காலம்.', 'உடற்பயிற்சி அல்லது உடல்நல இலக்கை இப்போது தொடங்குங்கள்.'] },
+    mixed: { en: ['Energy is steady but can dip when you overwork.', 'Keep regular sleep and meals; don’t skip check-ups.'], ta: ['உற்சாகம் சீராக இருக்கும்; அதிக வேலையில் குறையலாம்.', 'சீரான தூக்கம், உணவு; பரிசோதனைகளைத் தவிர்க்காதீர்கள்.'] },
+    hard: { en: ['A time to look after yourself more: stress and tiredness can build up.', 'Prioritise rest and routine, and get regular check-ups. For any health concern, see a doctor.'], ta: ['உங்களை அதிகம் கவனிக்க வேண்டிய காலம்: மன அழுத்தமும் சோர்வும் கூடலாம்.', 'ஓய்வுக்கும் நடைமுறைக்கும் முன்னுரிமை; தவறாமல் பரிசோதனை. எந்த உடல்நலக் கவலைக்கும் மருத்துவரை அணுகுங்கள்.'] },
+  },
+  career: {
+    good: { en: ['Career growth, recognition or a better role is likely.', 'Ask for the promotion, apply for the role, or start the venture.'], ta: ['தொழில் வளர்ச்சி, அங்கீகாரம், நல்ல பதவி வரலாம்.', 'பதவி உயர்வு கேளுங்கள்; புதிய வேலைக்கு விண்ணப்பியுங்கள் அல்லது தொழில் தொடங்குங்கள்.'] },
+    mixed: { en: ['Steady work with some pressure; progress comes from consistent effort.', 'Build skills and relationships at work; plan changes carefully.'], ta: ['சிறிது அழுத்தத்துடன் சீரான வேலை; தொடர்ந்த முயற்சியால் முன்னேற்றம்.', 'திறமைகளையும் பணியிட உறவுகளையும் வளருங்கள்; மாற்றங்களைக் கவனமாகத் திட்டமிடுங்கள்.'] },
+    hard: { en: ['Work pressure or a slower phase; recognition may take time.', 'Keep your head down, avoid clashes with bosses, and don’t quit in haste.'], ta: ['வேலை அழுத்தம் அல்லது மந்த நிலை; அங்கீகாரம் வரத் தாமதமாகலாம்.', 'அமைதியாக உழையுங்கள்; மேலதிகாரிகளுடன் மோதல் வேண்டாம்; அவசரமாக வேலையை விடாதீர்கள்.'] },
+  },
+  finances: {
+    good: { en: ['Income and savings can grow; good for buying property or paying off loans.', 'Save and invest steadily; a good time for home or property plans.'], ta: ['வருமானமும் சேமிப்பும் வளரலாம்; சொத்து வாங்க, கடன் அடைக்க நல்லது.', 'சீராகச் சேமித்து முதலீடு செய்யுங்கள்; வீடு, சொத்துத் திட்டங்களுக்கு நல்ல காலம்.'] },
+    mixed: { en: ['Money comes in, but expenses keep pace.', 'Track spending, keep an emergency fund, and avoid new debt.'], ta: ['பணம் வரும், ஆனால் செலவுகளும் கூடவே வரும்.', 'செலவைக் கண்காணியுங்கள்; அவசர நிதி வையுங்கள்; புதிய கடன் வேண்டாம்.'] },
+    hard: { en: ['Expenses or loans may weigh on you; money can feel tight.', 'Cut non-essentials, avoid lending or borrowing, and don’t make risky investments.'], ta: ['செலவுகள் அல்லது கடன்கள் சுமையாகலாம்; பணம் இறுக்கமாக இருக்கலாம்.', 'தேவையற்ற செலவைக் குறையுங்கள்; கடன் கொடுக்கவோ வாங்கவோ வேண்டாம்; அபாய முதலீடுகள் வேண்டாம்.'] },
+  },
+  education: {
+    good: { en: ['A good time for learning: exams, courses and new skills go well.', 'Sign up for that course or certification now.'], ta: ['கற்க நல்ல காலம்: தேர்வுகள், படிப்புகள், புதிய திறன்கள் நன்றாக அமையும்.', 'அந்தப் படிப்பு அல்லது சான்றிதழுக்கு இப்போது பதிவு செய்யுங்கள்.'] },
+    mixed: { en: ['Studies go well with discipline; some distractions are likely.', 'Set a fixed study routine and clear goals.'], ta: ['ஒழுக்கத்துடன் கல்வி நன்றாக அமையும்; சில கவனச் சிதறல்கள் வரலாம்.', 'நிலையான படிப்பு நேரமும் தெளிவான இலக்குகளும் வையுங்கள்.'] },
+    hard: { en: ['Focus can be harder; results may need extra effort.', 'Break study into small steps and ask teachers for help early.'], ta: ['கவனம் செலுத்துவது கடினமாகலாம்; முடிவுகளுக்கு கூடுதல் உழைப்பு தேவை.', 'படிப்பைச் சிறு படிகளாகப் பிரியுங்கள்; ஆசிரியர்களிடம் முன்கூட்டியே உதவி கேளுங்கள்.'] },
+  },
+};
+
+// Overall feel of a period, in words instead of colours
+export const TONE_WORDS = {
+  good: { en: 'A supportive time.', ta: 'ஆதரவான காலம்.' },
+  mixed: { en: 'A steady time: good results with effort.', ta: 'சீரான காலம்: முயற்சியால் நல்ல பலன்.' },
+  hard: { en: 'A time that asks for patience.', ta: 'பொறுமை தேவைப்படும் காலம்.' },
+};
+
+// Extra flavour for houses that colour a period
+export const HOUSE_FLAVOR = {
+  3: { en: 'Good for short trips, writing, selling and new efforts.', ta: 'குறுகிய பயணம், எழுத்து, விற்பனை, புதிய முயற்சிகளுக்கு நல்லது.' },
+  8: { en: 'Some unexpected changes are possible; keep plans flexible.', ta: 'சில எதிர்பாராத மாற்றங்கள் வரலாம்; திட்டங்களை நெகிழ்வாக வையுங்கள்.' },
+  9: { en: 'Help from elders, mentors or your father; good for pilgrimage or travel.', ta: 'பெரியோர், வழிகாட்டிகள், தந்தையின் உதவி; யாத்திரை அல்லது பயணத்துக்கு நல்லது.' },
+  12: { en: 'Expenses or travel (possibly abroad) are likely.', ta: 'செலவுகள் அல்லது பயணம் (வெளிநாடும் இருக்கலாம்) வரலாம்.' },
 };

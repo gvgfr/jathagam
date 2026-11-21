@@ -6,7 +6,7 @@ import { SIGN_LORDS } from '../engine/constants.js';
 import { activePeriod } from '../engine/dasa.js';
 import { NAMES } from '../i18n.js';
 import { SIGN_TRAITS, NAK_TRAITS, EXALTATION } from './texts.js';
-import { AREA, HOUSE_PLAIN, HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, TONE, STUDIES } from './plainTexts.js';
+import { AREA, HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS, FOCUS_NAME, FOCUS_HOUSES, HOUSE_TO_FOCUS, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_FLAVOR } from './plainTexts.js';
 
 const GOOD_HOUSES = [1, 4, 5, 7, 9, 10];
 const DUSTHANA = [6, 8, 12];
@@ -44,7 +44,6 @@ export function strength(A, key) {
   return s;
 }
 const toneOf = (s) => (s >= 1 ? 'good' : s <= -0.5 ? 'hard' : 'mixed');
-const planTone = (t) => (t === 'mixed' ? 'good' : t); // mixed periods still get the hopeful text, plus a caution
 
 /** Houses a period lord "acts through": where it sits first, then what it owns. */
 function housesOf(A, key) {
@@ -65,7 +64,14 @@ const T = {
     patience: (a) => `Areas that need more patience: ${a}.`,
     nextTurn: (d, tone, areas) => `Next change: from ${d}, a ${tone.toLowerCase().replace(/^\S+ /, '')} period for ${areas}.`,
     bigPicture: (lord, until, areas, how) => `Big picture (${until}): your ${lord} period puts the spotlight on ${areas}. Results tend to come ${how}.`,
-    mixedNote: 'Results are mixed: good moves work, but expect some effort and delays.',
+    nowBrief2: (tone, until, areas) => `Right now (${until}): ${tone.toLowerCase()} The focus is on ${areas}.`,
+    nextTurn2: (d, tone, areas) => `Next change from ${d}: ${tone.toLowerCase()} Focus: ${areas}.`,
+    bigPictureH: (r) => `Big picture · ${r}`,
+    bigPicture2: (lord, areas, how) => `This long ${lord} period mainly shapes ${areas}. Results tend to come ${how}.`,
+    thisPeriod: (r) => `This period · ${r}`,
+    otherAreas: 'Your other areas right now',
+    careTimes: (list) => `Times to take more care: ${list}.`,
+    healthNote: 'This is general wellbeing guidance from tradition, not medical advice.',
     period: (dates, lord) => `${dates} · ${lord} period`,
     areasFor: (a) => `Focus: ${a}.`,
     goodTimes: (list) => `Good times: ${list}.`,
@@ -97,7 +103,14 @@ const T = {
     patience: (a) => `அதிக பொறுமை தேவைப்படும் பகுதிகள்: ${a}.`,
     nextTurn: (d, tone, areas) => `அடுத்த மாற்றம்: ${d} முதல், ${areas} — ${tone.replace(/^\S+ /, '')} காலம்.`,
     bigPicture: (lord, until, areas, how) => `பெரிய படம் (${until}): ${lord} தசை ${areas} மீது கவனம் செலுத்துகிறது. பலன்கள் ${how} வரும்.`,
-    mixedNote: 'கலவையான பலன்: நல்ல முயற்சிகள் வெற்றி தரும்; சிறிது உழைப்பும் தாமதமும் இருக்கும்.',
+    nowBrief2: (tone, until, areas) => `இப்போது (${until}): ${tone} கவனம்: ${areas}.`,
+    nextTurn2: (d, tone, areas) => `அடுத்த மாற்றம் ${d} முதல்: ${tone} கவனம்: ${areas}.`,
+    bigPictureH: (r) => `பெரிய படம் · ${r}`,
+    bigPicture2: (lord, areas, how) => `இந்த நீண்ட ${lord} தசை முக்கியமாக ${areas} ஆகியவற்றை வடிவமைக்கும். பலன்கள் ${how} வரும்.`,
+    thisPeriod: (r) => `இந்தக் காலகட்டம் · ${r}`,
+    otherAreas: 'இப்போது உங்கள் மற்ற பகுதிகள்',
+    careTimes: (list) => `அதிக கவனம் தேவைப்படும் காலம்: ${list}.`,
+    healthNote: 'இது பாரம்பரிய நல்வாழ்வு வழிகாட்டல் மட்டுமே; மருத்துவ ஆலோசனை அல்ல.',
     period: (dates, lord) => `${dates} · ${lord} காலகட்டம்`,
     areasFor: (a) => `கவனம்: ${a}.`,
     goodTimes: (list) => `நல்ல காலங்கள்: ${list}.`,
@@ -144,17 +157,36 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now) {
     for (const m of ['saturn', 'mars', 'rahu', 'ketu']) if (A.occupants(h).includes(m) && !UPACHAYA.includes(h)) sc -= 0.5;
     return sc;
   };
-  const timesFor = (lords, minAge, maxAge, limit = 2) => {
-    const birth = chart.input.utc;
-    const age = (d) => (d - birth) / (365.25 * 86400000);
-    return all
-      .slice(Math.max(bi, 0))
-      .filter((b) => lords.includes(b.lord) && periodTone(b) !== 'hard' && age(b.start) <= maxAge && age(b.end) >= minAge)
-      .slice(0, limit)
-      .map((b) => fmtRange(b.start, b.end));
-  };
-
   const sections = [];
+  const fname = (f) => FOCUS_NAME[f][lang];
+  const KARAKA_OF = { family: ['venus', 'moon'], kids: ['jupiter'], health: ['sun', 'moon'], career: ['sun', 'saturn'], finances: ['jupiter'], education: ['mercury', 'jupiter'] };
+  const focusScore = (f) => {
+    const hs = FOCUS_HOUSES[f];
+    let sc = hs.reduce((a, h) => a + areaScore(h), 0) / hs.length;
+    for (const k of KARAKA_OF[f]) sc += 0.25 * strength(A, k);
+    if (f === 'health') sc = 0.6 * strength(A, A.lordOf(1)) + 0.2 * strength(A, 'sun') + 0.2 * strength(A, 'moon');
+    return sc;
+  };
+  /** Focus areas a period touches: via the houses its bhukti lord sits in and rules. */
+  const focusOfPeriod = (b) => {
+    const out = [];
+    for (const h of housesOf(A, b.lord)) for (const f of HOUSE_TO_FOCUS[h]) if (!out.includes(f)) out.push(f);
+    return out.slice(0, 3);
+  };
+  const flavorOf = (b) => {
+    const h = A.house(b.lord);
+    return HOUSE_FLAVOR[h] ? HOUSE_FLAVOR[h][lang] : null;
+  };
+  /** One period described area by area. */
+  const describePeriod = (b, head) => {
+    const tone = periodTone(b);
+    const fs = focusOfPeriod(b);
+    const p = [TONE_WORDS[tone][lang], ...fs.map((f) => `${fname(f)}: ${FOCUS_PERIOD[f][tone][lang][0]}`)];
+    const fl = flavorOf(b);
+    if (fl) p.push(fl);
+    const tips = fs.slice(0, 2).map((f) => FOCUS_PERIOD[f][tone][lang][1]);
+    return { h: head, p, tips };
+  };
 
   // ---- brief
   const brief = [];
@@ -162,75 +194,76 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now) {
   brief.push(t.focus(area(A.house(A.lordOf(1)))));
   if (bi >= 0) {
     const cur = all[bi];
-    brief.push(t.nowBrief(TONE[periodTone(cur)][lang], t.until(fmtDate(cur.end)), listAreas(housesOf(A, cur.lord))));
+    brief.push(t.nowBrief2(TONE_WORDS[periodTone(cur)][lang], t.until(fmtDate(cur.end)), focusOfPeriod(cur).map(fname).join('; ')));
   }
-  const ranked = [1, 2, 4, 5, 7, 9, 10, 11].map((h) => [h, areaScore(h)]).sort((a, b) => b[1] - a[1]);
-  brief.push(t.bestAreas(ranked.slice(0, 2).map(([h]) => area(h)).join('; ')));
+  const ranked = FOCUS.map((f) => [f, focusScore(f)]).sort((a, b) => b[1] - a[1]);
+  brief.push(t.bestAreas(ranked.slice(0, 2).map(([f]) => fname(f)).join('; ')));
   const weak = ranked.filter(([, sc]) => sc < 0).slice(-2);
-  if (weak.length) brief.push(t.patience(weak.map(([h]) => area(h)).join('; ')));
+  if (weak.length) brief.push(t.patience(weak.map(([f]) => fname(f)).join('; ')));
   if (bi >= 0 && all[bi + 1]) {
     const nx = all[bi + 1];
-    brief.push(t.nextTurn(fmtDate(nx.start), TONE[periodTone(nx)][lang], listAreas(housesOf(A, nx.lord))));
+    brief.push(t.nextTurn2(fmtDate(nx.start), TONE_WORDS[periodTone(nx)][lang], focusOfPeriod(nx).map(fname).join('; ')));
   }
   sections.push({ key: 'brief', title: t.sec.brief, items: brief });
 
-  // ---- right now
+  // ---- right now: the big picture, this period area by area, and this year's planets
   const nowItems = [];
   if (act) {
     const L = act.dasa.lord;
-    nowItems.push({ p: [t.bigPicture(g(L), fmtRange(act.dasa.start, act.dasa.end), listAreas(housesOf(A, L)), HOW[L][lang])] });
+    const dasaFocus = [];
+    for (const h of housesOf(A, L)) for (const f of HOUSE_TO_FOCUS[h]) if (!dasaFocus.includes(f)) dasaFocus.push(f);
+    nowItems.push({ h: t.bigPictureH(fmtRange(act.dasa.start, act.dasa.end)), p: [t.bigPicture2(g(L), dasaFocus.slice(0, 3).map(fname).join('; '), HOW[L][lang])] });
   }
   if (bi >= 0) {
     const cur = all[bi];
-    const tone = periodTone(cur);
-    const hs = housesOf(A, cur.lord).slice(0, 2);
-    const pt = planTone(tone);
-    const expect = hs.map((h) => HOUSE_PLAIN[h][pt][lang][0]);
-    if (tone === 'mixed') expect.push(t.mixedNote);
-    const tips = hs.map((h) => HOUSE_PLAIN[h][pt][lang][1]);
-    nowItems.push({ h: `${t.period(fmtRange(cur.start, cur.end), `${g(cur.dasaLord)}–${g(cur.lord)}`)}`, tone, p: expect, tips });
+    nowItems.push(describePeriod(cur, t.thisPeriod(fmtRange(cur.start, cur.end))));
+    // what this period means for every focus area not covered above, in one line each
+    const touched = focusOfPeriod(cur);
+    const rest = FOCUS.filter((f) => !touched.includes(f)).map((f) => `${fname(f)}: ${FOCUS_CHART[f][toneOf(focusScore(f))][lang]}`);
+    nowItems.push({ h: t.otherAreas, p: rest });
   }
   sections.push({ key: 'now', title: t.sec.now, items: nowItems });
 
   // ---- next few years
   if (bi >= 0) {
-    const ahead = all.slice(bi + 1, bi + 6).map((b) => {
-      const tone = periodTone(b);
-      const hs = housesOf(A, b.lord).slice(0, 2);
-      const pt = planTone(tone);
-      return {
-        h: t.period(fmtRange(b.start, b.end), `${g(b.dasaLord)}–${g(b.lord)}`),
-        tone,
-        p: [t.areasFor(listAreas(hs)), HOUSE_PLAIN[hs[0]][pt][lang][0]],
-        tips: [HOUSE_PLAIN[hs[0]][pt][lang][1]],
-      };
-    });
+    const ahead = all.slice(bi + 1, bi + 6).map((b) => describePeriod(b, `${fmtRange(b.start, b.end)}`));
     sections.push({ key: 'ahead', title: t.sec.ahead, items: ahead });
   }
 
-  // ---- life areas
+  // ---- life areas: the six focus areas
   const ageNow = (now - chart.input.utc) / (365.25 * 86400000);
-  const areaCard = (title, h, extra, lords, texts = HOUSE_PLAIN[h], [minAge, maxAge] = [0, 120]) => {
-    const tone = toneOf(areaScore(h));
-    const pt = planTone(tone);
-    const p = [t.areaTone[tone], ...extra, texts[pt][lang][0]];
-    const times = timesFor(lords, minAge, maxAge);
-    // dates only where they are relevant to the person's age
-    if (times.length) p.push(t.goodTimes(times.join('; ')));
-    else if (ageNow <= maxAge) p.push(t.noGoodTimes);
-    return { h: title, tone, p, tips: [texts[pt][lang][1]] };
-  };
+  const AGE = { family: [18, 120], kids: [21, 60], health: [0, 120], career: [16, 70], finances: [16, 120], education: [4, 40] };
+  const periodsFor = (f, tones, limit) =>
+    all
+      .slice(Math.max(bi, 0))
+      .filter((b) => b.end > now && focusOfPeriod(b).includes(f) && tones.includes(periodTone(b)))
+      .filter((b) => {
+        const a = (b.start - chart.input.utc) / (365.25 * 86400000);
+        return a <= AGE[f][1] && a + 3 >= AGE[f][0];
+      })
+      .slice(0, limit)
+      .map((b) => fmtRange(b.start, b.end));
   const l10 = A.lordOf(10);
   const l7 = A.lordOf(7);
   const l11 = A.lordOf(11);
-  const areas = [
-    areaCard(t.career, 10, [t.careerFields(CAREER_FIELDS[A.house(l10)][lang])], [l10, ...A.occupants(10), 'sun', 'saturn'], HOUSE_PLAIN[10], [16, 70]),
-    areaCard(t.money, 11, [t.incomeFrom(INCOME_BY[A.house(l11)][lang])], [l11, A.lordOf(2), 'jupiter']),
-    areaCard(t.marriage, 7, [t.marriageBy(MARRIAGE_BY[A.house(l7)][lang])], [l7, 'venus', ...A.occupants(7)], HOUSE_PLAIN[7], [20, 45]),
-    areaCard(t.home, 4, [], [A.lordOf(4), 'moon']),
-    areaCard(t.children, 5, [], [A.lordOf(5), 'jupiter'], HOUSE_PLAIN[5], [21, 45]),
-    areaCard(t.studies, 5, [], [A.lordOf(5), 'mercury', A.lordOf(4)], STUDIES, [4, 35]),
-  ];
+  const EXTRA = {
+    family: [t.marriageBy(MARRIAGE_BY[A.house(l7)][lang])],
+    kids: [],
+    health: [t.healthNote],
+    career: [t.careerFields(CAREER_FIELDS[A.house(l10)][lang])],
+    finances: [t.incomeFrom(INCOME_BY[A.house(l11)][lang])],
+    education: [],
+  };
+  const areas = FOCUS.map((f) => {
+    const tone = toneOf(focusScore(f));
+    const p = [FOCUS_CHART[f][tone][lang], ...EXTRA[f].filter((x) => !(f === 'family' && ageNow > 45))];
+    const good = periodsFor(f, ['good'], 2);
+    const care = periodsFor(f, ['hard'], 1);
+    if (good.length) p.push(t.goodTimes(good.join('; ')));
+    if (care.length) p.push(t.careTimes(care.join('; ')));
+    if (!good.length && !care.length && ageNow <= AGE[f][1]) p.push(t.noGoodTimes);
+    return { h: fname(f), p, tips: [FOCUS_PERIOD[f][tone === 'good' ? 'good' : tone][lang][1]] };
+  });
   sections.push({ key: 'areas', title: t.sec.areas, items: areas });
 
   // ---- transits
@@ -241,14 +274,13 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now) {
   else if (sat.house === 4) satKey = 'sat4';
   else if (sat.house === 8) satKey = 'sat8';
   else satKey = [3, 6, 11].includes(sat.house) ? 'satGood' : 'satMixed';
-  const satTone = satKey === 'satGood' ? 'good' : satKey === 'satMixed' || satKey === 'sade3' ? 'mixed' : 'hard';
   const satUntil = go.sadeSati.active ? go.sadeSati.end : sat.until;
-  tr.push({ h: `${t.saturn} · ${t.until(fmtDate(satUntil))}`, tone: satTone, p: [TRANSIT_PLAIN[satKey][lang][0]], tips: [TRANSIT_PLAIN[satKey][lang][1]] });
+  tr.push({ h: `${t.saturn} · ${t.until(fmtDate(satUntil))}`, p: [TRANSIT_PLAIN[satKey][lang][0]], tips: [TRANSIT_PLAIN[satKey][lang][1]] });
   if (!go.sadeSati.active && go.sadeSati.nextStart) tr.push(t.sadeNext(fmtDate(go.sadeSati.nextStart)));
   const jg = [2, 5, 7, 9, 11].includes(go.jupiter.house);
-  tr.push({ h: `${t.jupiter} · ${t.until(fmtDate(go.jupiter.until))}`, tone: jg ? 'good' : 'mixed', p: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][0]], tips: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][1]] });
+  tr.push({ h: `${t.jupiter} · ${t.until(fmtDate(go.jupiter.until))}`, p: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][0]], tips: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][1]] });
   const rg = [3, 6, 11].includes(go.rahu.house);
-  tr.push({ h: `${t.raagu} · ${t.until(fmtDate(go.rahu.until))}`, tone: rg ? 'good' : 'mixed', p: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][0]], tips: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][1]] });
+  tr.push({ h: `${t.raagu} · ${t.until(fmtDate(go.rahu.until))}`, p: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][0]], tips: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][1]] });
   sections.push({ key: 'transits', title: t.sec.transits, items: tr });
 
   // ---- nature

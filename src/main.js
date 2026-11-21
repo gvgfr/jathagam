@@ -342,7 +342,6 @@ function renderResults({ chart, meta }) {
 
   // --- palan (traditional readings): a prominent call-to-action, expanded on demand
   const PALAN_ICON = { brief: '✦', now: '📍', ahead: '🗓️', areas: '🧭', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
-  const PALAN_TONE = { good: t('toneGood'), mixed: t('toneMixed'), hard: t('toneHard') };
   let palan = `
     <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
       <div>
@@ -355,15 +354,14 @@ function renderResults({ chart, meta }) {
     const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt));
     const plainSecs = pl.sections.filter((x) => !x.technical);
     const techSecs = pl.sections.filter((x) => x.technical);
-    // plain sections: on phones only the first two start open
-    const openPlain = (i) => !isMobile() || i < 2;
+    // only "In brief" starts open; readers open the sections they want
+    const openPlain = (i) => i === 0;
     const item = (x) => {
       if (typeof x === 'string') return `<li>${esc(x)}</li>`;
-      const tone = x.tone ? `<span class="tone tone-${x.tone}">${esc(PALAN_TONE[x.tone])}</span>` : '';
-      return `<li class="pl-item${x.tone ? ` t-${x.tone}` : ''}">
-        ${x.h ? `<div class="pl-head"><strong>${esc(x.h)}</strong>${tone}</div>` : ''}
+      return `<li class="pl-item">
+        ${x.h ? `<div class="pl-head"><strong>${esc(x.h)}</strong></div>` : ''}
         ${(x.p || []).length ? `${x.h ? `<div class="pl-label">${t('plExpect')}</div>` : ''}<ul class="pl-p">${x.p.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
-        ${(x.tips || []).length ? `<div class="pl-label pl-do">✅ ${t('plDo')}</div><ul class="pl-tips">${x.tips.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
+        ${(x.tips || []).length ? `<div class="pl-label pl-do">${t('plDo')}</div><ul class="pl-tips">${x.tips.map((y) => `<li>${esc(y)}</li>`).join('')}</ul>` : ''}
       </li>`;
     };
     const secHtml = (sec, open) => `<details class="palan-sec sec-${sec.key}" ${open ? 'open' : ''}>

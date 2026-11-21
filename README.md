@@ -10,27 +10,36 @@ and deploys every push to `main` (`.github/workflows/pages.yml`).
 
 ## Palan (predictions)
 The **Palan** tab (`#palan`, also the gold card on every chart) is written for
-people, not astrologers (`src/palan/plain.js`, texts in `plainTexts.js`):
+people, not astrologers (`src/palan/plain.js`, texts in `plainTexts.js`). It is
+organised around six areas: **family and relationships, kids, health and
+wellbeing, career, finances (home, savings, debt) and education.**
 
 * **Your reading in brief** — nature, life focus, what now is about, strongest
-  areas, areas needing patience, and the next turning point.
-* **Right now** — the big-picture dasa and the current bhukti: *what to expect*
-  and *what you can do*, rated 🟢 favourable / 🟡 mixed / 🟠 needs care.
-* **The next few years** — the next five periods with dates, focus, what to
-  expect and a tip.
-* **Life areas** — career (with kinds of work the chart traditionally suits),
-  money (main income source), marriage, home, children and studies: tone,
-  what to expect, good times with dates (only where relevant to age) and a tip.
-* **Planets moving now** — Saturn (incl. Ezharai / Ashtama / Arthashtama
-  Sani), Jupiter and Raagu with end dates and tips.
+  areas, areas needing patience and the next change (open by default; all
+  other sections start closed).
+* **Right now** — the big-picture dasa, this period area by area (what to
+  expect, what you can do), and a line for each of your other areas.
+* **The next few years** — the next five periods with dates, described area by
+  area, with tips.
+* **Life areas** — the six areas: what your chart traditionally shows, good
+  times and times to take more care (with dates, filtered by age), and a tip.
+  Career adds kinds of work, finances the main income source, family what
+  tradition says about the partner.
+* **Planets moving now** — Saturn (incl. Ezharai / Ashtama / Arthashtama Sani),
+  Jupiter and Raagu with end dates and tips.
+
+Tone is said in words ("a supportive time", "a steady time: good results with
+effort", "a time that asks for patience"), never with colours. Health is
+general wellbeing guidance only (energy, routine, rest, check-ups, "see a
+doctor"), never a diagnosis; lifespan is not covered.
 
 How it works: each planet gets a simple strength score from traditional rules
 (natural benefic/malefic, uchcham/aatchi/neecham, house placement, lordship of
 difficult houses, yogakarakan, neecha bhanga). A period's tone combines its
-dasa and bhukti lords; it is described through the life areas (houses) its
-bhukti lord sits in and rules. The technical readings (dasa lordships,
-gocharam, 13 yogams, house lords, aspects) are kept in a collapsed
-**For astrologers** section. Health and lifespan are left out.
+dasa and bhukti lords; the areas it touches come from the houses its bhukti
+lord sits in and rules (e.g. 2nd → finances and family, 5th → kids and
+education, 6th → career and health). The technical readings are kept in a
+collapsed **For astrologers** section.
 
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):

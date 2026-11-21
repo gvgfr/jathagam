@@ -36,7 +36,7 @@ describe('palan text for reference charts', () => {
         expect(p.sections.find((x) => x.key === 'houses').items).toHaveLength(12);
         expect(p.sections.find((x) => x.key === 'planets').items).toHaveLength(9);
         // plain sections: every period and life area gives advice
-        for (const k of ['now', 'ahead', 'areas']) {
+        for (const k of ['ahead', 'areas']) {
           const objs = p.sections.find((x) => x.key === k).items.filter((i) => typeof i === 'object' && i.h);
           objs.forEach((o) => expect(o.tips.length, `${k} tips`).toBeGreaterThan(0));
         }

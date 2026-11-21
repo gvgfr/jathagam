@@ -191,25 +191,15 @@ details.palan-sec[open] summary::after { content: '−'; }
 .palan h3 { font-size: 1.02rem; color: var(--maroon); margin: 0; }
 .palan ul { margin: 0; padding: 0 0 10px; list-style: none; }
 .palan li { margin: 0 0 8px; line-height: 1.6; padding: 8px 12px; background: #fff; border-radius: 8px; border-left: 4px solid var(--saffron); }
-.sec-gochara li { border-left-color: #6a4c93; }
-.sec-yogas li { border-left-color: #c99a2e; }
-.sec-dasa li:first-child { border-left-color: var(--maroon); }
 /* plain palan items */
 .palan ul.pl-list > li.pl-item { padding: 12px 14px; }
 .pl-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; margin-bottom: 6px; }
 .pl-head strong { color: var(--maroon); font-size: 1.02rem; }
-.tone { font-size: 0.8rem; font-weight: 700; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
-.tone-good { background: #e3f1e5; color: var(--ok); }
-.tone-mixed { background: #fff3cf; color: #8a5a00; }
-.tone-hard { background: #fde6d6; color: #a0461a; }
-.palan li.t-good { border-left-color: #2f8a4a; }
-.palan li.t-mixed { border-left-color: #d9a400; }
-.palan li.t-hard { border-left-color: #d9661f; }
 .pl-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin: 6px 0 2px; }
-.pl-label.pl-do { color: var(--ok); }
+.pl-label.pl-do { color: var(--maroon); }
 .palan ul.pl-p, .palan ul.pl-tips { list-style: disc; padding-left: 1.2em; margin: 0; }
 .palan ul.pl-p li, .palan ul.pl-tips li { background: none; border: 0; padding: 2px 0; margin: 0; font-weight: 400; }
-.palan ul.pl-tips li { color: #1f4d2b; }
+.palan ul.pl-tips li { color: var(--ink); }
 details.palan-tech { margin-top: 14px; border: 1px dashed var(--line); border-radius: 10px; padding: 0 12px; background: #fffdf8; }
 details.palan-tech > summary { cursor: pointer; padding: 12px 0; font-weight: 700; color: var(--muted); min-height: 44px; }
 .sec-brief li { font-weight: 600; }

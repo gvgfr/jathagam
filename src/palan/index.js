@@ -94,7 +94,7 @@ const T = {
   en: {
     note: 'Based on traditional Tamil astrology rules applied to your chart. These are cultural beliefs, not proven predictions — please don’t base major decisions on them alone.',
     techTitle: 'For astrologers: technical details',
-    excluded: 'Not covered on purpose: health, lifespan and dosham verdicts (see the Dosham tab).',
+    excluded: 'Health readings are general wellbeing guidance only, never a diagnosis. Lifespan and dosham verdicts are not covered here (see the Dosham tab).',
     sec: { highlights: 'Key points', nature: 'Nature and temperament', dasa: 'Your current period (dasa / bhukti)', gochara: 'Transits today (gocharam)', yogas: 'Yogams in your chart', areas: 'Areas of life', houses: 'House by house', planets: 'Planet by planet' },
     lagnam: (s, tr) => `Lagnam in ${s}: tradition describes the personality as ${tr}.`,
     lagnaLord: (l, h, ph) => `Your lagna lord ${l} sits in the ${ord(h)} house, so your life’s focus traditionally turns towards ${ph}.`,
@@ -143,7 +143,7 @@ const T = {
   ta: {
     note: 'உங்கள் ஜாதகத்துக்குப் பாரம்பரிய தமிழ் ஜோதிட விதிகளைப் பொருத்திய பலன்கள். இவை கலாச்சார நம்பிக்கைகள்; நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல — முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
     techTitle: 'ஜோதிடர்களுக்கு: தொழில்நுட்ப விவரங்கள்',
-    excluded: 'வேண்டுமென்றே சேர்க்கப்படாதவை: உடல்நலம், ஆயுள், தோஷ தீர்ப்புகள் (தோஷம் பகுதியைப் பார்க்கவும்).',
+    excluded: 'உடல்நலப் பலன்கள் பொதுவான நல்வாழ்வு வழிகாட்டல் மட்டுமே; நோய் கண்டறிதல் அல்ல. ஆயுள், தோஷ தீர்ப்புகள் இங்கு இல்லை (தோஷம் பகுதியைப் பார்க்கவும்).',
     sec: { highlights: 'முக்கிய அம்சங்கள்', nature: 'குணமும் இயல்பும்', dasa: 'நடப்பு காலம் (தசை / புக்தி)', gochara: 'இன்றைய கோசாரம்', yogas: 'உங்கள் ஜாதகத்தில் யோகங்கள்', areas: 'வாழ்க்கைப் பகுதிகள்', houses: 'வீடு வாரியாக', planets: 'கிரக வாரியாக' },
     lagnam: (s, tr) => `லக்னம் ${s}: பாரம்பரியமாக குணம் — ${tr}.`,
     lagnaLord: (l, h, ph) => `லக்னாதிபதி ${l} ${h}-ஆம் வீட்டில் உள்ளதால், வாழ்க்கையின் கவனம் பாரம்பரியமாக ${ph} நோக்கித் திரும்பும்.`,
