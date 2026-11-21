@@ -173,7 +173,13 @@ export function initBayes(root, ctx) {
       state.last = { r, b, reported };
       // which rule system the Palan should use for this person: only when the evidence is real
       const sysPost = (sys) => r.models.filter((m) => m.system === sys).reduce((a, m) => a + m.post, 0);
-      ctx.setWinner?.(r.avgBF > 3 ? (sysPost('kp') > 0.75 ? 'kp' : sysPost('parasari') > 0.75 ? 'parasari' : null) : null);
+      const winner = r.avgBF > 3 ? (sysPost('kp') > 0.75 ? 'kp' : sysPost('parasari') > 0.75 ? 'parasari' : null) : null;
+      ctx.setWinner?.(winner);
+      // share a short summary with the Palan tab (kept on the phone only if "remember" is ticked)
+      ctx.setSummary?.(
+        { utc: b.conv.utc.getTime(), lat: b.lat, lon: b.lon, avgBF: r.avgBF, lambda: r.lambda.mean, oosBF: r.oos ? r.oos.testBF : null, winner, at: Date.now() },
+        $('b-remember').checked
+      );
       // E. keep the forecasts (only if the person asked to remember) so they can be scored later
       if ($('b-remember').checked) {
         const rec = loadF();

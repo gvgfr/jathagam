@@ -90,7 +90,44 @@ const bayes = initBayes($('bayes-view'), {
     state.bayesWinner = sys;
     if (sys && !state.palanSystemChosen) state.palanSystem = sys;
   },
+  setSummary: (sum, remember) => {
+    state.bayesSummary = sum;
+    try {
+      if (remember) localStorage.setItem(SUMMARY_STORE, JSON.stringify(sum));
+      else localStorage.removeItem(SUMMARY_STORE);
+    } catch {
+      /* storage unavailable */
+    }
+  },
 });
+
+// Bayesian result for the chart shown on the Palan tab (same birth chart only)
+const SUMMARY_STORE = 'jathagam.bayes.summary.v1';
+function bayesSummaryFor(chart) {
+  let sum = state.bayesSummary;
+  if (!sum) {
+    try {
+      sum = JSON.parse(localStorage.getItem(SUMMARY_STORE) || 'null');
+    } catch {
+      sum = null;
+    }
+  }
+  if (!sum) return null;
+  const same = Math.abs(sum.utc - chart.input.utc.getTime()) < 60 * 60000 && Math.abs(sum.lat - chart.input.lat) < 0.5 && Math.abs(sum.lon - chart.input.lon) < 0.5;
+  if (!same) return null;
+  if (sum.winner && !state.bayesWinner) {
+    state.bayesWinner = sum.winner;
+    if (!state.palanSystemChosen) state.palanSystem = sum.winner;
+  }
+  return sum;
+}
+function bayesBanner(chart) {
+  const sum = bayesSummaryFor(chart);
+  const fmt = (x) => (x >= 10 ? x.toFixed(1) : x.toFixed(2));
+  if (!sum) return `<div class="bayes-banner"><p>${t('bbTry')}</p><a href="#bayes" class="btn-ghost dark">${t('bbTryBtn')}</a></div>`;
+  const v = sum.avgBF > 20 ? 'strong' : sum.avgBF > 3 ? 'moderate' : sum.avgBF < 1 / 3 ? 'against' : 'none';
+  return `<div class="bayes-banner b-${v}"><p><strong>${t('bbResult')[v](fmt(sum.avgBF), Math.round(sum.lambda * 100))}</strong></p><a href="#bayes">${t('bbSee')}</a></div>`;
+}
 const VIEWS = ['jathagam', 'today', 'porutham', 'dosham', 'bayes', 'faq'];
 
 // "What is this?" boxes: one per view; the jathagam one follows the active tab
@@ -405,6 +442,7 @@ function renderResults({ chart, meta }) {
         <span>${t('readWith')}</span>
         ${['parasari', 'kp'].map((k) => `<button type="button" role="radio" aria-checked="${state.palanSystem === k}" class="sys-btn${state.palanSystem === k ? ' on' : ''}" data-sys="${k}">${t('sysBtn')[k]}</button>`).join('')}
       </div>
+      ${bayesBanner(chart)}
       ${state.bayesWinner && !state.palanSystemChosen ? `<p class="hint">${t('sysFromBayes')(t('sysBtn')[state.bayesWinner])}</p>` : ''}
       <p class="palan-note">${esc(pl.note)}</p>
       ${plainSecs.map((sec, i) => secHtml(sec, openPlain(i))).join('')}

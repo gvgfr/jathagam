@@ -80,6 +80,11 @@ parents…), with the year and ideally the month.
   person's own age-adjusted normal rate. Forecasts are saved on the phone (only
   if "remember" is ticked); when a period ends the page asks whether it
   happened and reports a Brier score for the model vs chance.
+* **Linked to the Palan.** The Palan reading opens with a box that invites the
+  person to run the check or, once they have, states their own result in plain
+  words (e.g. "no measurable connection… read this as a cultural and traditional
+  reading"). The result is matched to the same birth chart, and kept on the
+  phone only if "remember" was ticked.
 * Tests: a synthetic life that follows the rules is detected (Bayes factor > 3,
   right rule family, out-of-sample > 1); an arbitrary life is not.
 * KP (`src/engine/kp.js`): Placidus cusps and KP ayanamsa checked against Swiss
