@@ -85,7 +85,7 @@ export function matchEvents(sig, age, mustTouch = null) {
 
 const T = {
   en: {
-    sec: { brief: 'Your reading in brief', now: 'Right now', months: 'Month by month: the next 12 months', ahead: 'The next few years', areas: 'Your life areas', safety: 'Take extra care', past: 'Looking back: does this fit?', transits: 'Planets moving now', nature: 'Your nature' },
+    sec: { brief: 'Your reading in brief', now: 'Right now', months: 'Month by month: the next 12 months', ahead: 'The next few years', areas: 'Your life areas', safety: 'Take extra care', transits: 'Planets moving now', nature: 'Your nature' },
     until: (d) => `until ${d}`,
     youAre: (lag, moon) => `By nature you are ${lag}, with a mind that is ${moon}.`,
     nowLine: (until, what) => `Now (until ${until}): ${what}`,
@@ -118,12 +118,11 @@ const T = {
     noWindows: 'No strong windows in the next few years; steady effort works best.',
     safetyWhy: { period: (l) => `${l} sub-period, traditionally linked with accidents and injuries in your chart.`, mars: (h) => `Sevvai (Mars) passes your ${ord(h)} house from the Moon or lagnam — traditionally a time for physical care.`, sani: 'Sani is in a testing position for you.' },
     safetyNone: 'No specific caution windows in the next two years. Usual care applies.',
-    pastNote: 'Compare these past periods with what actually happened in your life. It is the best way to judge how much weight to give the forecasts.',
     sadeNext: (d) => `Saturn’s 7½-year phase (Ezharai Sani) is not running now; the next one starts around ${d}.`,
     saturn: 'Saturn (Sani)', jupiter: 'Jupiter (Guru)', raagu: 'Raagu',
   },
   ta: {
-    sec: { brief: 'சுருக்கமாக உங்கள் பலன்', now: 'இப்போது', months: 'மாதவாரியாக: அடுத்த 12 மாதங்கள்', ahead: 'அடுத்த சில ஆண்டுகள்', areas: 'வாழ்க்கைப் பகுதிகள்', safety: 'கூடுதல் கவனம் தேவைப்படும் காலங்கள்', past: 'திரும்பிப் பார்த்தால்: பொருந்துகிறதா?', transits: 'இப்போது நகரும் கிரகங்கள்', nature: 'உங்கள் இயல்பு' },
+    sec: { brief: 'சுருக்கமாக உங்கள் பலன்', now: 'இப்போது', months: 'மாதவாரியாக: அடுத்த 12 மாதங்கள்', ahead: 'அடுத்த சில ஆண்டுகள்', areas: 'வாழ்க்கைப் பகுதிகள்', safety: 'கூடுதல் கவனம் தேவைப்படும் காலங்கள்', transits: 'இப்போது நகரும் கிரகங்கள்', nature: 'உங்கள் இயல்பு' },
     until: (d) => `${d} வரை`,
     youAre: (lag, moon) => `இயல்பில் நீங்கள்: ${lag}. மனம்: ${moon}.`,
     nowLine: (until, what) => `இப்போது (${until} வரை): ${what}`,
@@ -156,7 +155,6 @@ const T = {
     noWindows: 'அடுத்த சில ஆண்டுகளில் வலுவான காலம் இல்லை; நிலையான முயற்சியே நல்லது.',
     safetyWhy: { period: (l) => `${l} உட்காலம்; உங்கள் ஜாதகத்தில் விபத்து, காயங்களுடன் பாரம்பரியமாகத் தொடர்புடையது.`, mars: (h) => `செவ்வாய் சந்திரன் அல்லது லக்னத்துக்கு ${h}-இல் கடக்கிறார் — பாரம்பரியமாக உடல் பாதுகாப்பில் கவனம் தேவைப்படும் காலம்.`, sani: 'சனி உங்களுக்குச் சோதனையான நிலையில்.' },
     safetyNone: 'அடுத்த இரண்டு ஆண்டுகளில் தனிக் கவனக் காலம் இல்லை. வழக்கமான கவனம் போதும்.',
-    pastNote: 'இந்தக் கடந்த காலங்களை உங்கள் வாழ்வில் உண்மையில் நடந்தவற்றுடன் ஒப்பிட்டுப் பாருங்கள். கணிப்புகளுக்கு எவ்வளவு முக்கியத்துவம் தரலாம் என்று தீர்மானிக்க இதுவே சிறந்த வழி.',
     sadeNext: (d) => `ஏழரைச் சனி இப்போது இல்லை; அடுத்தது சுமார் ${d} அன்று தொடங்கும்.`,
     saturn: 'சனி', jupiter: 'குரு', raagu: 'ராகு',
   },
@@ -198,7 +196,6 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
 
   // all bhuktis and antarams from 10 years ago to 12 years ahead
   const bhuktis = chart.dasa.periods.flatMap((p) => p.bhuktis.map((b) => ({ ...b, dasaLord: p.lord })));
-  const from10 = now.getTime() - 10 * YEAR;
   const to12 = now.getTime() + 12 * YEAR;
   const curB = bhuktis.findIndex((b) => b.start <= now && now < b.end);
   const ants = [];
@@ -391,17 +388,6 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth)
   const nextB = bhuktis[curB + 1];
   if (nextB) brief.push(t.turning(fmtDate(nextB.start), `${g(nextB.dasaLord)}–${g(nextB.lord)}`));
   sections.unshift({ key: 'brief', title: t.sec.brief, items: brief });
-
-  // =========================== LOOKING BACK (last 10 years)
-  const past = [t.pastNote];
-  for (const b of bhuktis) {
-    if (b.end.getTime() < from10 || b.start > now) continue;
-    if (b.start <= now && now < b.end) continue;
-    const lords = [b.dasaLord, b.lord];
-    const d = describe(lords, new Date((b.start.getTime() + b.end.getTime()) / 2), b.lord);
-    past.push({ h: mRange(b.start, b.end), p: d.p, why: whyOf(lords) });
-  }
-  sections.push({ key: 'past', title: t.sec.past, items: past });
 
   // =========================== PLANETS NOW
   const tr = [];

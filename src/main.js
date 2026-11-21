@@ -342,7 +342,7 @@ function renderResults({ chart, meta }) {
     </div>`;
 
   // --- palan (traditional readings): a prominent call-to-action, expanded on demand
-  const PALAN_ICON = { brief: '✦', now: '📍', months: '📅', ahead: '🗓️', areas: '🧭', safety: '🛡️', past: '↩︎', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
+  const PALAN_ICON = { brief: '✦', now: '📍', months: '📅', ahead: '🗓️', areas: '🧭', safety: '🛡️', transits: '🪐', nature: '🌿', dasa: '⏳', gochara: '🪐', yogas: '🌟', areasTech: '🧭', houses: '🏠', planets: '☉' };
   let palan = `
     <div class="palan-cta${state.showPalan ? ' is-open' : ''}">
       <div>

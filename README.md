@@ -32,12 +32,10 @@ the methods working astrologers combine to time events:
 * **Take extra care**: physical-safety caution windows from Mars/Saturn/Raagu
   sub-periods linked to the 8th house and Mars transits over the 1st/8th from
   the Moon or lagnam, phrased as practical care, never as a prediction.
-* **Looking back**: the last 10 years of periods, so people can compare with
-  what actually happened before trusting the forecasts.
 * Every item has a **"Why"** line naming the period planets and their houses.
 
 Sections: In brief · Right now · Month by month · Next few years · Life areas ·
-Take extra care · Looking back · Planets now · Your nature, plus a collapsed
+Take extra care · Planets now · Your nature, plus a collapsed
 **For astrologers** section. Tone is in words, not colours; only "In brief"
 starts open. Health is general wellbeing guidance with a see-a-doctor note;
 lifespan is not covered. These are traditional rules: they are not shown to
