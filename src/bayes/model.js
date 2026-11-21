@@ -1,18 +1,14 @@
 // Bayesian calibration of the traditional rules against a person's own life.
 //
-// Unit of analysis: each antaram (sub-sub-period, weeks to months) of the
-// person's past. For each kind of event k the person reports, we know:
-//   x = did the rule for k "fire" in that antaram (from the chart)
-//   y = did an event of kind k happen in it (from the person; a rough date is
-//       spread over the antarams it overlaps, giving fractional counts)
-// Two hypotheses per kind:
-//   H0 (chance):      P(y|x=1) = P(y|x=0) = π
-//   H1 (rule matters): P(y|x=1) = p1, P(y|x=0) = p0
-// with the same weak Beta prior on every rate, centred on how common the event
-// is in this person's life (strength 2): life events are rare, and a flat
-// Beta(1,1) prior would invent large effects from a handful of periods.
-// Beta-binomial marginal likelihoods give an exact Bayes factor BF10 per kind;
-// kinds are combined by multiplying. Candidate birth times are compared by the
+// Question asked, per kind of event: did the person's events fall in the
+// periods (antarams) where the traditional rule "fired" more often than chance?
+//   q = share of the checked time during which the rule fired
+//   E = number of reported events (a rough date is spread over the periods it
+//       overlaps, so counts can be fractional), h = how many fell in fired time
+//   H0 (no connection): each event lands in fired time with probability q
+//   H1 (rule works):   probability θ > q, with θ ~ Uniform(q, 1)
+// Bayes factor BF = ∫_q^1 θ^h (1-θ)^(E-h) dθ / (1-q)  ÷  q^h (1-q)^(E-h).
+// Kinds are combined by multiplying. Candidate birth times are compared by the
 // same evidence (posterior ∝ prior × BF), because the chart, and so which
 // periods fire, changes with the birth time.
 import { computeChart } from '../engine/index.js';
@@ -69,10 +65,25 @@ export function posterior(t) {
   return { p1, p0, lift: p1 / p0, pBetter: Math.min(1, Math.max(0, prob)) };
 }
 
+/** log Bayes factor (rule works vs no connection) for h of E events falling in
+ *  time covered q by the rule. Numeric integration handles fractional counts. */
+export function logBFbinom(h, E, q) {
+  if (E <= 0 || q <= 0 || q >= 1) return 0;
+  const N = 2000;
+  const dx = (1 - q) / N;
+  let num = 0;
+  for (let i = 0; i < N; i++) {
+    const th = q + (i + 0.5) * dx;
+    num += Math.exp(h * Math.log(th) + (E - h) * Math.log(1 - th)) * dx;
+  }
+  num /= 1 - q;
+  const den = Math.exp(h * Math.log(q) + (E - h) * Math.log(1 - q));
+  return Math.log(num) - Math.log(den);
+}
+
 /** Plain-language strength of evidence for a Bayes factor (Kass & Raftery scale). */
 export function verdict(bf) {
   if (bf < 1 / 3) return 'against';
-  if (bf < 1) return 'slightlyAgainst';
   if (bf < 3) return 'none';
   if (bf < 20) return 'moderate';
   return 'strong';
@@ -108,6 +119,8 @@ export function scoreChart(chart, reported, now) {
     const wins = evs.map(eventWindow);
     const start = Math.min(fromT, ...wins.map((w) => w[0]));
     const t = { a: 0, b: 0, c: 0, d: 0 };
+    let firedTime = 0;
+    let allTime = 0;
     for (const an of ants) {
       const s = Math.max(an.start.getTime(), start);
       const e = Math.min(an.end.getTime(), now.getTime());
@@ -120,6 +133,8 @@ export function scoreChart(chart, reported, now) {
         y += ov / (w1 - w0);
       }
       y = Math.min(1, y);
+      allTime += e - s;
+      if (fired) firedTime += e - s;
       if (fired) {
         t.a += y;
         t.b += 1 - y;
@@ -128,9 +143,11 @@ export function scoreChart(chart, reported, now) {
         t.d += 1 - y;
       }
     }
-    const lbf = logBF(t);
+    const q = allTime ? firedTime / allTime : 0;
+    const E = t.a + t.c;
+    const lbf = logBFbinom(t.a, E, q);
     total += lbf;
-    kinds[k] = { table: t, logBF: lbf, n: evs.length, ...posterior(t) };
+    kinds[k] = { table: t, logBF: lbf, n: evs.length, share: q, expected: E * q, hits: t.a, events: E };
   }
   return { kinds, logBF: total, A, ants };
 }
@@ -176,7 +193,7 @@ export function calibrate(birth, reported, opts = {}) {
     const age = (t - birthT) / YEAR;
     return k === 'parents' ? age >= 25 && age <= 85 : !e || (age >= e.age[0] && age <= e.age[1]);
   };
-  const trusted = Object.entries(chosen.score.kinds).filter(([, v]) => v.logBF > Math.log(3) && v.p1 > v.p0);
+  const trusted = Object.entries(chosen.score.kinds).filter(([, v]) => v.logBF > Math.log(3) && v.hits > v.expected);
   const forecast = [];
   for (const an of lifeAntarams(chosen.chart)) {
     if (an.end.getTime() <= now.getTime() || an.start.getTime() > horizon) continue;

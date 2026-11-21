@@ -47,14 +47,16 @@ A tab that tests the traditional rules against the person's own life
 happened (marriage, children, job changes, property, moves, injuries, illness,
 losses, parents…), with "never happened" for kinds that didn't occur.
 
-* **Model.** The unit is each antaram (sub-sub-period) of the person's past.
-  For each event kind: did the palan's rule for it fire in that period, and did
-  an event happen in it (a rough date is spread over the periods it overlaps).
-  H0: the event rate is the same whether or not the rule fires (chance).
-  H1: the rates differ. Weak Beta priors centred on the person's own event rate;
-  exact beta-binomial marginal likelihoods give a **Bayes factor** per kind,
-  multiplied for the overall score (Kass–Raftery scale: <1 favours chance,
-  >3 some support, >20 strong).
+* **Model.** For each event kind the person reports: q = share of the checked
+  time during which the palan's rule for that kind fired (by antaram), E =
+  number of events (a year-only date is spread over the periods it overlaps),
+  h = events that fell in fired time. H0 (no connection): each event lands in
+  fired time with probability q. H1 (rule works): probability θ > q with
+  θ ~ Uniform(q, 1). Bayes factor = ∫_q^1 θ^h(1−θ)^(E−h)dθ/(1−q) ÷ q^h(1−q)^(E−h),
+  multiplied across kinds (<1/3 favours no connection, >3 some support, >20
+  strong). Kinds marked "never happened" cannot be tested and are not scored.
+  The page shows, per kind, how many events chance would put in the rule's
+  periods versus how many actually fell there.
 * **Birth-time correction.** Candidate times every 5 minutes within the stated
   uncertainty (±15/30/60 min) get posterior ∝ prior × Bayes factor (prior
   highest at the stated time). The site only suggests another time when it beats

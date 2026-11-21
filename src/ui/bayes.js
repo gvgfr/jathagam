@@ -198,9 +198,12 @@ export function initBayes(root, ctx) {
     const rules = Object.entries(r.kinds)
       .map(([k, v]) => {
         const fired = v.table.a + v.table.b;
-        const verdict = v.logBF > Math.log(20) ? 'strong' : v.logBF > Math.log(3) ? 'moderate' : v.logBF < Math.log(1 / 3) ? 'against' : v.logBF < 0 ? 'slightlyAgainst' : 'none';
-        const line = reported[k].length ? t.ruleLine(Math.round(fired), Math.round(v.table.a), reported[k].length) : t.ruleNever(Math.round(fired));
-        return `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${reported[k].length ? t.reported(reported[k].length) : t.never})</span><br>${line} <em>${t.ruleVerdict[verdict]}</em></li>`;
+        const verdict = v.logBF > Math.log(20) ? 'strong' : v.logBF > Math.log(3) ? 'moderate' : v.logBF < Math.log(1 / 3) ? 'against' : 'none';
+        const one = (x) => (x > 0 && x < 0.1 ? x.toFixed(2) : Math.abs(x - Math.round(x)) < 0.05 ? String(Math.round(x)) : x.toFixed(1));
+        const line = reported[k].length
+          ? t.ruleLine(Math.round(fired), Math.round(v.share * 100), one(v.expected), one(v.hits), reported[k].length)
+          : t.ruleNever(Math.round(fired));
+        return `<li><strong>${esc(t.kinds[k])}</strong> <span class="hint">(${reported[k].length ? t.reported(reported[k].length) : t.never})</span><br>${line}${reported[k].length ? ` <em>${t.ruleVerdict[verdict]}</em>` : ''}</li>`;
       })
       .join('');
     const rulesCard = `<div class="card b-res"><h2>${t.rRules}</h2><ul class="b-rules">${rules}</ul></div>`;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { lgamma, lbeta, logBF, posterior, verdict, calibrate, scoreChart } from '../src/bayes/model.js';
+import { lgamma, lbeta, logBF, posterior, logBFbinom, verdict, calibrate, scoreChart } from '../src/bayes/model.js';
 import { computeChart } from '../src/engine/index.js';
 import { antarams } from '../src/engine/dasa.js';
 import { analyse } from '../src/palan/index.js';
@@ -24,6 +24,7 @@ describe('maths', () => {
   });
   it('verdicts', () => {
     expect(verdict(0.1)).toBe('against');
+    expect(verdict(0.5)).toBe('none');
     expect(verdict(2)).toBe('none');
     expect(verdict(50)).toBe('strong');
   });
@@ -85,5 +86,30 @@ describe('personal forecast', () => {
     const r = calibrate({ utc, lat, lon }, { childbirth: [{ year: 2007 }, { year: 2011, month: 6 }], jobChange: [{ year: 2008 }], setback: [] }, { toleranceMin: 0, now });
     for (const f of r.forecast) expect(r.kinds[f.key].logBF).toBeGreaterThan(Math.log(3));
     expect(r.forecast.some((f) => f.key === 'childbirth')).toBe(false); // age 49+
+  });
+});
+
+describe('one-sided test', () => {
+  it('a rule that fires only when nothing happens is not counted as working', () => {
+    // 4 events, all in periods where the rule did NOT fire; rule fired 30 times
+    const t = { a: 0, b: 30, c: 4, d: 166 };
+    const p = posterior(t);
+    const oneSided = logBF(t) + Math.log(Math.max(1e-9, p.pBetter) / 0.5);
+    expect(oneSided).toBeLessThan(0);
+  });
+});
+
+describe('event-in-rule-time test', () => {
+  it('more hits than chance -> support; none -> against; never-happened -> no information', () => {
+    expect(logBFbinom(3, 3, 0.1)).toBeGreaterThan(Math.log(20)); // all 3 events in 10% of the time
+    expect(logBFbinom(1, 2, 0.11)).toBeGreaterThan(0); // 1 of 2 vs 0.2 expected: mild support
+    expect(logBFbinom(0, 4, 0.11)).toBeLessThan(Math.log(1 / 3)); // 0 of 4
+    expect(logBFbinom(0, 0, 0.3)).toBe(0);
+  });
+  it('matches the analytic value for whole numbers', () => {
+    // h=1, E=2, q=0.11: num = (1/6 - (q^2/2 - q^3/3)) / (1-q), den = q(1-q)
+    const q = 0.11;
+    const num = (1 / 6 - (q * q / 2 - q ** 3 / 3)) / (1 - q);
+    expect(logBFbinom(1, 2, q)).toBeCloseTo(Math.log(num / (q * (1 - q))), 4);
   });
 });
