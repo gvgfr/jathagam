@@ -445,3 +445,6 @@ details.remedies li { margin-bottom: 6px; }
 .b-import-l { cursor: pointer; }
 .b-calib { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
 .b-calib th, .b-calib td { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
+.w-details { margin: 12px 0; }
+.w-details > summary { cursor: pointer; font-weight: 700; color: var(--maroon); padding: 12px 4px; min-height: 44px; }
+.w-plain .w-period { font-weight: 700; }

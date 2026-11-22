@@ -215,7 +215,38 @@ export function initWestern(root, ctx) {
         </div>`;
     }
     const limits = `<div class="card w-res"><h2>${t.rLimits}</h2><ul class="b-rules">${t.limits.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-    $('western-results').innerHTML = settings + interp + timing + limits;
+    // plain-language summary first; the technical cards go into a closed "for astrologers" section
+    const merged = [];
+    for (const w of [...(r.windows || [])].sort((x, y) => x.start - y.start)) {
+      const last = merged.at(-1);
+      if (last && w.start <= last.end) {
+        if (w.end > last.end) last.end = w.end;
+        last.n++;
+        last.openEnd = last.openEnd || w.openEnd;
+      } else merged.push({ start: w.start, end: w.end, n: 1, openStart: w.openStart, openEnd: w.openEnd });
+    }
+    const periodText = (m) => `${mon(m.start)}${m.openStart ? ` (${t.orEarlier})` : ''} – ${mon(m.end)}${m.openEnd ? ` (${t.orLater})` : ''}`;
+    let plainItems;
+    if (!r.b) plainItems = [t.plainNeedB];
+    else {
+      const y0 = Math.max(r.from.getUTCFullYear(), r.a.birth.getUTCFullYear(), r.b.birth.getUTCFullYear()); // nothing before both are born
+      const y1 = r.to.getUTCFullYear();
+      plainItems = [
+        merged.length ? t.plainSome(nameA, nameB, y0, y1) : t.plainNone(nameA, nameB, y0, y1),
+        ...merged.map((m) => t.plainPeriod(periodText(m), m.n)),
+        r.now.length ? t.plainNowYes : t.plainNowNo,
+        r.natal.length ? t.plainNatalYes : t.plainNatalNo,
+        ...(r.windows.some((w) => w.uncertain) ? [t.plainUncertain] : []),
+      ];
+    }
+    const plain = `<div class="card w-res w-plain">
+        <h2>${t.rPlain}</h2>
+        <p class="w-label"><strong>${t.badge}</strong></p>
+        <ul class="b-rules">${plainItems.map((x, i) => `<li${r.b && i > 0 && i <= merged.length ? ' class="w-period"' : ''}>${esc(x)}</li>`).join('')}</ul>
+        <p class="hint">${esc(t.plainMeaning)}</p>
+      </div>`;
+    const details = `<details class="w-details"><summary>${t.forAstrologers}</summary>${settings}${interp}${timing}</details>`;
+    $('western-results').innerHTML = plain + details + limits;
     $('western-results').hidden = false;
   }
 
