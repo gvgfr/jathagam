@@ -1,0 +1,95 @@
+{
+ "source": "pyswisseph 2.10.03 (flag 4 = Moshier analytical ephemeris, no SE data files; typically sub-arcsecond for Sun/Venus in this range), calc_ut, tropical apparent geocentric ecliptic longitude, true equinox of date",
+ "rows": [
+  {
+   "utc": "1977-07-27T19:00:00Z",
+   "sun": 124.614509,
+   "venus": 83.200158,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "1990-01-01T00:00:00Z",
+   "sun": 280.304511,
+   "venus": 306.281722,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "2000-02-29T12:00:00Z",
+   "sun": 340.20583,
+   "venus": 313.956566,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "1955-12-31T23:30:00Z",
+   "sun": 279.521669,
+   "venus": 309.525628,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "2026-11-21T06:15:00Z",
+   "sun": 238.942553,
+   "venus": 203.873838,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "2010-06-15T03:00:00Z",
+   "sun": 83.934202,
+   "venus": 120.885542,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "1980-03-10T08:00:00Z",
+   "sun": 349.905138,
+   "venus": 33.979842,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "2045-09-09T18:00:00Z",
+   "sun": 167.464996,
+   "venus": 210.083036,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "1964-08-30T14:45:00Z",
+   "sun": 157.235633,
+   "venus": 111.411436,
+   "flags": [
+    4,
+    4
+   ]
+  },
+  {
+   "utc": "2004-02-29T00:00:00Z",
+   "sun": 339.73876,
+   "venus": 23.543556,
+   "flags": [
+    4,
+    4
+   ]
+  }
+ ]
+}
