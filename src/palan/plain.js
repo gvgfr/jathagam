@@ -15,7 +15,7 @@ import { transitWindows } from '../engine/transit.js';
 import { dasamsaSign, saptamsaSign } from '../engine/vargas.js';
 import { NAMES } from '../i18n.js';
 import { SIGN_TRAITS, NAK_TRAITS, EXALTATION } from './texts.js';
-import { PLANET_FIELDS, HOW, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_TO_FOCUS } from './plainTexts.js';
+import { PLANET_FIELDS, HOUSE_TOPIC, CAREER_FIELDS, MARRIAGE_BY, INCOME_BY, TRANSIT_PLAIN, FOCUS_NAME, FOCUS_HOUSES, FOCUS_CHART, FOCUS_PERIOD, TONE_WORDS, HOUSE_TO_FOCUS } from './plainTexts.js';
 import { EVENTS, EVENT_TEXT, FOCUS_EXTRA, EVENT_SHORT } from './eventTexts.js';
 import { kpChart, kpFires, KP_EVENTS } from '../engine/kp.js';
 
@@ -105,7 +105,11 @@ const T = {
     youAre: (lag, moon) => `By nature you are ${lag}, with a mind that is ${moon}.`,
     and: ' and ',
     who: (lagS, lagT, moonS, moonT) => `With ${lagS} rising and the Moon in ${moonS}, you are ${lagT}; inside, your mind is ${moonT}.`,
-    bigStory: (L, yrs, y0, y1, hs, areas, how) => `You are in ${L}’s ${yrs}-year period (${y0}–${y1}). In your chart ${L} works through your ${hs} house${hs.includes(',') || hs.includes(' and ') ? 's' : ''}, so these years centre on ${areas || 'steady personal growth'}. Results tend to come ${how}.`,
+    bigStory: (L, yrs, y0, y1, hs, areas, via) => `You are in ${L}’s ${yrs}-year period (${y0}–${y1}). In your chart ${L} works through your ${hs} house${hs.includes(',') || hs.includes(' and ') ? 's' : ''}, so these years centre on ${areas || 'steady personal growth'}. ${via}`,
+    via: (L, h, topic, S, m, topic2) =>
+      S === L || m === h
+        ? `${L} sits in your ${ord(h)} house, so tradition links this period with ${topic}.`
+        : `${L} sits in your ${ord(h)} house (${topic}) and in the star of ${S}, who sits in your ${ord(m)} house (${topic2}); tradition links this period with both.`,
     nowStory: (until, lords, what, tone) => `Right now, until ${until} (${lords} sub-period): ${what} ${tone}`,
     nowGood: (x) => `tradition points to ${x}.`,
     nowCare: (x) => `Take care with ${x}.`,
@@ -126,7 +130,7 @@ const T = {
     ruleNode: (k, sl, h) => `${k} acts for ${sl} and sits in your ${h}.`,
     houses: (hs) => (hs.length === 1 ? `${ord(hs[0])}` : `${hs.slice(0, -1).map(ord).join(', ')} and ${ord(hs.at(-1))}`),
     houseN: (h) => `${ord(h)} house`,
-    bigPicture: (lord, range, how) => `Big picture: ${lord} period (${range}). Results tend to come ${how}.`,
+    bigPicture: (lord, range, via) => `Big picture: ${lord} period (${range}). ${via}`,
     effort: 'Possible, though it may take more effort and patience.',
     dtLine: (h, what) => `Guru and Sani both influence your ${ord(h)} house now (a traditional “double transit”): ${what}`,
     satBav: (h, n) => `Sani is passing your ${ord(h)} house from the Moon with ${n} of 8 support points — ${n >= 4 ? 'traditionally easier for you' : 'traditionally heavier for you'}.`,
@@ -161,7 +165,11 @@ const T = {
     youAre: (lag, moon) => `இயல்பில் நீங்கள்: ${lag}. மனம்: ${moon}.`,
     and: ', ',
     who: (lagS, lagT, moonS, moonT) => `${lagS} லக்னம், ${moonS} ராசி: இயல்பில் நீங்கள் ${lagT}; மனதில் ${moonT}.`,
-    bigStory: (L, yrs, y0, y1, hs, areas, how) => `நீங்கள் ${L} தசையில் இருக்கிறீர்கள் (${yrs} ஆண்டுகள், ${y0}–${y1}). உங்கள் ஜாதகத்தில் ${L} உங்கள் ${hs}-ஆம் வீடுகள் வழியாகச் செயல்படுவதால், இந்த ஆண்டுகள் ${areas || 'நிலையான வளர்ச்சி'} மையமாக அமையும். பலன்கள் ${how} வரும்.`,
+    bigStory: (L, yrs, y0, y1, hs, areas, via) => `நீங்கள் ${L} தசையில் இருக்கிறீர்கள் (${yrs} ஆண்டுகள், ${y0}–${y1}). உங்கள் ஜாதகத்தில் ${L} உங்கள் ${hs}-ஆம் வீடுகள் வழியாகச் செயல்படுவதால், இந்த ஆண்டுகள் ${areas || 'நிலையான வளர்ச்சி'} மையமாக அமையும். ${via}`,
+    via: (L, h, topic, S, m, topic2) =>
+      S === L || m === h
+        ? `${L} உங்கள் ${h}-ஆம் வீட்டில் இருப்பதால், இந்தக் காலம் ${topic} ஆகியவற்றுடன் பாரம்பரியமாகத் தொடர்புடையது.`
+        : `${L} உங்கள் ${h}-ஆம் வீட்டில் (${topic}), ${S} நட்சத்திரத்தில் உள்ளார்; ${S} உங்கள் ${m}-ஆம் வீட்டில் (${topic2}) உள்ளார். இவ்விரண்டுடனும் இந்தக் காலம் பாரம்பரியமாகத் தொடர்புடையது.`,
     nowStory: (until, lords, what, tone) => `இப்போது, ${until} வரை (${lords} உட்காலம்): ${what} ${tone}`,
     nowGood: (x) => `பாரம்பரியம் ${x} என்று சுட்டுகிறது.`,
     nowCare: (x) => `கவனம்: ${x}.`,
@@ -182,7 +190,7 @@ const T = {
     ruleNode: (k, sl, h) => `${k} ${sl} சார்பாகச் செயல்படும்; ${h.replace('வீடு', 'வீட்டில்')} உள்ளார்.`,
     houses: (hs) => hs.join(', '),
     houseN: (h) => `${h}-ஆம் வீடு`,
-    bigPicture: (lord, range, how) => `பெரிய படம்: ${lord} தசை (${range}). பலன்கள் ${how} வரும்.`,
+    bigPicture: (lord, range, via) => `பெரிய படம்: ${lord} தசை (${range}). ${via}`,
     effort: 'சாத்தியம், ஆனால் அதிக முயற்சியும் பொறுமையும் தேவைப்படலாம்.',
     dtLine: (h, what) => `குருவும் சனியும் இப்போது உங்கள் ${h}-ஆம் வீட்டைப் பார்க்கின்றனர் (பாரம்பரிய “இரட்டைக் கோசாரம்”): ${what}`,
     satBav: (h, n) => `சனி சந்திரனுக்கு ${h}-ஆம் வீட்டில், 8-ல் ${n} அஷ்டவர்க்கப் புள்ளிகளுடன் — ${n >= 4 ? 'பாரம்பரியமாக உங்களுக்கு எளிதானது' : 'பாரம்பரியமாக உங்களுக்குச் சற்று கனமானது'}.`,
@@ -305,7 +313,15 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   const nowItems = [];
   const act = activePeriod(chart.dasa, now);
   const curAnt = ants.find((a) => a.start <= now && now < a.end);
-  if (act) nowItems.push({ p: [t.bigPicture(g(act.dasa.lord), fmtRange(act.dasa.start, act.dasa.end), HOW[act.dasa.lord][lang])] });
+  // where the dasa lord and its star lord sit in THIS chart (not a fixed per-planet line)
+  const houseOf = (k) => (K ? K.planets[k].house : A.house(k));
+  const viaOf = (L) => {
+    const S = nakshatraLord(A.by[L].nakshatra);
+    const h = houseOf(L);
+    const m = houseOf(S);
+    return t.via(g(L), h, HOUSE_TOPIC[h][lang], g(S), m, HOUSE_TOPIC[m][lang]);
+  };
+  if (act) nowItems.push({ p: [t.bigPicture(g(act.dasa.lord), fmtRange(act.dasa.start, act.dasa.end), viaOf(act.dasa.lord))] });
   let nowSummary = null;
   if (curAnt) {
     const lords = [act.dasa.lord, curAnt.bhukti.lord, curAnt.lord];
@@ -500,7 +516,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   if (act) {
     const L = act.dasa.lord;
     const ph = primaryHouses(L);
-    brief.push(t.bigStory(g(L), act.dasa.years, act.dasa.start.getUTCFullYear(), act.dasa.end.getUTCFullYear(), t.houses([...new Set(ph)]), joinAnd(focusOf(L).map(aShort)), HOW[L][lang]));
+    brief.push(t.bigStory(g(L), act.dasa.years, act.dasa.start.getUTCFullYear(), act.dasa.end.getUTCFullYear(), t.houses([...new Set(ph)]), joinAnd(focusOf(L).map(aShort)), viaOf(L)));
   }
   const short = (k) => EVENT_SHORT[k][lang];
   const pickDistinct = (evs, n) => {

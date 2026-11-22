@@ -18,7 +18,25 @@ export const AREA = [
   { en: 'expenses and travel abroad', ta: 'செலவுகளும் வெளிநாட்டுப் பயணமும்' },
 ];
 
-// How a planet tends to deliver results, in plain words
+// What each house is about, in plain words (used to say, chart by chart,
+// where a period's planet sits and so what tradition links it with)
+export const HOUSE_TOPIC = {
+  1: { en: 'yourself, your health and confidence', ta: 'நீங்கள், உடல்நலம், தன்னம்பிக்கை' },
+  2: { en: 'family, speech and savings', ta: 'குடும்பம், பேச்சு, சேமிப்பு' },
+  3: { en: 'your own efforts, siblings and communication', ta: 'சொந்த முயற்சி, உடன்பிறப்புகள், தொடர்பு' },
+  4: { en: 'home, mother, property and vehicles', ta: 'வீடு, தாய், சொத்து, வாகனம்' },
+  5: { en: 'children, studies and investments', ta: 'குழந்தைகள், கல்வி, முதலீடு' },
+  6: { en: 'daily work, competition, loans and health care', ta: 'அன்றாட வேலை, போட்டி, கடன், உடல்நலப் பராமரிப்பு' },
+  7: { en: 'partner, marriage and business partners', ta: 'துணை, திருமணம், தொழில் கூட்டாளிகள்' },
+  8: { en: 'sudden changes, insurance and shared money', ta: 'திடீர் மாற்றங்கள், காப்பீடு, கூட்டுப் பணம்' },
+  9: { en: 'father, mentors, higher learning and long journeys', ta: 'தந்தை, வழிகாட்டிகள், உயர்கல்வி, நீண்ட பயணம்' },
+  10: { en: 'career, status and public role', ta: 'தொழில், அந்தஸ்து, பொதுப் பொறுப்பு' },
+  11: { en: 'income, gains and friends', ta: 'வருமானம், லாபம், நண்பர்கள்' },
+  12: { en: 'expenses, distant places and rest', ta: 'செலவுகள், தொலைதூர இடங்கள், ஓய்வு' },
+};
+
+// How a planet tends to deliver results, in plain words. NOT shown on its own:
+// the same sentence for every person in a given dasa is generic.
 export const HOW = {
   sun: { en: 'through authority, government or your father', ta: 'அதிகாரம், அரசு அல்லது தந்தை மூலம்' },
   moon: { en: 'through your mother, emotions, travel and dealing with people', ta: 'தாய், உணர்வுகள், பயணம், மக்கள் தொடர்பு மூலம்' },

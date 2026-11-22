@@ -120,3 +120,26 @@ describe('signification method', () => {
     expect(matchEvents(new Set([10, 11]), 40, new Set([10])).map((e) => e.key)).toContain('promotion');
   });
 });
+
+describe('big picture line is chart-specific (no fixed per-dasa sentence)', () => {
+  it('two people in the same dasa get different explanations, and the old fixed line is gone', async () => {
+    const { computeChart } = await import('../src/engine/index.js');
+    const { generatePalan } = await import('../src/palan/index.js');
+    const now = new Date('2026-11-22T00:00:00Z');
+    const lineFor = (u, lang = 'en') => {
+      const c = computeChart({ utc: new Date(u), lat: 13.08, lon: 80.27 });
+      const p = generatePalan(c, lang, () => 'R', now, () => '', null);
+      return p.sections.find((s) => s.key === 'now').items[0].p[0];
+    };
+    const a = lineFor('1977-07-27T19:00:00Z');
+    const b = lineFor('1990-06-20T13:10:00Z');
+    expect(a).toMatch(/Raagu period/);
+    expect(b).toMatch(/Raagu period/);
+    expect(a).not.toBe(b);
+    for (const x of [a, b, lineFor('1985-02-11T04:30:00Z')]) {
+      expect(x).not.toMatch(/foreign or unusual paths|Results tend to come/);
+      expect(x).toMatch(/sits in your \d+(st|nd|rd|th) house/);
+    }
+    expect(lineFor('1977-07-27T19:00:00Z', 'ta')).toMatch(/6-ஆம் வீட்டில்/);
+  });
+});
