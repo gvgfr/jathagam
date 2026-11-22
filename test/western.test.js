@@ -287,3 +287,12 @@ describe('generated-partner comparison (synthetic fixtures only)', () => {
     expect(r.anchors.byPrecision.day).toBe(1);
   });
 });
+
+describe('no windows before both people are born', () => {
+  it('starts the timeline at the later birth', () => {
+    const child = { birth: new Date('2010-02-02T20:04:00Z') };
+    const tl = timeline(A, child, new Date('1996-01-01'), new Date('2031-12-31'));
+    for (const w of tl) expect(w.start.getTime()).toBeGreaterThanOrEqual(child.birth.getTime());
+    expect(timeline(A, child, new Date('1996-01-01'), new Date('2005-01-01'))).toEqual([]);
+  });
+});

@@ -164,6 +164,10 @@ export function timeline(pa, pb, from, to, opts = {}) {
   const step = o.stepDays * DAY;
   const out = [];
   if (samePerson(pa, pb)) return out;
+  // a progressed chart only exists after birth: never scan before the later-born person
+  const bornBoth = Math.max(pa.birth.getTime(), pb.birth.getTime());
+  if (from.getTime() < bornBoth) from = new Date(bornBoth);
+  if (to <= from) return out;
   for (const cfg of configurations().filter((c) => c.layer !== 'NN')) {
     for (const aspect of o.aspects) {
       const dev = (ms) => devAt(pa, pb, cfg, aspect, new Date(ms), o.yearDays);
