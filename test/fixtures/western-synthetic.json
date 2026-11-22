@@ -1,0 +1,24 @@
+{
+  "schema": "gv-jathagam/western-research",
+  "version": 1,
+  "synthetic": true,
+  "note": "SYNTHETIC — invented people and dates for software testing only. Not data about anyone. Predictive performance has not been evaluated.",
+  "people": [
+    { "id": "s1", "birth": "1977-07-27T19:00:00Z", "timeKnown": true },
+    { "id": "s2", "birth": "1980-03-10T08:00:00Z", "timeKnown": true },
+    { "id": "s3", "birth": "1975-11-02T06:30:00Z", "timeKnown": true },
+    { "id": "s4", "birth": "1983-05-20T12:00:00Z", "birthMin": "1983-05-19T18:30:00Z", "birthMax": "1983-05-20T18:29:00Z", "timeKnown": false },
+    { "id": "s5", "birth": "1990-01-01T00:00:00Z", "timeKnown": true },
+    { "id": "s6", "birth": "1988-08-08T08:08:00Z", "timeKnown": true }
+  ],
+  "relationships": [
+    { "id": "r1", "a": "s1", "b": "s2", "split": "dev", "observedFrom": "1995", "observedTo": "2012",
+      "events": [ { "type": "beginning", "date": "2000-10", "status": "occurred" }, { "type": "marriage", "date": "2002-02-14", "status": "occurred" }, { "type": "separation", "date": "2011", "status": "occurred" } ] },
+    { "id": "r2", "a": "s1", "b": "s4", "split": "dev", "observedFrom": "2012", "observedTo": "2026-10",
+      "events": [ { "type": "beginning", "date": "2014", "status": "occurred" }, { "type": "marriage", "status": "did-not-occur" } ] },
+    { "id": "r3", "a": "s3", "b": "s5", "split": "heldout", "observedFrom": "2010", "observedTo": "2026-10",
+      "events": [ { "type": "beginning", "date": "2012-06-30", "status": "occurred" }, { "type": "marriage", "status": "unknown" } ] },
+    { "id": "r4", "a": "s5", "b": "s6", "split": "heldout",
+      "events": [ { "type": "beginning", "date": "2009-04", "status": "occurred" } ] }
+  ]
+}

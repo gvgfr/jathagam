@@ -103,6 +103,22 @@ parents…), with the year and ideally the month.
   Ephemeris (cusps within 1′ on 40 random charts), star/sub lords, four-level
   significators, cusp sub-lord promise, period significators for timing.
 
+## Western / Research tab (`#western`, experimental)
+
+A separate, **Westran-inspired** (not a verified replication) Sun–Venus progressed-synastry timing experiment for **two people**. It keeps three things apart:
+
+- **Interpretation:** what the planets traditionally symbolise, labelled as traditional.
+- **Timing signals:** when a progressed Sun or Venus is within orb of a conjunction, trine or opposition to the partner's Venus or Sun.
+- **Predictions:** none are made.
+
+The label shown is "Experimental relationship timing — predictive accuracy not established."
+
+- **Engine:** `src/western/engine.js`. Tropical positions are checked against Swiss Ephemeris in `test/reference-western.json`. It uses secondary progressions; orb and year length are settings. Natal–natal contacts are kept apart as permanent. Unknown birth times give windows with uncertainty ranges.
+- **Specification and source status:** `docs/research/westran-spec.md`.
+- **Research harness:** `src/western/research.js` and `scripts/western-research.mjs`. They give descriptive, retrospective summaries of research datasets (schema in the file). The only bundled data is a synthetic fixture. **Predictive performance has not been evaluated.**
+- **Godbout chart–biography matching:** not implemented. See `docs/research/godbout-note.md`.
+- **Independence:** the tab does not change the Tamil rules, the Palan or the Bayesian check.
+
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
 
