@@ -3,7 +3,6 @@
 // Extension points (phase 2):
 //   - opts.system: 'thirukanitha' (computed, default) | 'vakya' — add an engine
 //     in SYSTEMS with the same signature as thirukanitha().
-//   - porutham: build on chart.summary (rasi, nakshatra) of two charts.
 //   - today's panchangam / rahu kalam: panchangam(date, lat, lon) + astro.js sunrise.
 import { grahaPositions, lagnam } from './astro.js';
 import { describeLongitude } from './nakshatra.js';
@@ -66,7 +65,6 @@ export { panchangam } from './panchangam.js';
 export { localToUtc, zoneFor, offsetZone, parseClock } from './time.js';
 export { activePeriod, yearsToYMD } from './dasa.js';
 export { dms } from './nakshatra.js';
-export { porutham, rasisForNakshatra } from './porutham.js';
 export { doshams } from './dosham.js';
 export { gocharam } from './transit.js';
 export { dailyPanchangam } from './today.js';

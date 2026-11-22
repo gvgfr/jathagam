@@ -271,7 +271,7 @@ body.no-scroll { overflow: hidden; }
 .intro ul { margin: 0 0 6px; padding-left: 1.2em; }
 .intro li { margin-bottom: 4px; line-height: 1.55; }
 .intro-tip { font-size: 0.82rem; color: #4a6b93; margin: 4px 0 10px; }
-.form-card ~ .intro, #jathagam-view .intro, #today-view .intro, #dosham-view .intro, #porutham-view .intro { max-width: 720px; margin-left: auto; margin-right: auto; }
+.form-card ~ .intro, #jathagam-view .intro, #today-view .intro, #dosham-view .intro { max-width: 720px; margin-left: auto; margin-right: auto; }
 .card-help { font-size: 0.86rem; color: var(--muted); margin: -4px 0 10px; line-height: 1.5; }
 button.term {
   font: inherit; color: #1f5aa6; background: #e6f0fc; border: 0; border-bottom: 1.5px dotted #1f5aa6;
@@ -339,35 +339,7 @@ button.term:hover, button.term:focus-visible { background: #cfe2fa; }
 .tabs a[aria-current='page'] { background: var(--cream); color: var(--maroon); opacity: 1; }
 .site-header { padding-bottom: 0; }
 
-/* porutham */
-.persons { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
 fieldset.person { min-width: 0; }
-.person .mode-birth .row-2 { grid-template-columns: 1fr; }
-fieldset.person > legend {
-  font-weight: 700; color: var(--maroon); font-size: 1.05rem; padding: 0 6px;
-  background: var(--paper); border-radius: 6px;
-}
-.seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
-.seg label {
-  display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line);
-  border-radius: 999px; padding: 6px 12px; font-size: 0.88rem; cursor: pointer; background: #fff;
-}
-.seg label:has(input:checked) { border-color: var(--saffron); background: #fff1d6; font-weight: 600; }
-.tiles.two { grid-template-columns: 1fr; margin-bottom: 12px; }
-.tiles.two em { display: block; margin-top: 2px; }
-.score { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 10px; margin-bottom: 12px; background: #fff; border: 2px solid var(--line); }
-.score strong { font-size: 2rem; color: var(--maroon); line-height: 1; }
-.score.ok { border-color: var(--ok); }
-.score.no { border-color: #a01818; }
-table.porutham { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-.porutham th, .porutham td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-.porutham thead th { color: var(--maroon); font-size: 0.8rem; background: #fbefd8; }
-.porutham small { display: block; color: var(--muted); font-weight: 400; font-size: 0.78rem; }
-.porutham .lv { font-weight: 700; }
-.lv-uthamam .lv { color: var(--ok); }
-.lv-madhyamam .lv { color: #b5650e; }
-.lv-illai .lv { color: #a01818; }
-.porutham .key-row th { color: var(--maroon); }
 
 /* dosham */
 .risk-card { border: 2px solid #a01818; background: #fff4f1; }
@@ -428,7 +400,7 @@ details.remedies li { margin-bottom: 6px; }
   body { background: #fff; font-size: 11pt; }
   .site-header { background: none; color: var(--maroon); border-bottom: 2px solid var(--maroon); padding: 0 0 6px; }
   .site-header h1 { color: var(--maroon); }
-  #lang-toggle, .form-card, .no-print, .tagline, .tabs, #porutham-form, #dosham-form, #bayes-form, .palan-cta { display: none !important; }
+  #lang-toggle, .form-card, .no-print, .tagline, .tabs, #dosham-form, #bayes-form, .palan-cta { display: none !important; }
   .card { box-shadow: none; break-inside: avoid; border-color: #bbb; padding: 10px; margin-bottom: 10px; }
   .charts { grid-template-columns: 1fr 1fr; }
   .si-chart { max-width: 85mm; }
@@ -445,6 +417,3 @@ details.remedies li { margin-bottom: 6px; }
 .b-import-l { cursor: pointer; }
 .b-calib { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
 .b-calib th, .b-calib td { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
-.w-details { margin: 12px 0; }
-.w-details > summary { cursor: pointer; font-weight: 700; color: var(--maroon); padding: 12px 4px; min-height: 44px; }
-.w-plain .w-period { font-weight: 700; }

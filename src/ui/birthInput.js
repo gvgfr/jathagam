@@ -1,5 +1,5 @@
 // Shared birth-details fields (date, time, place with autocomplete, manual
-// lat/long) used by the porutham and dosham pages.
+// lat/long) used by the dosham and Bayesian pages.
 import { computeChart, localToUtc, zoneFor, parseClock } from '../engine/index.js';
 import { attachAutocomplete } from './geocode.js';
 

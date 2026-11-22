@@ -109,22 +109,6 @@ parents…), with the year and ideally the month.
   Ephemeris (cusps within 1′ on 40 random charts), star/sub lords, four-level
   significators, cusp sub-lord promise, period significators for timing.
 
-## Western / Research tab (`#western`, experimental)
-
-A separate, **Westran-inspired** (not a verified replication) Sun–Venus progressed-synastry timing experiment for **two people**. It keeps three things apart:
-
-- **Interpretation:** what the planets traditionally symbolise, labelled as traditional.
-- **Timing signals:** when a progressed Sun or Venus is within orb of a conjunction, trine or opposition to the partner's Venus or Sun.
-- **Predictions:** none are made.
-
-The label shown is "Experimental relationship timing — predictive accuracy not established."
-
-- **Engine:** `src/western/engine.js`. Tropical positions are checked against Swiss Ephemeris in `test/reference-western.json`. It uses secondary progressions; orb and year length are settings. Natal–natal contacts are kept apart as permanent. Unknown birth times give windows with uncertainty ranges.
-- **Specification and source status:** `docs/research/westran-spec.md`.
-- **Research harness:** `src/western/research.js` and `scripts/western-research.mjs`. They give descriptive, retrospective summaries of research datasets (schema in the file). With `--control`, they also run a generated-partner comparison modelled on the author's described controls; our sampling choices are documented. The only bundled data is a synthetic fixture. **Predictive performance has not been evaluated.**
-- **Godbout chart–biography matching:** not implemented. See `docs/research/godbout-note.md`.
-- **Independence:** the tab does not change the Tamil rules, the Palan or the Bayesian check.
-
 ## Plain-language help
 For people who don't know the terminology (`src/help.js`, `src/ui/glossary.js`):
 
@@ -147,29 +131,6 @@ The **Temple** tab (`#temple`), or the **Temple card (for archanai)** button on 
 name, nakshatram + padam, rasi, optional gothram and lagnam in Tamil with
 English underneath — easy to show a priest. It can be saved as a PNG or shared;
 the image is drawn on the device (`src/ui/templeCard.js`) and nothing is uploaded.
-
-## Thirumana porutham (marriage matching)
-The **Marriage porutham** tab (`#porutham`) runs the ten traditional Tamil
-checks for a bride and groom, from birth details or directly from a known
-nakshatram + rasi. Code: `src/engine/porutham.js`, UI `src/ui/porutham.js`.
-Counts are inclusive, from the girl's star/sign to the boy's.
-
-| Porutham | Rule used |
-|---|---|
-| Dinam | star count mod 9 ∈ {2,4,6,8,0} |
-| Ganam | same ganam, or deva girl + manushya boy = good; manushya girl + deva boy = fair; any rakshasa mismatch = no |
-| Mahendram | star count ∈ {4,7,10,13,16,19,22,25} |
-| Stree deergham | star count > 13 good, > 7 fair |
-| Yoni | enemy animals (horse–buffalo, elephant–lion, goat–monkey, serpent–mongoose, dog–deer, cat–rat, cow–tiger) = no; same animal good; else fair |
-| Rasi | sign count 1 or 7 good; 9–12 fair; 2–6, 8 no |
-| Rasi adhipathi | lords friendly both ways good; any enmity no; else fair |
-| Vasyam | Tamil almanac vasya table, either direction |
-| Rajju | stars must be in different rajju (pada/ooru/naabhi/kanta/siro) |
-| Vedhai | the 13 vedha pairs (incl. Mirugaseeridam–Chithirai–Avittam) |
-
-Rules vary between families and almanacs; same-nakshatram exceptions and
-Sevvai dosham are not applied. The result is shown as a traditional guide
-(score out of 10, rajju highlighted), never as a verdict.
 
 ## Dosham (use at your own risk)
 The **Dosham** tab (`#dosham`) checks a birth chart against three commonly
@@ -214,11 +175,11 @@ self-hosted. Coordinates can also be pasted straight into the place box (e.g. `1
 ```
 src/engine/            calculation engine, no DOM
   astro.js             sidereal positions, Lahiri ayanamsa, nodes, lagnam, sunrise
-  nakshatra.js vargas.js dasa.js panchangam.js porutham.js time.js constants.js
-  index.js             computeChart(), porutham() — the API the UI uses
+  nakshatra.js vargas.js dasa.js panchangam.js time.js constants.js
+  index.js             computeChart() — the API the UI uses
 src/palan/             rule-based traditional readings
 src/i18n.js            Tamil / English names and labels
-src/ui/                South Indian chart, geocoder autocomplete, porutham page
+src/ui/                South Indian chart, geocoder autocomplete, tab pages
 test/                  verification tests + Swiss Ephemeris reference data
 tools/gen_reference.py regenerates the reference data
 ```
