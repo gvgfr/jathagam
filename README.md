@@ -62,6 +62,8 @@ lifespan is not covered. These are traditional rules: they are not shown to
 predict events, and the page says so.
 
 ## Bayesian check (`#bayes`)
+
+> This is a **retrospective alignment** test on one person's remembered history, not a demonstration of predictive accuracy. See [AUDIT.md](AUDIT.md) for the audit, the event definitions, the evaluation protocol and the results (predictive skill beyond baseline: **not demonstrated**).
 A tab that tests astrology against the person's own life (`src/bayes/robust.js`,
 UI `src/ui/bayes.js`). The person lists when big events happened (marriage,
 children, job changes, property, moves, studies, illness, injuries, losses,
@@ -202,6 +204,8 @@ tools/gen_reference.py regenerates the reference data
 ```sh
 npm install
 npm test          # vitest
+npm run eval -- --synthetic         # evaluation harness self-check (synthetic cohorts)
+npm run eval -- --data cohort.json  # real cohort, development folds (keep personal data out of the repo)
 npm run dev       # local dev server
 npm run build     # writes dist/ (CI does this for deployment)
 ```

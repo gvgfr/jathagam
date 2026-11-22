@@ -92,7 +92,7 @@ export function analyse(chart) {
 
 const T = {
   en: {
-    note: 'Based on traditional Tamil astrology rules applied to your chart. These are cultural beliefs, not proven predictions — please don’t base major decisions on them alone.',
+    note: 'Traditional interpretation, not a tested forecast. These are Tamil astrology rules applied to your chart; the timings below have not been shown to predict events better than chance (see the Bayesian tab and the FAQ). Please don’t base health, money, marriage or career decisions on them.',
     techTitle: 'For astrologers: technical details',
     excluded: 'Health readings are general wellbeing guidance only, never a diagnosis. Lifespan and dosham verdicts are not covered here (see the Dosham tab).',
     sec: { highlights: 'Key points', nature: 'Nature and temperament', dasa: 'Your current period (dasa / bhukti)', gochara: 'Transits today (gocharam)', yogas: 'Yogams in your chart', areas: 'Areas of life', houses: 'House by house', planets: 'Planet by planet' },
@@ -141,7 +141,7 @@ const T = {
     hlMarriage: (l, h) => `Marriage lord ${l} in the ${ord(h)} house.`,
   },
   ta: {
-    note: 'உங்கள் ஜாதகத்துக்குப் பாரம்பரிய தமிழ் ஜோதிட விதிகளைப் பொருத்திய பலன்கள். இவை கலாச்சார நம்பிக்கைகள்; நிரூபிக்கப்பட்ட கணிப்புகள் அல்ல — முக்கிய முடிவுகளை இவற்றை மட்டும் வைத்து எடுக்க வேண்டாம்.',
+    note: 'பாரம்பரிய விளக்கம்; சோதிக்கப்பட்ட கணிப்பு அல்ல. இவை உங்கள் ஜாதகத்துக்குப் பொருத்திய தமிழ் ஜோதிட விதிகள்; கீழுள்ள காலங்கள் தற்செயலை விடச் சிறப்பாக நிகழ்வுகளைக் கணிக்கும் என்று காட்டப்படவில்லை (பேய்சியன் பகுதி, கேள்வி-பதில் பார்க்கவும்). உடல்நலம், பணம், திருமணம், தொழில் முடிவுகளை இவற்றின் அடிப்படையில் எடுக்க வேண்டாம்.',
     techTitle: 'ஜோதிடர்களுக்கு: தொழில்நுட்ப விவரங்கள்',
     excluded: 'உடல்நலப் பலன்கள் பொதுவான நல்வாழ்வு வழிகாட்டல் மட்டுமே; நோய் கண்டறிதல் அல்ல. ஆயுள், தோஷ தீர்ப்புகள் இங்கு இல்லை (தோஷம் பகுதியைப் பார்க்கவும்).',
     sec: { highlights: 'முக்கிய அம்சங்கள்', nature: 'குணமும் இயல்பும்', dasa: 'நடப்பு காலம் (தசை / புக்தி)', gochara: 'இன்றைய கோசாரம்', yogas: 'உங்கள் ஜாதகத்தில் யோகங்கள்', areas: 'வாழ்க்கைப் பகுதிகள்', houses: 'வீடு வாரியாக', planets: 'கிரக வாரியாக' },

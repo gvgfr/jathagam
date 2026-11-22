@@ -16,19 +16,37 @@
 //    once, instead of each kind paying its own complexity penalty.
 // E. Probability forecasts for the coming windows, averaged over models
 //    (Bayesian model averaging), which can be scored later (Brier score).
+//
+// What this is and is not (see AUDIT.md): it is a RETROSPECTIVE ALIGNMENT
+// test. It conditions on the events having happened and asks whether they
+// fell in rule-favoured periods more often than the age-weighted share of
+// time those periods cover. It does not estimate how often events happen, so
+// its "forecasts" are an assumed age curve scaled to the person's own past
+// rate, nudged by the rules only as far as the evidence supports. They are not
+// validated, calibrated probabilities.
+//
+// Prior on rule strength λ: spike-and-slab. With probability SPIKE the rules
+// carry no information (λ = 0, "no effect"); otherwise λ ~ Uniform(0, 1).
+// Without the spike the posterior mean of λ is always above zero (it cannot go
+// below the boundary), which used to push every forecast towards the rules even
+// when the evidence was against them.
 import { computeChart } from '../engine/index.js';
 import { vimshottari, antarams } from '../engine/dasa.js';
 import { analyse } from '../palan/index.js';
 import { ruleFires } from '../palan/plain.js';
 import { kpChart, kpFires } from '../engine/kp.js';
-import { EVENTS } from '../palan/eventTexts.js';
+import { EVENT_DEFS, eligible, weakShare } from '../forecast/definitions.js';
 
 const YEAR = 365.25 * 86400000;
 const GRID = 101; // λ grid
+export const SPIKE = 0.5; // prior probability that the rules carry no information
 
 // ---------------------------------------------------------------- B. base rates
-// Relative frequency of each kind of event by age (rough population shapes):
-// Gaussian bumps with a small floor so no age is impossible.
+// ASSUMPTION, not data: hand-chosen Gaussian age shapes (peak m, spread s)
+// with a small floor so no age is impossible. They are not population event
+// rates and have no published source; they only shape *relative* chance by age.
+// The evaluation harness (src/forecast/evaluate.js) fits age curves from data
+// instead, and treats these as one candidate baseline among others.
 const BASE = {
   marriage: { m: 28, s: 4.5 }, childbirth: { m: 32, s: 5 }, jobChange: { m: 33, s: 10 }, promotion: { m: 38, s: 10 },
   business: { m: 38, s: 9 }, property: { m: 38, s: 10 }, homeMove: { m: 29, s: 10 }, travel: { m: 26, s: 6 },
@@ -125,6 +143,25 @@ const logMeanExp = (arr) => {
 /** log Bayes factor (pooled rules vs chance), λ ~ Uniform(0, 1). */
 export const pooledLogBF = (g) => logMeanExp(Array.from(g)) - g[0];
 
+/** Normalised slab posterior over the λ grid from a log-likelihood-ratio grid. */
+function slabPost(g) {
+  const m = Math.max(...g);
+  const w = Array.from(g, (x) => Math.exp(x - m));
+  const z = w.reduce((a, b) => a + b, 0);
+  return w.map((x) => x / z);
+}
+
+/**
+ * Predictive Bayes factor of test data after learning from training data:
+ * E_{λ ~ p(λ | train, slab)}[L_test(λ)] / L_test(0), computed on the grid.
+ */
+export function predictiveLogBF(gTrain, gTest) {
+  const post = slabPost(gTrain);
+  const m = Math.max(...gTest);
+  const v = post.reduce((s, p, i) => s + p * Math.exp(gTest[i] - m), 0);
+  return Math.log(v) + m - gTest[0];
+}
+
 /** Per-kind one-sided Bayes factor θ ~ U(q, 1) (for the detail list). */
 function kindLogBF({ q, h, E }) {
   if (E <= 0) return 0;
@@ -179,7 +216,8 @@ export function robustCheck(birth, reported, opts = {}) {
       const startAll = Math.min(bMs + 16 * YEAR, ...allDates);
       const st = stats(periods, fires, reported, bMs, startAll, now);
       const g = llGrid(st);
-      const cell = { offsetMin: m, utc, model: mod, timePrior, st, g, logBF: pooledLogBF(g), chart, fires, periods };
+      const fingerprint = `${mod.system}|${dasa.periods[0].end.getTime()}|${mod.yearDays}|${JSON.stringify(fires)}`;
+      const cell = { offsetMin: m, utc, model: mod, timePrior, st, g, logBF: pooledLogBF(g), chart, fires, periods, fingerprint };
       if (splitMs) {
         cell.gTrain = llGrid(stats(periods, fires, trainRep, bMs, startAll, splitMs));
         cell.gTest = llGrid(stats(periods, fires, testRep, bMs, splitMs, now));
@@ -188,7 +226,15 @@ export function robustCheck(birth, reported, opts = {}) {
     }
   }
 
-  // posterior over (model, time): equal prior on models, timePrior on times
+  // prior over cells: equal over models, triangular over birth times, normalised
+  const tz0 = cells.reduce((a, c) => a + c.timePrior, 0);
+  cells.forEach((c) => (c.prior = c.timePrior / tz0));
+  // overall evidence "rules carry information" vs "no effect": the prior-weighted
+  // average of each cell's Bayes factor over BOTH models and birth times
+  const overallBF = cells.reduce((a, c) => a + c.prior * Math.exp(c.logBF), 0);
+  const pEffect = ((1 - SPIKE) * overallBF) / ((1 - SPIKE) * overallBF + SPIKE);
+
+  // posterior over (model, time) given that the rules carry information
   const lw = cells.map((c) => Math.log(c.timePrior) + c.logBF);
   const mx = Math.max(...lw);
   const w = lw.map((x) => Math.exp(x - mx));
@@ -206,20 +252,18 @@ export function robustCheck(birth, reported, opts = {}) {
   const times = [...timePost.entries()].map(([offsetMin, post]) => ({ offsetMin, post, utc: new Date(birth.utc.getTime() + offsetMin * 60000) }));
   const stated = cells.filter((c) => c.offsetMin === 0);
 
-  // overall evidence: Bayesian model average of the pooled Bayes factor at the stated time
-  const avgBF = Math.exp(logMeanExp(stated.map((c) => c.logBF)));
+  // the earlier summary (average over models at the stated time only), kept for comparison
+  const statedBF = Math.exp(logMeanExp(stated.map((c) => c.logBF)));
+  // models that produce identical firing tables and dasa dates are the same model in practice
+  const distinctModels = new Set(stated.map((c) => c.fingerprint)).size;
   const bestCell = cells.reduce((a, c) => (c.post > a.post ? c : a));
   const bestAtStated = stated.reduce((a, c) => (c.logBF > a.logBF ? c : a));
 
-  // λ posterior under the model average (rule strength for this person)
+  // λ posterior given an effect (slab), model-averaged; the spike is added below
   const lamPost = new Float64Array(GRID);
-  for (const c of cells) {
-    const m = Math.max(...c.g);
-    const ws = Array.from(c.g, (x) => Math.exp(x - m));
-    const s = ws.reduce((a, b) => a + b, 0);
-    ws.forEach((x, i) => (lamPost[i] += (c.post * x) / s));
-  }
-  const lamMean = Array.from(lamPost).reduce((a, p, i) => a + (p * i) / (GRID - 1), 0);
+  for (const c of cells) slabPost(c.g).forEach((x, i) => (lamPost[i] += c.post * x));
+  const lamSlabMean = Array.from(lamPost).reduce((a, p, i) => a + (p * i) / (GRID - 1), 0);
+  const lamMean = pEffect * lamSlabMean; // includes the "no effect" spike
   let cum = 0;
   let lo = 0;
   let hi = 1;
@@ -232,7 +276,11 @@ export function robustCheck(birth, reported, opts = {}) {
     }
   }
 
-  // C. out-of-sample: rank models on the training events, score on the test events
+  // C. out-of-sample: learn models, birth time and λ from the training events
+  // only, then score the later test events. Nothing about the test events is
+  // used to choose models, birth time or λ. (The split date itself is the
+  // median of all event dates, and the rules were written by people who may
+  // have seen this history; see AUDIT.md.)
   let oos = null;
   if (splitMs) {
     const trainW = cells.map((c) => Math.log(c.timePrior) + pooledLogBF(c.gTrain));
@@ -240,13 +288,16 @@ export function robustCheck(birth, reported, opts = {}) {
     const tw = trainW.map((x) => Math.exp(x - tm));
     const tz = tw.reduce((a, b) => a + b, 0);
     const pick = cells[trainW.indexOf(tm)];
-    // predictive Bayes factor on test events, averaged with the training posterior
-    const testBF = cells.reduce((acc, c, i) => acc + (tw[i] / tz) * Math.exp(pooledLogBF(c.gTest)), 0);
+    // predictive Bayes factor on the test events: λ carried over from training
+    const testBF = cells.reduce((acc, c, i) => acc + (tw[i] / tz) * Math.exp(predictiveLogBF(c.gTrain, c.gTest)), 0);
+    // the earlier version re-started λ from the uniform prior on the test events
+    const testBFfresh = cells.reduce((acc, c, i) => acc + (tw[i] / tz) * Math.exp(pooledLogBF(c.gTest)), 0);
     oos = {
       splitYear: new Date(splitMs).getUTCFullYear(),
       trainModel: pick.model,
       trainBF: Math.exp(pooledLogBF(pick.gTrain)),
       testBF,
+      testBFfresh,
       testBFofPick: Math.exp(pooledLogBF(pick.gTest)),
       nTrain: kinds.reduce((a, k) => a + trainRep[k].length, 0),
       nTest: kinds.reduce((a, k) => a + testRep[k].length, 0),
@@ -259,18 +310,24 @@ export function robustCheck(birth, reported, opts = {}) {
 
   // E. probability forecasts for the next 24 months, averaged over models
   const horizon = now + (opts.horizonMonths ?? 12) * (YEAR / 12);
-  const forecast = forecastBMA(cells, kinds, reported, now, horizon, lamMean);
+  const forecast = forecastBMA(cells, kinds, reported, now, horizon, lamSlabMean, pEffect);
 
   return {
+    kind: 'retrospective-alignment',
+    overallBF,
+    pEffect,
+    statedBF,
+    distinctModels,
+    weakShare: weakShare(reported),
     models: rankedModels,
     times,
     bestModel: bestCell.model,
     bestOffsetMin: bestCell.offsetMin,
     timeMoved: bestCell.offsetMin !== 0 && (timePost.get(bestCell.offsetMin) / bestCell.timePrior) / (timePost.get(0) / 1) > 3 && bestCell.logBF > Math.log(3),
-    avgBF,
+    avgBF: overallBF, // kept for callers that read avgBF
     bestBFatStated: Math.exp(bestAtStated.logBF),
     bestModelAtStated: bestAtStated.model,
-    lambda: { mean: lamMean, lo, hi },
+    lambda: { mean: lamMean, slabMean: lamSlabMean, lo, hi },
     oos,
     detail,
     forecast,
@@ -279,15 +336,17 @@ export function robustCheck(birth, reported, opts = {}) {
 
 /**
  * E. Forecast per kind: probability of at least one event in the next 12
- * months with the rules (model average) and without them (age-aware chance,
- * from the person's own past rate), plus the window the rules favour most.
+ * months. base = assumed age curve scaled to the person's own past rate (no
+ * astrology). p = (1 − pEffect)·base + pEffect·(base adjusted by the rules at
+ * the slab λ), so with no evidence for the rules p equals base. Only for kinds
+ * the person is eligible for (age range; non-repeatable kinds not yet had).
+ * NOT calibrated or validated: see AUDIT.md.
  */
-function forecastBMA(cells, kinds, reported, now, horizon, lamMean) {
+function forecastBMA(cells, kinds, reported, now, horizon, lamMean, pEffect) {
   const top = [...cells].sort((a, b) => b.post - a.post).slice(0, 12);
   const z = top.reduce((a, c) => a + c.post, 0);
   const out = [];
   for (const k of kinds) {
-    const e = EVENTS.find((x) => x.key === k);
     let pRule = 0;
     let pBase = 0;
     let bestWin = null;
@@ -309,7 +368,7 @@ function forecastBMA(cells, kinds, reported, now, horizon, lamMean) {
         const s0 = Math.max(p.start, now);
         const s1 = Math.min(p.end, horizon);
         const age = ((s0 + s1) / 2 - bMs) / YEAR;
-        if (e && (age < e.age[0] - 2 || age > e.age[1] + 2)) continue;
+        if (!eligible(k, age, reported[k])) continue;
         const hz = rate * baseRate(k, age) * ((s1 - s0) / YEAR);
         const fired = c.fires[k][p.bl][p.al];
         hBase += hz;
@@ -319,7 +378,7 @@ function forecastBMA(cells, kinds, reported, now, horizon, lamMean) {
       pRule += (c.post / z) * (1 - Math.exp(-hRule));
       pBase += (c.post / z) * (1 - Math.exp(-hBase));
     }
-    if (pBase > 0) out.push({ kind: k, p: pRule, base: pBase, window: bestWin });
+    if (pBase > 0) out.push({ kind: k, p: (1 - pEffect) * pBase + pEffect * pRule, pRules: pRule, base: pBase, window: bestWin, calibrated: false, defVersion: EVENT_DEFS[k] ? 1 : 0 });
   }
   return out.sort((a, b) => b.p - a.p);
 }

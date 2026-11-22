@@ -64,3 +64,32 @@ describe('robust check on synthetic lives', () => {
     expect(r.avgBF).toBeLessThan(3);
   });
 });
+
+describe('robust check: audit fixes', () => {
+  const y = (...ys) => ys.map((year) => ({ year }));
+  it('evidence against the rules pulls forecasts to the baseline (spike-and-slab)', () => {
+    const rep = { jobChange: y(2001, 2006, 2013, 2019), homeMove: y(2002, 2007, 2016), property: y(2011) };
+    const r = robustCheck({ utc, lat, lon }, rep, { toleranceMin: 0, now });
+    expect(r.kind).toBe('retrospective-alignment');
+    expect(r.pEffect).toBeCloseTo(r.overallBF / (1 + r.overallBF), 10);
+    expect(r.lambda.mean).toBeCloseTo(r.pEffect * r.lambda.slabMean, 10);
+    for (const f of r.forecast) {
+      expect(f.calibrated).toBe(false);
+      expect(Math.abs(f.p - f.base)).toBeLessThanOrEqual(r.pEffect * Math.abs(f.pRules - f.base) + 1e-12);
+    }
+  });
+  it('counts duplicate models (mean vs true node give the same rules here)', () => {
+    const r = robustCheck({ utc, lat, lon }, { jobChange: y(2003, 2009) }, { toleranceMin: 0, now });
+    expect(r.distinctModels).toBeLessThan(r.models.length);
+    expect(r.distinctModels).toBeGreaterThan(1);
+  });
+  it('no forecast for a non-repeatable event that already happened', () => {
+    const r = robustCheck({ utc, lat, lon }, { marriage: y(2002), jobChange: y(2003, 2009) }, { toleranceMin: 0, now });
+    expect(r.forecast.some((f) => f.kind === 'marriage')).toBe(false);
+  });
+  it('overall BF averages over birth times too, and equals the stated-time average at zero tolerance', () => {
+    const rep = { jobChange: y(2003, 2004, 2009, 2014) };
+    const r0 = robustCheck({ utc, lat, lon }, rep, { toleranceMin: 0, now });
+    expect(r0.overallBF).toBeCloseTo(r0.statedBF, 10);
+  });
+});

@@ -1,5 +1,7 @@
 # GV Jathagam: summary for independent verification
 
+> **Update (Nov 2026):** the forecasting maths was audited and revised. See **AUDIT.md** for the current model: spike-and-slab λ, distinct-model count, predictive out-of-sample test, event definitions, sealed forecast records, and the evaluation harness (`npm run eval`). Figures in section 4 below are the earlier ones.
+
 - **Live site:** https://gvgfr.github.io/jathagam/
 - **Code:** github.com/gvgfr/jathagam. The repo is public, and every push to `main` deploys to GitHub Pages through GitHub Actions (`.github/workflows/pages.yml`).
 - **Latest deployed commit:** `7c28066`.

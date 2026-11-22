@@ -439,3 +439,9 @@ details.remedies li { margin-bottom: 6px; }
   .site-footer .small { display: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+.b-def, .b-weak { margin: 4px 0 0; font-size: 0.8rem; }
+.b-weak { color: var(--maroon); }
+.b-io { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.b-import-l { cursor: pointer; }
+.b-calib { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
+.b-calib th, .b-calib td { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
