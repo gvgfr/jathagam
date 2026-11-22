@@ -61,6 +61,12 @@ starts open. Health is general wellbeing guidance with a see-a-doctor note;
 lifespan is not covered. These are traditional rules: they are not shown to
 predict events, and the page says so.
 
+### How specific the Palan is
+
+Each event rule used to fire for about 15–45% of everyone's time, so most people were told the same things (for example "income rises" for 60% of random charts in any 12 months). The Palan now requires all three running planets (dasa, bhukti, antaram) to point to an event. It also drops any event that the same rules give more than 12% of people's sub-periods at that age. The share is measured over a reference group of random birth moments in `src/palan/baseRates.json`, produced by `node scripts/event-base-rates.mjs`. A test checks that no event line reaches more than 35% of random people in a 12-month window.
+
+This makes readings **less generic, not more accurate**: whether any of these rules predicts anything has not been shown. The Bayesian check still tests the earlier two-level rule; aligning it with the three-level rule is a follow-up.
+
 ## Bayesian check (`#bayes`)
 
 > This is a **retrospective alignment** test on one person's remembered history, not a demonstration of predictive accuracy. See [AUDIT.md](AUDIT.md) for the audit, the event definitions, the evaluation protocol and the results (predictive skill beyond baseline: **not demonstrated**).

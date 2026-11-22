@@ -143,3 +143,27 @@ describe('big picture line is chart-specific (no fixed per-dasa sentence)', () =
     expect(lineFor('1977-07-27T19:00:00Z', 'ta')).toMatch(/6-ஆம் வீட்டில்/);
   });
 });
+
+describe('the Palan does not tell most people the same thing', () => {
+  it('no event line appears for more than 35% of random people in the next 12 months (both systems)', async () => {
+    const { computeChart } = await import('../src/engine/index.js');
+    const { generatePalan } = await import('../src/palan/index.js');
+    const now = new Date('2026-11-22T00:00:00Z');
+    const flat = (x) => (typeof x === 'string' ? [x] : Array.isArray(x) ? x.flatMap(flat) : x && typeof x === 'object' ? Object.entries(x).filter(([k]) => k !== 'h' && k !== 'why').flatMap(([, v]) => flat(v)) : []);
+    let seed = 11;
+    const r = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    const N = 80;
+    for (const sys of [null, 'kp']) {
+      seed = 11;
+      const freq = new Map();
+      for (let i = 0; i < N; i++) {
+        const utc = new Date(Date.UTC(1950, 0, 1) + r() * 55 * 365.25 * 864e5);
+        const p = generatePalan(computeChart({ utc, lat: 13.08, lon: 80.27 }), 'en', () => 'R', now, () => '', () => 'M', sys);
+        const lines = new Set(flat(p.sections.find((s) => s.key === 'months').items));
+        for (const l of lines) freq.set(l, (freq.get(l) || 0) + 1);
+      }
+      const quiet = /quieter phase|steady routines/;
+      for (const [l, n] of freq) if (!quiet.test(l)) expect(n / N, `${sys || 'simplified'}: ${l}`).toBeLessThanOrEqual(0.35);
+    }
+  }, 60000);
+});

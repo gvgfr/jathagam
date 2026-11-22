@@ -9,6 +9,7 @@
 //  - Age-aware: only life areas and events relevant to the person's age.
 // Everything is phrased as tradition, never certainty.
 import { SIGN_LORDS, nakshatraLord } from '../engine/constants.js';
+import BASE_RATES from './baseRates.json' with { type: 'json' };
 import { activePeriod, antarams } from '../engine/dasa.js';
 import { ashtakavarga } from '../engine/ashtakavarga.js';
 import { transitWindows } from '../engine/transit.js';
@@ -225,6 +226,68 @@ function ord(n) {
 }
 
 /**
+ * The Palan's event rules for one chart (simplified whole-sign `A`, or KP `K`
+ * when given). Exported so scripts/event-base-rates.mjs measures exactly the
+ * rules the Palan uses.
+ * Events for a sub-period. With the main-period (dasa) lord `dl` given, all
+ * three period planets must point to the event (three-level agreement): the
+ * dasa lord to at least one of its houses, the bhukti lord to at least one,
+ * the antaram lord to at least half, and dasa + bhukti together to all of them
+ * (KP: each of the three to at least half). Without this, each event fired for
+ * ~15–45% of everyone's time and most people were told the same things.
+ */
+export function periodRules(A, K) {
+  const sigCache = {};
+  const sig = (k) => (sigCache[k] ||= significations(A, k));
+  const union = (...ks) => new Set(ks.flatMap((k) => [...sig(k)]));
+  const isSafety = (k) => MALEFIC.includes(k) && (sig(k).has(8) || (sig(k).has(1) && sig(k).has(6)));
+  // safety: the sub-period planets as before, and (when known) the main-period planet must also signify the 8th house
+  const dasa8 = (dl) => !dl || (K ? K.planetSig[dl].has(8) : sig(dl).has(8));
+  const safetyAnt = K ? (bl, al, dl) => kpFires(K, 'safety', bl, al) && dasa8(dl) : (bl, al, dl) => isSafety(al) && (isSafety(bl) || ['mars', 'rahu'].includes(al)) && dasa8(dl);
+  const PARENT_HOUSES = [8, 4, 9];
+  const eventsAt = (bl, al, age, dl = null) => {
+    // the generic "long trip" event fits almost everyone, so the palan does not forecast it
+    if (!K) {
+      const res = matchEvents(union(bl, al), age, sig(al)).filter((e) => e.key !== 'travel');
+      if (!dl || dl === bl) return res;
+      const sd = sig(dl);
+      const sb = sig(bl);
+      const sa = sig(al);
+      return res.filter((e) => {
+        const hs = e.all || PARENT_HOUSES;
+        if (!e.all) return sd.has(8) && sa.has(8);
+        return hs.some((h) => sd.has(h)) && hs.some((h) => sb.has(h)) && hs.every((h) => sd.has(h) || sb.has(h)) && hs.filter((h) => sa.has(h)).length >= Math.ceil(hs.length / 2);
+      });
+    }
+    const dOk = (key) => {
+      if (!dl || dl === bl) return true;
+      const hs = KP_EVENTS[key] ? KP_EVENTS[key].houses : PARENT_HOUSES;
+      const half = (k) => hs.filter((h) => K.planetSig[k].has(h)).length >= Math.ceil(hs.length / 2);
+      return half(dl) && half(bl) && half(al);
+    };
+    const res = EVENTS.filter((e) => e.key !== 'travel' && KP_EVENTS[e.key] && age >= e.age[0] && age <= e.age[1] && kpFires(K, e.key, bl, al) && dOk(e.key)).map((e) => ({ ...e }));
+    if (age >= 30 && age <= 80 && kpFires(K, 'parents', bl, al) && dOk('parents')) res.push({ key: 'parents', area: 'parents', prio: 5, care: true });
+    return res.sort((a, b) => b.prio - a.prio);
+  };
+
+  return { eventsAt, safetyAnt };
+}
+
+/** Share of sub-period time in which an event's rule fires for people in general (by system and age band). */
+const COMMON_MAX = 0.12; // per sub-period; with ~6 sub-periods a year this keeps any one event line to roughly a quarter of people or fewer
+export function commonRate(system, key, age) {
+  const sys = BASE_RATES.rates[system === 'kp' ? 'kp' : 'parasari'];
+  const b = BASE_RATES.bands.findIndex((x, i) => age >= x && age < BASE_RATES.bands[i + 1]);
+  return b < 0 || !sys[key] ? null : sys[key][b];
+}
+/** An event given to more than COMMON_MAX of everyone's sub-periods says nothing about this person. Only applied with the three-level rule (dl). */
+const tooCommon = (system, key, age, dl) => {
+  if (!dl) return false;
+  const r = commonRate(system, key, age);
+  return r != null && r > COMMON_MAX;
+};
+
+/**
  * @returns {{key:string,title:string,items:(string|{h?:string,p?:string[],tips?:string[],why?:string})[]}[]}
  */
 export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth, system = 'parasari') {
@@ -267,24 +330,19 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
 
   // ---- rule system: simplified (whole-sign) or KP (Placidus cusps, sub-lords)
   const K = system === 'kp' ? kpChart(chart) : null;
-  const safetyAnt = K ? (bl, al) => kpFires(K, 'safety', bl, al) : (bl, al) => isSafety(al) && (isSafety(bl) || ['mars', 'rahu'].includes(al));
-  /** Events indicated when bl (longer period) and al (shorter period) run, at a given age. */
-  const eventsAt = (bl, al, age) => {
-    // the generic "long trip" event fits almost everyone, so the palan does not forecast it
-    if (!K) return matchEvents(union(bl, al), age, sig(al)).filter((e) => e.key !== 'travel');
-    const res = EVENTS.filter((e) => e.key !== 'travel' && KP_EVENTS[e.key] && age >= e.age[0] && age <= e.age[1] && kpFires(K, e.key, bl, al)).map((e) => ({ ...e }));
-    if (age >= 30 && age <= 80 && kpFires(K, 'parents', bl, al)) res.push({ key: 'parents', area: 'parents', prio: 5, care: true });
-    return res.sort((a, b) => b.prio - a.prio);
-  };
+  const rules = periodRules(A, K);
+  // drop events that the same rules give most people at this age anyway (see baseRates.json)
+  const eventsAt = (bl, al, age, dl = null) => rules.eventsAt(bl, al, age, dl).filter((e) => !tooCommon(system, e.key, age, dl));
+  const safetyAnt = (bl, al, dl) => rules.safetyAnt(bl, al, dl) && !tooCommon(system, 'safety', ageNow, dl);
 
   /** Describe a period (lords = [dasa, bhukti, antaram?]) as events + tips. */
   const describe = (lords, when) => {
-    const evs = eventsAt(lords.at(-2), lords.at(-1), ageAt(when));
+    const evs = eventsAt(lords.at(-2), lords.at(-1), ageAt(when), lords.length === 3 ? lords[0] : null);
     const good = evs.filter((e) => !e.care);
     const care = evs.filter((e) => e.care);
     const tone = periodTone(lords);
     const picked = [...good.slice(0, 2), ...care.slice(0, 1)];
-    if (lords.length === 3 && safetyAnt(lords[1], lords[2])) picked.push({ key: 'safety', care: true });
+    if (lords.length === 3 && safetyAnt(lords[1], lords[2], lords[0])) picked.push({ key: 'safety', care: true });
     if (!picked.length) picked.push({ key: 'quiet' });
     const p = picked.map((e) => evText(e.key)[0]);
     if (tone === 'hard' && good.length) p.push(t.effort);
@@ -331,7 +389,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     const jupH = fromMoon(go.jupiter.sign);
     const extra = [t.satBav(satH, av.bav.saturn[go.saturn.sign]), t.jupBav(jupH, av.bav.jupiter[go.jupiter.sign])];
     for (const x of doubleTransit(go.jupiter.sign, go.saturn.sign, ageNow)) if (x.ev) extra.push(t.dtLine(x.h, evText(x.ev)[0]));
-    nowItems.push({ h: fmtRange(curAnt.start, curAnt.end), p: [TONE_WORDS[d.tone][lang], ...d.p, ...extra], tips: d.tips, why: whyOf(lords) });
+    nowItems.push({ h: fmtRange(curAnt.start, curAnt.end), p: [...d.p, ...extra], tips: d.tips, why: whyOf(lords) });
   }
   sections.push({ key: 'now', title: t.sec.now, items: nowItems });
 
@@ -345,7 +403,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     const lords = [a.bhukti.dasaLord, a.bhukti.lord, a.lord];
     const mid = new Date(Math.max(now.getTime(), (a.start.getTime() + a.end.getTime()) / 2));
     const d = describe(lords, mid, a.lord);
-    months.push({ h: mRange(a.start < now ? now : a.start, a.end), p: [TONE_WORDS[d.tone][lang], ...d.p], tips: d.tips, why: whyOf(lords) });
+    months.push({ h: mRange(a.start < now ? now : a.start, a.end), p: [...d.p], tips: d.tips, why: whyOf(lords) });
   }
   // (computed for brief/areas below, over 6 years at antaram level)
   const sixYears = ants.filter((a) => a.end > now);
@@ -353,7 +411,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     const lords = [a.bhukti.dasaLord, a.bhukti.lord, a.lord];
     const mid = new Date((a.start.getTime() + a.end.getTime()) / 2);
     const tone = periodTone(lords);
-    for (const e of eventsAt(a.bhukti.lord, a.lord, ageAt(mid))) {
+    for (const e of eventsAt(a.bhukti.lord, a.lord, ageAt(mid), a.bhukti.dasaLord)) {
       if (e.care) upcomingCare.push({ ...e, a });
       else if (tone !== 'hard') upcomingGood.push({ ...e, a });
     }
@@ -365,7 +423,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   for (const b of bhuktis.slice(curB + 1, curB + 6)) {
     const lords = [b.dasaLord, b.lord];
     const d = describe(lords, new Date((b.start.getTime() + b.end.getTime()) / 2), b.lord);
-    ahead.push({ h: mRange(b.start, b.end), p: [TONE_WORDS[d.tone][lang], ...d.p], tips: d.tips, why: whyOf(lords) });
+    ahead.push({ h: mRange(b.start, b.end), p: [...d.p], tips: d.tips, why: whyOf(lords) });
   }
   sections.push({ key: 'ahead', title: t.sec.ahead, items: ahead });
 
@@ -465,13 +523,13 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   const to24 = new Date(now.getTime() + 2 * YEAR);
   for (const a of ants) {
     if (a.end <= now || a.start > to24) continue;
-    if (safetyAnt(a.bhukti.lord, a.lord)) {
+    if (safetyAnt(a.bhukti.lord, a.lord, a.bhukti.dasaLord)) {
       safety.push({ start: a.start < now ? now : a.start, end: a.end, why: t.safetyWhy.period(`${g(a.bhukti.lord)}–${g(a.lord)}`) });
     }
   }
   const marsSigns = [...new Set([s.rasi, (s.rasi + 7) % 12, lag, (lag + 7) % 12])];
   for (const w of transitWindows('mars', marsSigns, now, to24, 2)) {
-    const inBad = ants.some((a) => a.start < w.end && a.end > w.start && safetyAnt(a.bhukti.lord, a.lord));
+    const inBad = ants.some((a) => a.start < w.end && a.end > w.start && safetyAnt(a.bhukti.lord, a.lord, a.bhukti.dasaLord));
     if (inBad || av.bav.mars[w.sign] <= 2) {
       const h = marsSigns.indexOf(w.sign) % 2 === 0 ? 1 : 8;
       safety.push({ start: w.start, end: w.end, why: t.safetyWhy.mars(h) });
@@ -526,12 +584,12 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   };
   if (curAnt) {
     const lords = [act.dasa.lord, curAnt.bhukti.lord, curAnt.lord];
-    const evs = eventsAt(curAnt.bhukti.lord, curAnt.lord, ageNow);
-    if (safetyAnt(curAnt.bhukti.lord, curAnt.lord)) evs.push({ key: 'safety', prio: 6, care: true });
+    const evs = eventsAt(curAnt.bhukti.lord, curAnt.lord, ageNow, act.dasa.lord);
+    if (safetyAnt(curAnt.bhukti.lord, curAnt.lord, act.dasa.lord)) evs.push({ key: 'safety', prio: 6, care: true });
     const good = pickDistinct(evs.filter((e) => !e.care), 2);
     const care = pickDistinct(evs.filter((e) => e.care), 1);
     const what = [good.length ? t.nowGood(joinAnd(good.map((e) => short(e.key)))) : t.quietNow, care.length ? t.nowCare(short(care[0].key)) : ''].filter(Boolean).join(' ');
-    brief.push(t.nowStory(fmtDate(curAnt.end), lords.slice(1).map(g).join('–'), what, TONE_WORDS[periodTone(lords)][lang]));
+    brief.push(t.nowStory(fmtDate(curAnt.end), lords.slice(1).map(g).join('–'), what, '').trim());
   }
   // the next 12 months: windows grouped by dates, opportunities and cautions together
   const yearAhead = now.getTime() + YEAR;
