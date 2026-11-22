@@ -1,72 +1,107 @@
 # Westran-inspired Sun–Venus timing: research specification
 
-**Status: Westran-INSPIRED, not a Westran replication.** The primary-source pages could not be read; see "Access" below. Every convention not confirmed from a primary source is a documented, configurable assumption.
+**Status: Westran-INSPIRED, not a Westran replication.**
 
 **Model version:** `westran-inspired-0.1` (`src/western/engine.js`).
 
-## Access (22 November 2026)
+## Sources and access
 
-| Source | Result |
-|---|---|
-| https://www.positiveastrology.com/definitions | **Not read.** The proxy refused the connection (`CONNECT tunnel failed, response 403`). |
-| https://www.positiveastrology.com/the-data | **Not read.** Same refusal. |
-| web.archive.org copies of both | **Not read.** Same refusal. |
-| Web search (22 Nov 2026) | Search-result summaries only, no full pages. Sources: Astrological Association, "Paul Westran's study of progressed synastry" (astrologicalassociation.com); Astrology News Service articles "Unique study links Venus to romantic choices people make" and "Successful astrology study replicated" (astrologynewsservice.com); astrologyweekly.com and astrogarden.proboards.com forum threads; a Threads post on Westran's account. |
+| Source | Access | What we have |
+|---|---|---|
+| https://www.positiveastrology.com/definitions (method) | Not reachable from this environment: the proxy refused it with 403, and the owner declined a network change | Owner-supplied summary note, accessed 2026-11-22 (offline research packet, `01_method_notes.md`) |
+| https://www.positiveastrology.com/the-data (results) | Not reachable | Summary note, accessed 2026-11-22 (`02_results_notes.md`) |
+| https://www.positiveastrology.com/control-group-results (controls) | Not reachable | Summary note, accessed 2026-11-22 (`03_control_notes.md`) |
+| https://www.positiveastrology.com/pdf-articles (article landing page) | Not reachable | Note only (`04_article_links.md`). No PDF was obtained. |
+| *Correlation* 33(2), April 2021 | Not retrieved | Cited by the results page; **not inspected** |
+| Web search, 22 Nov 2026 (Astrological Association page summary; Astrology News Service; forums) | Search summaries only | Secondary leads |
 
-The project owner was offered a network change to reach positiveastrology.com and web.archive.org, and declined. These are **secondary, unverified** leads. They may be inaccurate.
+The packet notes are **summaries of the author's own pages**: the author's reported methods and findings, not independently reproduced results. No raw data, numerical tables, software or the full article were supplied. The packet itself is not stored in this repository.
 
-## What the secondary leads say (unverified)
+## What the notes say (author-reported, unverified)
 
-- **Study.**
-  - A 2005 study of progressed synastry in about **1,300 celebrity couples**, described in Westran's 2006 book *When Stars Collide*.
-  - A later replication was reported in the Astrological Association's journal *Correlation*.
-  - The claimed result is that Sun–Venus aspects "showed up prominently at the start-up of relationships".
-  - The headline odds were quoted as about "900,000 to one".
-- **Chart combinations named:**
-  - natal Sun and natal Venus;
-  - natal Sun and progressed Venus;
-  - progressed Sun and natal Venus;
-  - progressed Sun and progressed Venus.
-- **Aspects:** conjunction, trine, opposition.
-- **Orb:** "2°" in several summaries. The project brief's lead says **2°01′**. Neither could be confirmed.
-- **Endings:** aspects are said to move out of orb at the end of relationships. This is a claim, not something implemented here.
+### Samples
+
+- **Two historical samples, 2005 and 2019**, each of 1,300 public relationships.
+- **Inclusion:** usable birth dates and places, plus a relationship-start or marriage date. Arranged or coerced relationships were excluded.
+- **Outcome definition:** romantic liaisons of widely varying length.
+
+### Event date
+
+- Progressed positions are taken at the relationship start where known; otherwise the marriage date is used instead.
+- Some start dates are known only to the year.
+- The author acknowledges two issues:
+  - the same people appear in more than one relationship;
+  - start dates and marriage dates are mixed.
+
+### Birth times
+
+Used when available; the account also describes noon births.
+
+### Aspects
+
+- **Pairs:** Sun–Venus conjunction, trine and opposition.
+- **Chart combinations:** natal and progressed.
+- **Pairings:** direct and reverse pairings are discussed.
+- **Same-planet comparisons:** the author distinguishes Sun–Sun and Venus–Venus comparisons from Sun–Venus ones.
+
+### Tolerance
+
+- **Two degrees and one arcminute (2°01′).**
+- The notes warn that the page's notation and explanation are inconsistent, so its boundary arithmetic should not be copied uncritically.
+
+### Controls
+
+- 500 artificial partners for each subject.
+- Their birth dates fall within the real partner's birth year ± 2 years.
+- The real event date is kept fixed.
+- Results are scaled to the real sample to give expected counts.
+- 2.6 million generated non-relationships are reported in total.
+
+### Results
+
+- The author reports small significance values in both samples.
+- **We have not audited them.** They must not be turned into accuracy percentages, individual probabilities, or evidence of reliable marriage prediction.
 
 ## Specification table
 
-| Item | Primary source | This implementation |
-|---|---|---|
-| Bodies | Not verified (leads: Sun, Venus) | Sun and Venus only |
-| Aspects | Not verified (leads: conjunction, trine, opposition) | Conjunction 0°, trine 120° (either side), opposition 180° |
-| Chart combinations | Not verified (leads: the four listed above) | All four layers: natal–natal (NN), natal–progressed (NP), progressed–natal (PN), progressed–progressed (PP) |
-| Partner directions | **Unspecified** in the leads | Both: A's Sun with B's Venus, and A's Venus with B's Sun (8 configurations). This is an assumption and may be broader than the original, which would inflate coverage. |
-| Natal–natal | Lead lists it | Reported separately as a permanent feature of the pair, never as a timing signal or a new forecast |
-| Progression | Leads say "progressed"; method not stated | Secondary progressions, a day for a year: the progressed instant = birth + (target − birth) / yearDays days |
-| Year length | **Unspecified** | Setting. Default tropical year, 365.24219 days; alternative Julian year, 365.25 days. Over 40 years of life they shift the progressed instant by only about 1.2 minutes (about 0.001° of Sun), so the choice barely matters. |
-| Progressed reference point | Unspecified | Plain day-for-a-year from the birth instant. Not the "adjusted calculation date" used by some software. |
-| Zodiac and coordinates | Unspecified (Western astrology, so presumably tropical) | Tropical, geocentric, apparent ecliptic longitude, true equinox of date. Matches Swiss Ephemeris `calc_ut` default flags within 10″ (`test/reference-western.json`). Longitude only: no declination or parallels. |
-| Orb and boundary | Not verified (2° vs 2°01′) | Setting: 2°00′ (default), 2°01′ or 1°00′. Inclusive: a separation exactly equal to the orb counts. |
-| Applying or separating | Unspecified | Not used. Windows cover both. Exact instants are reported where the signed deviation crosses zero. |
-| Relationship event definition | Unverified ("start-up of relationships"; data source and how the start date was defined unknown) | The research harness keeps relationship beginnings, marriages and separations as separate event types |
-| Control construction | **Unknown** (how chance expectation and the odds were computed could not be checked) | None claimed. The harness reports how much time the windows cover, so alignment can be compared with coverage. That is descriptive, not a test. |
-| Sample, data source, statistics | Not verifiable | Not reproduced; no results are claimed |
+| Item | From the notes | This implementation | Source of choice |
+|---|---|---|---|
+| Bodies, aspects | Sun–Venus conjunction, trine, opposition | Same | notes |
+| Chart combinations | Natal and progressed | NN, NP, PN, PP | notes (exact list of layers not confirmed) |
+| Partner directions | Direct and reverse discussed | Both: A's Sun with B's Venus, and A's Venus with B's Sun | notes (exact rule unverified) |
+| Same-planet comparisons (Sun–Sun, Venus–Venus) | Discussed separately | **Not implemented** | — |
+| Natal–natal | Included among combinations | Reported once as permanent; never a timing signal | ours |
+| Progression method | "Progressed", convention unspecified | Secondary, a day for a year from the birth instant | **ours, unresolved** |
+| Year length | Unspecified | Setting: 365.24219 (default) or 365.25 days. The difference is about 1 minute over 40 years. | **ours, unresolved** |
+| Zodiac, coordinates | Unspecified | Tropical, geocentric, apparent ecliptic longitude, true equinox of date; within 10″ of Swiss Ephemeris | **ours, unresolved** |
+| Orb | 2°01′ stated; notation inconsistent | Setting: 2°01′ (default), 2°00′, 1°00′ | value from notes; choice to default to it is ours |
+| Boundary | Inconsistent in source | Inclusive (separation ≤ orb) | **ours** |
+| Applying or separating | Not mentioned | Not used | — |
+| Birth time unknown | Noon births described | Tab: midday plus earliest/latest envelope. Harness: midday, flagged. Controls: real partner's time of day, or noon UTC. | partly notes, mostly **ours** |
+| Event anchor | Start; marriage substitutes; some year-only | Beginning, else marriage (flagged as a substitute). Month- or year-only dates are taken at their midpoint and counted by precision. | notes plus **ours** (midpoint) |
+| Control sampling | Birth year ± 2; event fixed; 500 per subject; scaled | `generatedPartnerComparison`: uniform calendar day within the ± 2-year span; real time of day; seeded; default 100 per subject (settable to 500); both partners as subject by default (`subjects: 'a'` for one side) | distribution, seed, subject rule and time handling are **ours** |
+| Significance test | Reported by the author | None given: repeated people and many configurations make simple tests invalid | ours |
 
-## Faithful reproduction vs our extension
+## Review questions from the notes (our checks, not claims of error)
 
-- **Possibly faithful, pending verification:** the Sun–Venus pair, the three aspects, the four natal/progressed layers, and the day-for-a-year progression.
-- **Our choices:**
-  - both partner directions;
-  - default year length;
-  - default orb;
-  - the inclusive boundary;
-  - the timeline scan (5-day step, edges refined to 1 day);
-  - the birth-time-uncertainty envelope (earliest / central / latest birth instant per partner);
-  - how events are matched to windows in the harness.
+- **Exact date-sampling distribution.** Ours is uniform over calendar days.
+- **Random generator and seed.** Ours is mulberry32 with a reported seed.
+- **Birth-time handling.** See the table.
+- **Duplicate aspects.** Counting both partners as subjects mirrors every configuration: (NP, A.sun–B.venus) for one subject is (PN, A.venus–B.sun) for the other. Our output sets `mirrored: true`, and `subjects: 'a'` removes it.
+- **Repeated-person dependence.** Output reports distinct people and connected groups. Development and held-out splits keep connected groups together.
+- **Correspondence between aggregate formulas and raw records.** Cannot be checked without the raw data.
 
 ## What prevents an exact replication
 
-1. The primary method pages and the *Correlation* papers could not be read.
-2. The year-length convention, the partner-direction rule, and how "start of relationship" was dated are unknown.
-3. The control or chance model behind the published odds is unknown.
-4. The original data are not available.
+1. The method, the control description and *Correlation* 33(2) were not read in full. The notes are summaries.
+2. Progression-date convention, year length, coordinates and birth-time rule are unresolved.
+3. The exact control sampling and counting definitions are unresolved.
+4. No raw records, tables or software are available.
 
-**Predictive performance has not been evaluated.** A window is a timing signal, not a prediction or a probability.
+## Scope
+
+- **What this is:** a two-person, retrospective hypothesis about relationship-start timing.
+- **What it is not:** a forecast engine for an individual, or for career, money, children or health.
+- **What it does not do:** improve or change the Tamil Palan.
+- **A window is a timing signal**, not a prediction or a probability.
+- **Predictive performance has not been evaluated.**

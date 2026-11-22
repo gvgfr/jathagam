@@ -7,7 +7,8 @@ import {
   tropicalLongitude, progressedInstant, positions, norm180, angularSeparation, aspectDeviation, aspectBetween,
   configurations, natalAspects, snapshot, timeline, timelineWithUncertainty, samePerson, YEAR_DAYS, DAY, MODEL_VERSION,
 } from '../src/western/engine.js';
-import { parseDatePrecision, validate, components, assignSplits, describe as describeData, NOT_EVALUATED } from '../src/western/research.js';
+import { parseDatePrecision, validate, components, assignSplits, describe as describeData, generatedPartnerComparison, generatePartners, NOT_EVALUATED } from '../src/western/research.js';
+import { DEFAULTS } from '../src/western/engine.js';
 import { WUI } from '../src/i18n.js';
 
 const ref = JSON.parse(readFileSync(new URL('./reference-western.json', import.meta.url)));
@@ -232,9 +233,57 @@ describe('Tamil / English text', () => {
   });
   it('makes no probability, compatibility-score or deterministic relationship claims', () => {
     // the intro is the explicit disclaimer ("no marriage chances … or claims that people will meet …"); check it says so, then scan everything else
-    expect(WUI.en.intro[2]).toMatch(/makes no predictions/);
+    expect(WUI.en.intro.some((x) => /makes no predictions/.test(x))).toBe(true);
     const { intro, ...rest } = WUI.en;
     const all = JSON.stringify(rest, (k, v) => (typeof v === 'function' ? v.toString() : v));
     for (const bad of [/\d+\s*%/, /compatib\w* (score|percentage)\s*[:=\d]/i, /will (meet|marry|separate|divorce)/i, /chance of (marriage|meeting)/i]) expect(all).not.toMatch(bad);
+  });
+});
+
+describe('generated-partner comparison (synthetic fixtures only)', () => {
+  it('default orb is the author-stated 2°01′', () => expect(DEFAULTS.orbDeg).toBeCloseTo(2 + 1 / 60, 12));
+  it('artificial partners: within the real birth year ± 2, real time of day, seeded', () => {
+    let s = 42;
+    const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    const real = new Date('1980-03-10T08:15:00Z');
+    const fakes = generatePartners(real, 300, rnd);
+    for (const f of fakes) {
+      expect(f.getUTCFullYear()).toBeGreaterThanOrEqual(1978);
+      expect(f.getUTCFullYear()).toBeLessThanOrEqual(1982);
+      expect(f.getUTCHours() * 60 + f.getUTCMinutes()).toBe(8 * 60 + 15);
+    }
+    expect(new Set(fakes.map((f) => f.getUTCFullYear())).size).toBe(5);
+    for (const f of generatePartners(real, 20, rnd, false)) expect(f.getUTCHours()).toBe(12);
+  });
+  it('is deterministic for a seed and labelled retrospective', () => {
+    const a = generatedPartnerComparison(fixture, { perSubject: 40, seed: 9 });
+    const b = generatedPartnerComparison(fixture, { perSubject: 40, seed: 9 });
+    expect(a.rows).toEqual(b.rows);
+    expect(a.kind).toBe('retrospective-generated-partner-comparison');
+    expect(a.predictivePerformance).toBe(NOT_EVALUATED);
+    expect(a.synthetic).toBe(true);
+  });
+  it('counting from both sides mirrors configurations exactly (flagged), and one side halves the subjects', () => {
+    const both = generatedPartnerComparison(fixture, { perSubject: 20, seed: 3, subjects: 'both' });
+    const one = generatedPartnerComparison(fixture, { perSubject: 20, seed: 3, subjects: 'a' });
+    expect(both.mirrored).toBe(true);
+    expect(one.mirrored).toBe(false);
+    expect(both.subjects).toBe(2 * one.subjects);
+    const get = (r, layer, dir, asp) => r.rows.find((x) => x.layer === layer && x.dir === dir && x.aspect === asp)?.observed || 0;
+    for (const asp of ['conjunction', 'trine', 'opposition'])
+      expect(get(both, 'NP', 'A.sun-B.venus', asp)).toBe(get(both, 'PN', 'A.venus-B.sun', asp));
+  });
+  it('keeps natal (permanent) rows apart from changing rows', () => {
+    const r = generatedPartnerComparison(fixture, { perSubject: 20, seed: 3 });
+    for (const x of r.rows) expect(x.permanent).toBe(x.layer === 'NN');
+    expect(r.totals.changing).toBeDefined();
+    expect(r.totals.natal).toBeDefined();
+  });
+  it('uses marriage only as a flagged substitute when no beginning date exists', () => {
+    const ds = structuredClone(fixture);
+    ds.relationships[0].events = [{ type: 'marriage', date: '2002-02-14', status: 'occurred' }];
+    const r = generatedPartnerComparison(ds, { perSubject: 5, seed: 1 });
+    expect(r.anchors.marriageSubstitute).toBe(1);
+    expect(r.anchors.byPrecision.day).toBe(1);
   });
 });

@@ -1,9 +1,10 @@
 // Westran-INSPIRED Sun–Venus progressed-synastry timing engine (experimental).
 //
-// This is NOT a verified replication of Paul Westran's method. The primary
-// source pages could not be read from this environment; conventions that
-// could not be verified are configurable assumptions (see
-// docs/research/westran-spec.md). Output is a TIMING SIGNAL (when a stated
+// This is NOT a verified replication of Paul Westran's method. The author's
+// pages could not be read from this environment; the project owner supplied
+// summary notes of them (docs/research/westran-spec.md). Progression-date
+// convention, year length, coordinates and birth-time rule are NOT specified
+// there: the settings here are ours, not attributed to Westran. Output is a TIMING SIGNAL (when a stated
 // geometric configuration holds), never an event prediction or probability.
 //
 // Conventions used here:
@@ -14,7 +15,8 @@
 //    target instant T is the sky at birth + (T − birth) / yearDays days. The
 //    year length is a setting (default: tropical year, 365.24219 days).
 //  * Aspects: conjunction (0°), trine (120°), opposition (180°), within an
-//    orb (default 2°00′, inclusive: separation ≤ orb counts).
+//    orb (default 2°01′, author-stated; inclusive: separation ≤ orb counts —
+//    the boundary rule is OUR choice, the author's notation is inconsistent).
 import * as A from 'astronomy-engine';
 
 export const MODEL_VERSION = 'westran-inspired-0.1';
@@ -22,7 +24,7 @@ export const DAY = 86400000;
 export const YEAR_DAYS = { tropical: 365.24219, julian: 365.25 };
 export const ASPECTS = { conjunction: 0, trine: 120, opposition: 180 };
 export const DEFAULTS = Object.freeze({
-  orbDeg: 2, // 2°00′; "2°01′" (2 + 1/60) is a selectable alternative
+  orbDeg: 2 + 1 / 60, // 2°01′ as stated in the author's method page (per the supplied notes; its notation is inconsistent, so 2°00′ and 1°00′ are offered too)
   yearDays: YEAR_DAYS.tropical,
   aspects: ['conjunction', 'trine', 'opposition'],
   stepDays: 5, // timeline scan step (target-date days)

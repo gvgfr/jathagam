@@ -115,7 +115,7 @@ The label shown is "Experimental relationship timing — predictive accuracy not
 
 - **Engine:** `src/western/engine.js`. Tropical positions are checked against Swiss Ephemeris in `test/reference-western.json`. It uses secondary progressions; orb and year length are settings. Natal–natal contacts are kept apart as permanent. Unknown birth times give windows with uncertainty ranges.
 - **Specification and source status:** `docs/research/westran-spec.md`.
-- **Research harness:** `src/western/research.js` and `scripts/western-research.mjs`. They give descriptive, retrospective summaries of research datasets (schema in the file). The only bundled data is a synthetic fixture. **Predictive performance has not been evaluated.**
+- **Research harness:** `src/western/research.js` and `scripts/western-research.mjs`. They give descriptive, retrospective summaries of research datasets (schema in the file). With `--control`, they also run a generated-partner comparison modelled on the author's described controls; our sampling choices are documented. The only bundled data is a synthetic fixture. **Predictive performance has not been evaluated.**
 - **Godbout chart–biography matching:** not implemented. See `docs/research/godbout-note.md`.
 - **Independence:** the tab does not change the Tamil rules, the Palan or the Bayesian check.
 

@@ -9,7 +9,7 @@ import { WUI } from '../i18n.js';
 import { MODEL_VERSION, DEFAULTS, YEAR_DAYS, positions, natalAspects, snapshot, timelineWithUncertainty, samePerson } from '../western/engine.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-const ORBS = { '2': 2, '2.0167': 2 + 1 / 60, '1': 1 };
+const ORBS = { '2.0167': 2 + 1 / 60, '2': 2, '1': 1 }; // keys: 1, 2, 2.0167 in display order (integer-like keys sort first)
 
 /** Read one person's fields; birth time may be unknown (then the whole local day is the range). */
 export function readPerson(root, p) {
@@ -91,7 +91,7 @@ export function initWestern(root, ctx) {
     root.querySelector('.w-year-l').textContent = t.yearLen;
     root.querySelector('.w-from-l').textContent = t.from;
     root.querySelector('.w-to-l').textContent = t.to;
-    const orb = $('w-orb').value || '2';
+    const orb = $('w-orb').value || '2.0167';
     $('w-orb').innerHTML = Object.keys(ORBS).map((k) => `<option value="${k}">${esc(t.orbOpts[k])}</option>`).join('');
     $('w-orb').value = orb;
     const yr = $('w-year').value || 'tropical';
