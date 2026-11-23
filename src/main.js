@@ -3,7 +3,7 @@ import '@fontsource/noto-sans-tamil/600.css';
 import '@fontsource/noto-sans-tamil/700.css';
 import './style.css';
 import { DateTime } from 'luxon';
-import { computeChart, localToUtc, zoneFor, offsetZone, parseClock, activePeriod, yearsToYMD, dms } from './engine/index.js';
+import { computeChart, localToUtc, zoneFor, offsetZone, parseTimeValue, timeValue, activePeriod, yearsToYMD, dms } from './engine/index.js';
 import { NAMES, UI, PUI, DUI, TUI, BUI, thithiName } from './i18n.js';
 import { southIndianChart } from './ui/chart.js';
 import { attachAutocomplete, parseCoords } from './ui/geocode.js';
@@ -69,10 +69,7 @@ const today = initToday($('today-view'), { lang: () => state.lang, t });
 function useCorrectedTime(dt, b) {
   const f = $('birth-form');
   f.date.value = dt.toISODate();
-  const h = dt.hour;
-  f.hh.value = String(h % 12 === 0 ? 12 : h % 12);
-  f.mm.value = String(dt.minute).padStart(2, '0');
-  f.ampm.value = h < 12 ? 'am' : 'pm';
+  f.tob.value = timeValue(dt.hour, dt.minute);
   f.lat.value = b.lat.toFixed(4);
   f.lon.value = b.lon.toFixed(4);
   if (b.name) f.name.value = b.name;
@@ -181,13 +178,7 @@ function prefillFromChart(p) {
   if (!el('date') || (el('date').value && el('lat').value)) return;
   const local = DateTime.fromJSDate(meta.conv.utc, { zone: meta.zone });
   el('date').value = local.toISODate();
-  el('hh').value = String(local.hour % 12 === 0 ? 12 : local.hour % 12);
-  el('mm').value = String(local.minute).padStart(2, '0');
-  el('ampm').value = local.hour < 12 ? 'am' : 'pm';
-  if (local.hour === 0) {
-    el('hh').value = '00';
-    el('ampm').value = 'am';
-  }
+  el('tob').value = timeValue(local.hour, local.minute);
   el('place').value = meta.place || `${meta.lat.toFixed(4)}, ${meta.lon.toFixed(4)}`;
   el('lat').value = meta.lat.toFixed(4);
   el('lon').value = meta.lon.toFixed(4);
@@ -259,7 +250,7 @@ $('birth-form').addEventListener('submit', (e) => {
   err.textContent = '';
   const f = e.target;
   const [y, mo, d] = (f.date.value || '').split('-').map(Number);
-  const clock = parseClock(f.hh.value, f.mm.value, f.ampm.value);
+  const clock = parseTimeValue(f.tob.value);
   if (!y || !mo || !d || !clock) {
     err.textContent = t('badTime');
     return;

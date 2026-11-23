@@ -66,18 +66,15 @@ main { padding-top: 18px; padding-bottom: 32px; }
 /* form */
 .field { margin: 0 0 14px; border: 0; padding: 0; min-width: 0; }
 .field label, .field legend { display: block; font-weight: 600; font-size: 0.9rem; color: var(--maroon); margin-bottom: 4px; padding: 0; }
-input[type='text'], input[type='date'], input[type='number'], select {
+input[type='text'], input[type='date'], input[type='time'], input[type='number'], select {
   width: 100%; font: inherit; color: var(--ink); background: #fff;
   border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 44px;
 }
 /* iOS Safari draws date inputs wider than their box unless reset */
-input[type='date'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; text-align: left; }
-input[type='date']::-webkit-date-and-time-value { text-align: left; }
+input[type='date'], input[type='time'] { -webkit-appearance: none; appearance: none; display: block; min-width: 0; max-width: 100%; text-align: left; }
+input[type='date']::-webkit-date-and-time-value, input[type='time']::-webkit-date-and-time-value { text-align: left; }
 input:focus, select:focus { border-color: var(--saffron); outline: none; box-shadow: 0 0 0 3px rgba(232, 137, 28, 0.25); }
 .row-2 { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
-.time-inputs { display: flex; align-items: center; gap: 6px; }
-.time-inputs input { width: 4.2em; text-align: center; }
-.time-inputs select { width: auto; flex: 1; }
 label.inline { display: inline-flex; align-items: center; gap: 6px; margin-right: 16px; font-weight: 400; color: var(--ink); }
 .place-field { position: relative; }
 #place-list, .place-list {

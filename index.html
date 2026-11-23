@@ -53,18 +53,10 @@
           <label for="f-date" data-i18n="dob"></label>
           <input id="f-date" name="date" type="date" min="1800-01-01" max="2199-12-31" required />
         </div>
-        <fieldset class="field time-field">
-          <legend data-i18n="tob"></legend>
-          <div class="time-inputs">
-            <input id="f-hh" name="hh" type="number" inputmode="numeric" min="0" max="23" placeholder="hh" aria-label="hour" required />
-            <span aria-hidden="true">:</span>
-            <input id="f-mm" name="mm" type="number" inputmode="numeric" min="0" max="59" placeholder="mm" aria-label="minute" required />
-            <select id="f-ampm" name="ampm" aria-label="AM/PM">
-              <option value="am" data-i18n="am"></option>
-              <option value="pm" data-i18n="pm"></option>
-            </select>
-          </div>
-        </fieldset>
+        <div class="field time-field">
+          <label for="f-tob" data-i18n="tob"></label>
+          <input id="f-tob" name="tob" type="time" required />
+        </div>
       </div>
       <div class="field place-field">
         <label for="f-place" data-i18n="pob"></label>

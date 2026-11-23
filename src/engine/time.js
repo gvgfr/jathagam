@@ -66,3 +66,15 @@ export function parseClock(hhStr, mmStr, ampm) {
   if (h === 0 || h > 12) return { hour: h, minute: m };
   return { hour: (h % 12) + (ampm === 'pm' ? 12 : 0), minute: m };
 }
+
+/** Parse an <input type="time"> value ("HH:MM" or "HH:MM:SS", 24-hour) to {hour, minute}; null if empty or invalid. */
+export function parseTimeValue(v) {
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(String(v ?? '').trim());
+  if (!m) return null;
+  const hour = Number(m[1]);
+  const minute = Number(m[2]);
+  if (hour > 23 || minute > 59) return null;
+  return { hour, minute };
+}
+/** Format {hour, minute} as an <input type="time"> value. */
+export const timeValue = (hour, minute) => `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;

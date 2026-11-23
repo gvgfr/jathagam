@@ -5,6 +5,7 @@ import { robustCheck } from '../bayes/robust.js';
 import { EVENT_DEFS, DEF_VERSION, roundBirthTime } from '../forecast/definitions.js';
 import { makeRecord, migrate, resolve, score as scoreRecords, exportRecords, importRecords } from '../forecast/record.js';
 import { BUI } from '../i18n.js';
+import { parseTimeValue, parseClock, timeValue } from '../engine/index.js';
 import { birthFields, wireBirth, readBirth } from './birthInput.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -72,7 +73,13 @@ export function initBayes(root, ctx) {
   if (saved) {
     Object.assign(state.events, saved.events || {});
     state.tol = saved.tol ?? 30;
-    for (const [k, v] of Object.entries(saved.birth || {})) if ($(`${p}-${k}`)) $(`${p}-${k}`).value = v;
+    const sb = { ...(saved.birth || {}) };
+    // entries saved before the time picker had separate hour / minute / am-pm boxes
+    if (!sb.tob && sb.hh != null) {
+      const c = parseClock(sb.hh, sb.mm, sb.ampm);
+      if (c) sb.tob = timeValue(c.hour, c.minute);
+    }
+    for (const [k, v] of Object.entries(sb)) if ($(`${p}-${k}`)) $(`${p}-${k}`).value = v;
     $('b-remember').checked = true;
   }
 
@@ -167,7 +174,7 @@ export function initBayes(root, ctx) {
       return;
     }
     if ($('b-remember').checked) {
-      const birth = Object.fromEntries(['name', 'date', 'hh', 'mm', 'ampm', 'place', 'lat', 'lon'].map((k) => [k, $(`${p}-${k}`)?.value ?? '']));
+      const birth = Object.fromEntries(['name', 'date', 'tob', 'place', 'lat', 'lon'].map((k) => [k, $(`${p}-${k}`)?.value ?? '']));
       save({ events: state.events, tol: state.tol, birth });
     }
     $('b-error').textContent = t.working;
@@ -217,12 +224,11 @@ export function initBayes(root, ctx) {
 
     // 1. honest score (model average) and rule strength
     const lam = r.lambda;
-    const hm = $(`${p}-mm`)?.value;
     const quality = `<div class="card b-res">
         <h2>${t.rQuality}</h2>
         <ul class="b-rules">
           <li>${t.qEvents(Object.values(state.last.reported).flat().length, Math.round(r.weakShare * 100))}</li>
-          ${roundBirthTime($(`${p}-hh`)?.value, hm) ? `<li>${t.qRound}</li>` : ''}
+          ${(() => { const c = parseTimeValue($(`${p}-tob`)?.value); return c && roundBirthTime(c.hour, c.minute); })() ? `<li>${t.qRound}</li>` : ''}
           <li>${t.qList}</li>
         </ul>
       </div>`;

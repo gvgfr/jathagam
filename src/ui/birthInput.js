@@ -1,6 +1,6 @@
 // Shared birth-details fields (date, time, place with autocomplete, manual
 // lat/long) used by the dosham and Bayesian pages.
-import { computeChart, localToUtc, zoneFor, parseClock } from '../engine/index.js';
+import { computeChart, localToUtc, zoneFor, parseTimeValue } from '../engine/index.js';
 import { attachAutocomplete } from './geocode.js';
 
 /** HTML for the fields; ids are prefixed with `p` (e.g. "p-girl"). */
@@ -15,15 +15,10 @@ export function birthFields(p) {
           <label for="${p}-date" data-i18n="dob"></label>
           <input id="${p}-date" type="date" min="1800-01-01" max="2199-12-31" />
         </div>
-        <fieldset class="field time-field">
-          <legend data-i18n="tob"></legend>
-          <div class="time-inputs">
-            <input id="${p}-hh" type="number" inputmode="numeric" min="0" max="23" placeholder="hh" aria-label="hour" />
-            <span aria-hidden="true">:</span>
-            <input id="${p}-mm" type="number" inputmode="numeric" min="0" max="59" placeholder="mm" aria-label="minute" />
-            <select id="${p}-ampm" aria-label="AM/PM"><option value="am" data-i18n="am"></option><option value="pm" data-i18n="pm"></option></select>
-          </div>
-        </fieldset>
+        <div class="field time-field">
+          <label for="${p}-tob" data-i18n="tob"></label>
+          <input id="${p}-tob" type="time" />
+        </div>
       </div>
       <div class="field place-field">
         <label for="${p}-place" data-i18n="pob"></label>
@@ -65,7 +60,7 @@ export function wireBirth(root, p, onGeoError) {
 export function readBirth(root, p, opts = {}) {
   const $ = (id) => root.querySelector(`#${id}`);
   const [y, mo, d] = ($(`${p}-date`).value || '').split('-').map(Number);
-  const clock = parseClock($(`${p}-hh`).value, $(`${p}-mm`).value, $(`${p}-ampm`).value);
+  const clock = parseTimeValue($(`${p}-tob`).value);
   const lat = parseFloat($(`${p}-lat`).value);
   const lon = parseFloat($(`${p}-lon`).value);
   if (!y || !mo || !d || !clock) return null;

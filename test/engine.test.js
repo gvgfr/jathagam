@@ -115,3 +115,15 @@ describe('edge cases in time conversion', () => {
     expect(r.note).toBeUndefined();
   });
 });
+
+describe('time picker values', async () => {
+  const { parseTimeValue, timeValue } = await import('../src/engine/time.js');
+  it('parses <input type="time"> values, including midnight hour and seconds', () => {
+    expect(parseTimeValue('00:30')).toEqual({ hour: 0, minute: 30 });
+    expect(parseTimeValue('12:30')).toEqual({ hour: 12, minute: 30 });
+    expect(parseTimeValue('23:59:00')).toEqual({ hour: 23, minute: 59 });
+    expect(parseTimeValue('')).toBeNull();
+    expect(parseTimeValue('24:00')).toBeNull();
+    expect(timeValue(0, 30)).toBe('00:30');
+  });
+});
