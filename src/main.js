@@ -40,6 +40,7 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => (el.placeholder = t(el.dataset.i18nPlaceholder)));
   $('lang-toggle').textContent = t('lang');
+  $('privacy-points').innerHTML = UI[state.lang].privPoints.map((x) => `<li>${esc(x)}</li>`).join('');
   renderIntros();
   renderFaq();
   dosham.relabel();
@@ -197,6 +198,35 @@ function prefillFromChart(p) {
   el('date').closest('.birth-fields, .person')?.querySelector('.prefilled')?.remove();
   el('date').closest('.birth-fields, .person')?.prepend(note);
 }
+// Privacy notice: shown until dismissed; then a one-line reminder that reopens it.
+// Remembering the dismissal is a per-browser convenience; if storage is
+// unavailable the notice simply shows again.
+const PRIV_KEY = 'jathagam.privacyNoticeSeen.v1';
+function showPrivacy(open) {
+  $('privacy-banner').hidden = !open;
+  $('privacy-chip').hidden = open;
+}
+let privSeen = false;
+try {
+  privSeen = localStorage.getItem(PRIV_KEY) === '1';
+} catch {
+  /* storage unavailable */
+}
+showPrivacy(!privSeen);
+$('privacy-ok').addEventListener('click', () => {
+  try {
+    localStorage.setItem(PRIV_KEY, '1');
+  } catch {
+    /* storage unavailable */
+  }
+  showPrivacy(false);
+  $('privacy-show').focus();
+});
+$('privacy-show').addEventListener('click', () => {
+  showPrivacy(true);
+  $('privacy-banner').querySelector('details').open = true;
+  $('privacy-ok').focus();
+});
 window.addEventListener('hashchange', route);
 route();
 

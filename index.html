@@ -30,6 +30,14 @@
     </nav>
   </header>
 
+  <aside id="privacy-banner" class="privacy-banner wrap" role="note" aria-labelledby="privacy-title" hidden>
+    <div class="pb-head"><span class="pb-lock" aria-hidden="true">🔒</span><strong id="privacy-title" data-i18n="privTitle"></strong></div>
+    <p data-i18n="privBody"></p>
+    <details class="pb-more"><summary data-i18n="privMoreTitle"></summary><ul id="privacy-points"></ul></details>
+    <button type="button" id="privacy-ok" class="btn-ghost dark" data-i18n="privOk"></button>
+  </aside>
+  <p id="privacy-chip" class="privacy-chip wrap" hidden><span aria-hidden="true">🔒</span> <span data-i18n="privChip"></span> <button type="button" id="privacy-show" class="link-btn" data-i18n="privShow"></button></p>
+
   <main class="wrap">
    <div id="jathagam-view">
     <div class="intro-slot" id="jathagam-intro" data-intro="jathagam"></div>

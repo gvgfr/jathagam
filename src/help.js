@@ -111,7 +111,7 @@ export const FAQ = {
     ['What is Ezharai Sani? Should I worry?', ['It is the 7½ years when Saturn passes near your Moon sign. Everyone goes through it about every 30 years.', 'Tradition calls it a testing time. It is not a reason for fear.']],
     ['Should I worry about a dosham?', ['No. Doshams are very common and the rules differ between astrologers.', 'Many “doshams” are cancelled by exceptions. Please don’t make big decisions, or pay large sums, because of one.']],
     ['Why are Raagu kaalam times different from my calendar?', ['Printed calendars often use fixed times (like 9:00–10:30).', 'This site uses the real sunrise and sunset for your place, so times can differ by a few minutes.']],
-    ['Is my information saved or shared?', ['No. Everything is calculated on your phone or computer.', 'Only the place name you type is sent to the place search. Nothing is stored.']],
+    ['Is my information saved or shared?', ['No. Everything is calculated on your phone or computer; nothing you enter is sent to us or stored on a server. There is no AI and no tracking.', 'Only a place name you type is sent to the place search, to find its coordinates. Paste coordinates to avoid even that.', 'Nothing is kept on your phone either, unless you tick “Remember my entries on this phone” in the Bayesian tab; “Forget saved entries” erases it.']],
     ['How do I save my chart?', ['Use “Print / PDF” on the chart page and choose “Save as PDF”.', 'The Temple card can be saved as an image.']],
   ],
   ta: [
@@ -125,7 +125,7 @@ export const FAQ = {
     ['ஏழரைச் சனி என்றால் என்ன? பயப்பட வேண்டுமா?', ['சனி உங்கள் ராசியருகே கடக்கும் 7½ ஆண்டுகள். ஒவ்வொருவருக்கும் சுமார் 30 ஆண்டுக்கு ஒருமுறை வரும்.', 'பாரம்பரியமாக சோதனைக் காலம்; பயப்படத் தேவையில்லை.']],
     ['தோஷம் பற்றிக் கவலைப்பட வேண்டுமா?', ['இல்லை. தோஷங்கள் மிகவும் பொதுவானவை; விதிகள் ஜோதிடருக்கு ஜோதிடர் மாறுபடும்.', 'பல தோஷங்கள் விதிவிலக்குகளால் நீங்கிவிடும். அதற்காக பெரிய முடிவுகளோ பெரிய செலவோ வேண்டாம்.']],
     ['ராகு காலம் ஏன் காலண்டரிலிருந்து வேறுபடுகிறது?', ['அச்சு காலண்டர்கள் பெரும்பாலும் நிலையான நேரங்களைப் (9:00–10:30 போல) பயன்படுத்துகின்றன.', 'இந்தத் தளம் உங்கள் இடத்தின் உண்மையான சூரிய உதய, அஸ்தமனத்தைப் பயன்படுத்துவதால் சில நிமிடங்கள் வேறுபடலாம்.']],
-    ['என் விவரங்கள் சேமிக்கப்படுகின்றனவா?', ['இல்லை. எல்லாம் உங்கள் போன் அல்லது கணினியிலேயே கணிக்கப்படுகிறது.', 'நீங்கள் தட்டச்சு செய்யும் இடப் பெயர் மட்டும் இடத் தேடலுக்கு அனுப்பப்படும். எதுவும் சேமிக்கப்படுவதில்லை.']],
+    ['என் விவரங்கள் சேமிக்கப்படுகின்றனவா, பகிரப்படுகின்றனவா?', ['இல்லை. எல்லாம் உங்கள் போன் அல்லது கணினியிலேயே கணக்கிடப்படுகிறது; நீங்கள் உள்ளிடுவது எங்களுக்கு அனுப்பப்படுவதோ சர்வரில் சேமிக்கப்படுவதோ இல்லை. AI இல்லை, கண்காணிப்பு இல்லை.', 'நீங்கள் தட்டச்சு செய்யும் இடப் பெயர் மட்டும், அதன் அட்சரேகை/தீர்க்கரேகையைக் கண்டறிய இடத் தேடலுக்கு அனுப்பப்படும். அதையும் தவிர்க்க அட்சரேகை/தீர்க்கரேகையை ஒட்டவும்.', 'பேய்சியன் பகுதியில் “நினைவில் வை” என்பதைத் தேர்வு செய்தால் மட்டுமே போனில் சேமிக்கப்படும்; “சேமித்ததை அழி” அதை நீக்கும்.']],
     ['ஜாதகத்தை எப்படிச் சேமிப்பது?', ['ஜாதகப் பக்கத்தில் “அச்சிடு / PDF” அழுத்தி “Save as PDF” தேர்வு செய்யவும்.', 'கோயில் அட்டையை படமாகச் சேமிக்கலாம்.']],
   ],
 };

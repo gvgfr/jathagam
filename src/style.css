@@ -417,3 +417,15 @@ details.remedies li { margin-bottom: 6px; }
 .b-import-l { cursor: pointer; }
 .b-calib { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 0.85rem; }
 .b-calib th, .b-calib td { border-bottom: 1px solid var(--line); padding: 4px 10px; text-align: right; }
+
+/* privacy notice */
+.privacy-banner { margin-top: 12px; margin-bottom: 4px; background: #f1f8ef; border: 1.5px solid #6c9a5c; border-radius: 12px; padding: 12px 16px; color: #1f3a17; }
+.privacy-banner .pb-head { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; }
+.privacy-banner p { margin: 6px 0; line-height: 1.5; }
+.privacy-banner .pb-more summary { cursor: pointer; font-weight: 600; padding: 6px 0; min-height: 36px; }
+.privacy-banner .pb-more ul { margin: 4px 0 8px; padding-left: 1.2em; }
+.privacy-banner .pb-more li { margin-bottom: 6px; line-height: 1.5; }
+.privacy-banner #privacy-ok { margin-top: 4px; min-height: 40px; }
+.privacy-chip { margin-top: 8px; margin-bottom: 0; font-size: 0.85rem; color: #1f3a17; }
+.link-btn { background: none; border: none; padding: 4px 2px; color: var(--maroon); text-decoration: underline; font: inherit; cursor: pointer; min-height: 32px; }
+@media print { .privacy-banner, .privacy-chip { display: none !important; } }
