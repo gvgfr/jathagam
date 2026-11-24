@@ -121,3 +121,62 @@ export function rasisOfStar(n) {
   const b = Math.floor(((n + 1) * NAK_SPAN - 1e-9) / 30);
   return a === b ? [a] : [a, b];
 }
+
+// ---------------------------------------------------------------- the daily reading
+// Lines by the Moon's house from the birth rasi, per life area (traditional
+// Chandra gocharam results, kept short). care: true = a caution.
+export const DAY_LINES = {
+  1: [{ area: 'family', key: 'h1family' }, { area: 'health', key: 'h1health' }],
+  2: [{ area: 'money', key: 'h2money', care: true }, { area: 'family', key: 'h2family', care: true }],
+  3: [{ area: 'work', key: 'h3work' }],
+  4: [{ area: 'family', key: 'h4family', care: true }],
+  5: [{ area: 'work', key: 'h5work', care: true }],
+  6: [{ area: 'work', key: 'h6work' }, { area: 'health', key: 'h6health' }],
+  7: [{ area: 'family', key: 'h7family' }],
+  8: [{ area: 'all', key: 'h8all', care: true }],
+  9: [{ area: 'work', key: 'h9work', care: true }],
+  10: [{ area: 'work', key: 'h10work' }],
+  11: [{ area: 'money', key: 'h11money' }],
+  12: [{ area: 'money', key: 'h12money', care: true }, { area: 'health', key: 'h12health', care: true }],
+};
+const KIND_SCORE = { good: 1, mixed: 0, weak: -1, avoid: -2 };
+
+/**
+ * One plain reading for the day from sunrise to next sunrise.
+ * @param {{rasi:number, nakshatra:number}} birth
+ * @param {{sunrise:Date, sunset:Date, nextSunrise:Date, nakshatra:{index:number,end:Date}[]}} p dailyPanchangam result
+ * @param {{saturn:{house:number, until:Date}, jupiter:{house:number, until:Date}, sade:object}|null} go slow-planet positions from the birth rasi (gocharam)
+ */
+export function dailyReading(birth, p, go = null) {
+  const d = personalDay(birth, p.sunrise, p.nextSunrise, p.nakshatra);
+  const midday = (p.sunrise.getTime() + p.sunset.getTime()) / 2;
+  const moonMain = d.moon.find((m) => m.start <= midday && midday < m.end) || d.moon[0];
+  let prevEnd = p.sunrise.getTime();
+  let taraMain = d.taras[0];
+  for (const x of d.taras) {
+    if (prevEnd <= midday && midday < x.end.getTime()) taraMain = x;
+    prevEnd = x.end.getTime();
+  }
+  const chand = d.moon.find((m) => m.chandrashtamam) || null;
+  const score = KIND_SCORE[moonMain.kind] + KIND_SCORE[taraMain.kind];
+  const verdict = chand ? 'chandrashtamam' : score >= 1 ? 'good' : score <= -1 ? 'slow' : 'ordinary';
+  const lines = DAY_LINES[moonMain.house] || [];
+  const background = [];
+  if (go) {
+    if (go.sade?.active) background.push({ key: 'sade', until: go.sade.end });
+    else if (go.saturn.house === 8) background.push({ key: 'ashtamaSani', until: go.saturn.until });
+    else if ([4, 7, 10].includes(go.saturn.house)) background.push({ key: 'kandakaSani', until: go.saturn.until });
+    if ([2, 5, 7, 9, 11].includes(go.jupiter.house)) background.push({ key: 'guruGood', until: go.jupiter.until });
+  }
+  return {
+    verdict,
+    chand,
+    moonMain,
+    taraMain,
+    taraWeak: taraMain.kind === 'weak',
+    look: lines.filter((l) => !l.care),
+    care: lines.filter((l) => l.care),
+    background,
+    nextChandrashtamam: d.nextChandrashtamam,
+  };
+}

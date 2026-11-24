@@ -62,7 +62,7 @@ export function computeChart(birth, opts = {}) {
 }
 
 export { panchangam } from './panchangam.js';
-export { personalDay, nextChandrashtamam, rasisOfStar, taraOf, houseFrom } from './personalDay.js';
+export { personalDay, dailyReading, nextChandrashtamam, rasisOfStar, taraOf, houseFrom } from './personalDay.js';
 export { localToUtc, zoneFor, offsetZone, parseClock, parseTimeValue, timeValue } from './time.js';
 export { activePeriod, yearsToYMD } from './dasa.js';
 export { dms } from './nakshatra.js';

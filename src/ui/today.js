@@ -1,6 +1,10 @@
 // Today's panchangam and Raagu kaalam for a chosen place and date.
 import { DateTime } from 'luxon';
-import { dailyPanchangam, zoneFor, personalDay, rasisOfStar } from '../engine/index.js';
+import { dailyPanchangam, zoneFor, dailyReading, gocharam, rasisOfStar } from '../engine/index.js';
+import { generatePalan } from '../palan/index.js';
+import { EVENTS, EVENT_TEXT } from '../palan/eventTexts.js';
+
+const CARE_KEYS = [...EVENTS.filter((e) => e.care).map((e) => e.key), 'safety', 'parents'];
 import { NAMES, TAMIL_MONTHS, thithiName, TODAY_TEXT } from '../i18n.js';
 import { attachAutocomplete, parseCoords } from './geocode.js';
 
@@ -76,7 +80,7 @@ export function initToday(root, ctx) {
   });
 
   // birth star and rasi for the personal card (kept in memory only)
-  const birth = { nakshatra: null, rasi: null };
+  const birth = { nakshatra: null, rasi: null, chart: null };
   function fillStarSelects() {
     const Lg = ctx.lang();
     const choose = `<option value="">${esc(ctx.t('choose'))}</option>`;
@@ -88,6 +92,7 @@ export function initToday(root, ctx) {
   }
   $('t-nak').addEventListener('change', () => {
     birth.nakshatra = $('t-nak').value === '' ? null : Number($('t-nak').value);
+    birth.chart = null;
     const rs = birth.nakshatra != null ? rasisOfStar(birth.nakshatra) : null;
     if (rs && rs.length === 1) birth.rasi = rs[0];
     else if (rs && !rs.includes(birth.rasi)) birth.rasi = null;
@@ -96,6 +101,7 @@ export function initToday(root, ctx) {
   });
   $('t-rasi').addEventListener('change', () => {
     birth.rasi = $('t-rasi').value === '' ? null : Number($('t-rasi').value);
+    birth.chart = null;
     if (last) render();
   });
 
@@ -147,21 +153,43 @@ export function initToday(root, ctx) {
     const L = TODAY_TEXT[Lg];
     let personal = `<div class="card pd"><p>${L.needStar}</p></div>`;
     if (birth.nakshatra != null && birth.rasi != null) {
-      const d = personalDay(birth, p.sunrise, p.nextSunrise, p.nakshatra);
-      const until = (x, i, arr) => (i < arr.length - 1 ? L.until(tm(x.end)) : '');
-      const chand = d.moon.filter((m) => m.chandrashtamam);
+      const go = gocharam(birth.rasi, new Date((p.sunrise.getTime() + p.sunset.getTime()) / 2));
+      const r = dailyReading(birth, p, go);
       const span = (a, b) => {
-        const f = (x) => DateTime.fromJSDate(x, { zone }).setLocale(Lg === 'ta' ? 'ta-IN' : 'en-GB').toFormat('d LLL, hh:mm a');
+        const f = (x) => DateTime.fromJSDate(x, { zone }).setLocale(Lg === 'ta' ? 'ta-IN' : 'en-GB').toFormat('EEE d LLL, h:mm a');
         return `${f(a)} – ${f(b)}`;
       };
+      const monthOf = (x) => DateTime.fromJSDate(x, { zone }).setLocale(Lg === 'ta' ? 'ta-IN' : 'en-GB').toFormat('LLL yyyy');
+      // this season: the current sub-period from the person's own chart (only when it came from the Jathagam tab)
+      let season = null;
+      let seasonCare = false;
+      if (birth.chart) {
+        const pl = generatePalan(birth.chart, Lg, (a, b) => monthOf(b), new Date(p.sunrise), (x) => monthOf(x), (x) => monthOf(x), null);
+        const it = pl.sections.find((x) => x.key === 'now')?.items?.[0];
+        const text = it?.p?.[0];
+        // skip the "quieter phase" line; cautions go under "be careful about"
+        if (text && text !== EVENT_TEXT.quiet[Lg][0]) {
+          season = L.season(it.h, text);
+          seasonCare = CARE_KEYS.some((k) => EVENT_TEXT[k]?.[Lg][0] === text);
+        }
+      }
+      const look = [...r.look.map((l) => L.line[l.key]), ...(season && !seasonCare ? [season] : []), ...r.background.filter((x) => x.key === 'guruGood').map((x) => L.bg[x.key](monthOf(x.until)))];
+      const care = [
+        ...(r.chand ? [L.chandOn(span(r.chand.start, r.chand.end))] : []),
+        ...(season && seasonCare ? [season] : []),
+        ...r.care.filter((l) => l.key !== 'h8all').map((l) => L.line[l.key]),
+        ...(r.taraWeak && !r.chand ? [L.taraCare] : []),
+        ...r.background.filter((x) => x.key !== 'guruGood').map((x) => L.bg[x.key](monthOf(x.until))),
+      ];
+      const ul = (xs) => `<ul class="pd-list">${xs.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
       personal = `<div class="card pd">
         <h2>${L.title}</h2>
-        <p class="hint"><strong>${L.label}</strong></p>
-        <div class="pd-row pd-${chand.length ? 'avoid' : 'ok'}"><strong>${L.chandTitle}</strong><br>${chand.length ? L.chandOn(span(chand[0].start, chand[0].end)) : L.chandOff}</div>
-        <div class="pd-row"><strong>${L.taraTitle}</strong>${d.taras.map((x, i, arr) => `<br>${until(x, i, arr)}${L.taraLine(NAMES.nakshatra[Lg][x.index], L.taraName[x.tara], x.count, L.kind[x.kind])}`).join('')}</div>
-        <div class="pd-row"><strong>${L.moonTitle}</strong>${d.moon.map((m, i, arr) => `<br>${i < arr.length - 1 ? L.until(tm(m.end)) : ''}${L.moonLine(NAMES.rasi[Lg][m.sign], m.house, L.house[m.house])}`).join('')}</div>
-        <div class="pd-row"><strong>${L.raaguTitle}</strong><br>${t('raagu')} ${tm(p.raaguKaalam.start)} – ${tm(p.raaguKaalam.end)} · ${t('yama')} ${tm(p.yamagandam.start)} – ${tm(p.yamagandam.end)}</div>
-        <p class="hint">${L.nextChand(d.nextChandrashtamam.map((c) => span(c.start, c.end)).join('; '))}</p>
+        <p class="pd-verdict pd-v-${r.verdict}">${L.verdict[r.verdict]}</p>
+        ${look.length ? `<h3>${L.lookTitle}</h3>${ul(look)}` : ''}
+        ${care.length ? `<h3>${L.careTitle}</h3>${ul(care)}` : ''}
+        <p class="pd-times">${L.avoidTimes(`${tm(p.raaguKaalam.start)} – ${tm(p.raaguKaalam.end)}`, `${tm(p.yamagandam.start)} – ${tm(p.yamagandam.end)}`)}</p>
+        <p class="hint">${esc(L.nextChand(r.nextChandrashtamam.map((c) => span(c.start, c.end)).join('; ')))}</p>
+        <p class="hint">${esc(L.why(NAMES.rasi[Lg][r.moonMain.sign], r.moonMain.house, NAMES.nakshatra[Lg][r.taraMain.index], L.taraName[r.taraMain.tara]))} ${esc(L.label)}</p>
       </div>`;
     }
     res.innerHTML = personal + `
@@ -197,9 +225,11 @@ export function initToday(root, ctx) {
     },
     /** Use the birth star and rasi from the Jathagam tab, unless the person already chose one here. */
     setBirth(b) {
-      if (birth.nakshatra != null || birth.rasi != null) return;
+      // a star chosen by hand on this page wins; one that came from a chart follows the latest chart
+      if (birth.nakshatra != null && !birth.chart) return;
       birth.nakshatra = b.nakshatra;
       birth.rasi = b.rasi;
+      birth.chart = b.chart || null;
       fillStarSelects();
       if (last) render();
     },

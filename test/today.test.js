@@ -87,3 +87,24 @@ describe('today for you (chandrashtamam, tara balam, Moon from rasi)', async () 
     for (const c of d.nextChandrashtamam) expect(c.start >= p.nextSunrise).toBe(true);
   });
 });
+
+describe('daily reading', async () => {
+  const { dailyReading, DAY_LINES } = await import('../src/engine/personalDay.js');
+  const { dailyPanchangam } = await import('../src/engine/today.js');
+  const { gocharam } = await import('../src/engine/transit.js');
+  const { TODAY_TEXT } = await import('../src/i18n.js');
+  it('every line key has English and Tamil text', () => {
+    for (const ls of Object.values(DAY_LINES)) for (const l of ls) for (const L of ['en', 'ta']) expect(TODAY_TEXT[L].line[l.key], `${L} ${l.key}`).toBeTruthy();
+  });
+  it('gives chandrashtamam as the verdict when the Moon is in the 8th from the rasi', () => {
+    const p = dailyPanchangam('2026-11-28', 13.08, 80.27, 'Asia/Kolkata');
+    const r = dailyReading({ rasi: 8, nakshatra: 18 }, p, gocharam(8, p.sunrise));
+    expect(r.verdict).toBe('chandrashtamam');
+    expect(r.chand).toBeTruthy();
+  });
+  it('different rasis on the same day get different readings', () => {
+    const p = dailyPanchangam('2026-11-24', 13.08, 80.27, 'Asia/Kolkata');
+    const keys = new Set([...Array(12).keys()].map((rasi) => dailyReading({ rasi, nakshatra: rasi * 2 }, p, gocharam(rasi, p.sunrise)).moonMain.house));
+    expect(keys.size).toBe(12);
+  });
+});

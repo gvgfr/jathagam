@@ -448,3 +448,9 @@ details.remedies li { margin-bottom: 6px; }
 .b-details[open] > summary::before { content: '－'; }
 .b-details > .card { box-shadow: none; border: 1px solid var(--line); margin: 12px 0 0; }
 .b-plain li { font-size: 1.02rem; }
+.pd-verdict { font-size: 1.12rem; font-weight: 700; color: var(--maroon); margin: 6px 0 4px; line-height: 1.45; }
+.pd-v-chandrashtamam { background: #fff4f1; border-radius: 8px; padding: 8px 10px; }
+.pd h3 { font-size: 0.95rem; margin: 14px 0 4px; color: var(--maroon); }
+.pd-list { margin: 0; padding-left: 1.2em; }
+.pd-list li { margin-bottom: 6px; line-height: 1.5; }
+.pd-times { margin: 12px 0 6px; line-height: 1.5; }
