@@ -145,9 +145,6 @@ export function initToday(root, ctx) {
     };
     const day = DateTime.fromISO(p.date, { zone });
     const L = TODAY_TEXT[Lg];
-    // full or new moon during this day (sunrise to next sunrise): explain the switch between the halves
-    const turn = p.thithi.find((x) => (x.index === 14 || x.index === 29) && x.end < p.nextSunrise);
-    const moonTurn = turn ? `<div class="moon-turn" role="note"><span aria-hidden="true">${turn.index === 14 ? '🌕' : '🌑'}</span><p>${(turn.index === 14 ? L.fullMoon : L.newMoon)(tm(turn.end))}</p></div>` : '';
     let personal = `<div class="card pd"><p>${L.needStar}</p></div>`;
     if (birth.nakshatra != null && birth.rasi != null) {
       const d = personalDay(birth, p.sunrise, p.nextSunrise, p.nakshatra);
@@ -174,7 +171,6 @@ export function initToday(root, ctx) {
           <div>${NAMES.vaaram[Lg][p.weekday]} · ${day.toFormat('dd-MM-yyyy')}</div>
           <div class="hint">${esc(pl.label)} · ${zone}</div>
         </div>
-        ${moonTurn}
         <div class="periods">
           ${period('raagu', p.raaguKaalam)}
           ${period('yama', p.yamagandam)}
