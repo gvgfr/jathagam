@@ -81,6 +81,7 @@ export function initToday(root, ctx) {
 
   // birth star and rasi for the personal card (kept in memory only)
   const birth = { nakshatra: null, rasi: null, chart: null };
+  let seenChart = null; // the last chart from the Jathagam tab that was applied here
   function fillStarSelects() {
     const Lg = ctx.lang();
     const choose = `<option value="">${esc(ctx.t('choose'))}</option>`;
@@ -225,8 +226,9 @@ export function initToday(root, ctx) {
     },
     /** Use the birth star and rasi from the Jathagam tab, unless the person already chose one here. */
     setBirth(b) {
-      // a star chosen by hand on this page wins; one that came from a chart follows the latest chart
-      if (birth.nakshatra != null && !birth.chart) return;
+      // every newly cast chart wins; a star picked by hand here is kept only until the next new chart
+      if (b.chart && b.chart === seenChart) return;
+      seenChart = b.chart || null;
       birth.nakshatra = b.nakshatra;
       birth.rasi = b.rasi;
       birth.chart = b.chart || null;
