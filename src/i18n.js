@@ -757,6 +757,8 @@ export const BUI = {
 // "Today for you": Moon from your rasi, chandrashtamam, tara balam
 export const TODAY_TEXT = {
   en: {
+    fullMoon: (t) => `<strong>Full moon at ${t}.</strong> Until then the Moon was growing (Valarpirai); after it, the Moon starts to shrink (Theipirai). The full moon is one moment, not a whole day, so one day can have both. The Tamil calendar names the day by what was running at sunrise.`,
+    newMoon: (t) => `<strong>New moon (Amavasai ends) at ${t}.</strong> Until then the Moon was shrinking (Theipirai); after it, the Moon starts to grow again (Valarpirai). The new moon is one moment, not a whole day, so one day can have both. The Tamil calendar names the day by what was running at sunrise.`,
     title: 'Today for you',
     label: 'Traditional guidance from your star and rasi, not a tested prediction. Everyone with the same star and rasi sees the same.',
     needStar: 'Choose your birth star and rasi above to see your own day: chandrashtamam, tara balam and the Moon from your rasi.',
@@ -788,6 +790,8 @@ export const TODAY_TEXT = {
     },
   },
   ta: {
+    fullMoon: (t) => `<strong>${t}-க்கு முழு நிலவு (பௌர்ணமி).</strong> அதுவரை சந்திரன் வளர்ந்து வந்தது (வளர்பிறை); அதன் பின் தேயத் தொடங்குகிறது (தேய்பிறை). முழு நிலவு ஒரு கணம் மட்டுமே, முழு நாள் அல்ல; எனவே ஒரே நாளில் இரண்டும் வரலாம். சூரிய உதயத்தில் இருந்ததை வைத்தே தமிழ் நாட்காட்டி அந்த நாளுக்குப் பெயரிடுகிறது.`,
+    newMoon: (t) => `<strong>${t}-க்கு அமாவாசை முடிகிறது.</strong> அதுவரை சந்திரன் தேய்ந்து வந்தது (தேய்பிறை); அதன் பின் மீண்டும் வளரத் தொடங்குகிறது (வளர்பிறை). அமாவாசை முடிவு ஒரு கணம் மட்டுமே; எனவே ஒரே நாளில் இரண்டும் வரலாம். சூரிய உதயத்தில் இருந்ததை வைத்தே தமிழ் நாட்காட்டி அந்த நாளுக்குப் பெயரிடுகிறது.`,
     title: 'இன்று உங்களுக்கு',
     label: 'உங்கள் நட்சத்திரம், ராசியிலிருந்து பாரம்பரிய வழிகாட்டல்; சோதிக்கப்பட்ட கணிப்பு அல்ல. ஒரே நட்சத்திரம், ராசி உள்ள அனைவருக்கும் இதுவே.',
     needStar: 'உங்கள் இன்றைய பலனைக் காண மேலே ஜென்ம நட்சத்திரம், ராசியைத் தேர்வு செய்யவும்: சந்திராஷ்டமம், தாரா பலம், உங்கள் ராசியிலிருந்து சந்திரன்.',
