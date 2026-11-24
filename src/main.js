@@ -167,6 +167,7 @@ function route() {
     requestAnimationFrame(() => $('palan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
   if ((tab === 'bayes' || tab === 'dosham') && state.last) prefillFromChart({ bayes: 'b-person', dosham: 'd-person' }[tab]);
+  if (tab === 'today' && state.last) today.setBirth({ nakshatra: state.last.chart.summary.nakshatra, rasi: state.last.chart.summary.rasi });
   document.querySelectorAll('.tabs a').forEach((a) => a.setAttribute('aria-current', a.dataset.view === tab ? 'page' : 'false'));
 }
 

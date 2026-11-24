@@ -426,3 +426,10 @@ details.remedies li { margin-bottom: 6px; }
 .privacy-chip { margin-top: 8px; margin-bottom: 0; font-size: 0.85rem; color: #1f3a17; }
 .link-btn { background: none; border: none; padding: 4px 2px; color: var(--maroon); text-decoration: underline; font: inherit; cursor: pointer; min-height: 32px; }
 @media print { .privacy-banner, .privacy-chip { display: none !important; } }
+
+/* today for you */
+.pd-row { padding: 10px 0; border-top: 1px solid var(--line); line-height: 1.55; }
+.pd-row:first-of-type { border-top: none; }
+.pd-avoid { background: #fff4f1; border-radius: 8px; padding: 10px 12px; border-top: none; }
+.t-star { border: none; padding: 0; margin: 8px 0 0; }
+.t-star legend { font-weight: 600; padding: 0; margin-bottom: 4px; }

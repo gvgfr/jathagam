@@ -42,3 +42,48 @@ describe('period tables', () => {
     expect(karanamOf(59)).toBe(9);
   });
 });
+
+describe('today for you (chandrashtamam, tara balam, Moon from rasi)', async () => {
+  const { personalDay, nextChandrashtamam, taraOf, houseFrom, rasisOfStar } = await import('../src/engine/personalDay.js');
+  const { siderealLongitude } = await import('../src/engine/astro.js');
+  const { dailyPanchangam } = await import('../src/engine/today.js');
+  it('tara: counting from the birth star, in nines', () => {
+    expect(taraOf(5, 5)).toMatchObject({ count: 1, tara: 'janma' });
+    expect(taraOf(5, 6)).toMatchObject({ count: 2, tara: 'sampat', kind: 'good' });
+    expect(taraOf(5, 7)).toMatchObject({ count: 3, tara: 'vipat', kind: 'weak' });
+    expect(taraOf(5, 14)).toMatchObject({ count: 10, tara: 'janma' });
+    expect(taraOf(20, 3)).toMatchObject({ count: 11, tara: 'sampat' }); // wraps past Revathi
+    expect(taraOf(0, 26)).toMatchObject({ count: 27, tara: 'paramaMitra' });
+  });
+  it('houses from the rasi, and the rasis a star spans', () => {
+    expect(houseFrom(8, 3)).toBe(8); // Dhanusu -> Kadagam is the 8th
+    expect(houseFrom(0, 0)).toBe(1);
+    expect(houseFrom(11, 0)).toBe(2);
+    expect(rasisOfStar(0)).toEqual([0]);
+    expect(rasisOfStar(2)).toEqual([0, 1]); // Karthigai spans Mesham and Rishabam
+    expect(rasisOfStar(26)).toEqual([11]);
+  });
+  it('chandrashtamam periods: the Moon really is in the 8th rasi, ~2–2.7 days, about a month apart', () => {
+    const rasi = 8;
+    const cs = nextChandrashtamam(rasi, new Date('2026-11-24T00:00:00Z'), 3);
+    for (const c of cs) {
+      const mid = new Date((c.start.getTime() + c.end.getTime()) / 2);
+      expect(Math.floor(siderealLongitude('moon', mid) / 30)).toBe((rasi + 7) % 12);
+      expect(Math.floor(siderealLongitude('moon', new Date(c.start.getTime() - 5 * 60000)) / 30)).not.toBe((rasi + 7) % 12);
+      const days = (c.end - c.start) / 86400000;
+      expect(days).toBeGreaterThan(1.9);
+      expect(days).toBeLessThan(2.8);
+    }
+    const gap = (cs[1].start - cs[0].start) / 86400000;
+    expect(gap).toBeGreaterThan(26);
+    expect(gap).toBeLessThan(29);
+  });
+  it('a personal day lists Moon segments and taras covering sunrise to sunrise', () => {
+    const p = dailyPanchangam('2026-11-24', 13.08, 80.27, 'Asia/Kolkata');
+    const d = personalDay({ rasi: 8, nakshatra: 20 }, p.sunrise, p.nextSunrise, p.nakshatra);
+    expect(d.moon[0].start <= p.sunrise).toBe(true);
+    expect(d.moon.at(-1).end >= p.nextSunrise).toBe(true);
+    expect(d.taras.length).toBe(p.nakshatra.length);
+    for (const c of d.nextChandrashtamam) expect(c.start >= p.nextSunrise).toBe(true);
+  });
+});

@@ -108,6 +108,7 @@ export function dailyPanchangam(isoDate, lat, lon, zone) {
     weekday,
     sunrise,
     sunset,
+    nextSunrise: nextRise || new Date(sunrise.getTime() + 86400000),
     tamilMonth: sunSign, // 0 = Chithirai (Sun in Mesham)
     tamilDay,
     thithi: seq('thithi'),
