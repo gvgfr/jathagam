@@ -451,7 +451,7 @@ export const TUI = {
     close: 'Close',
     allTerms: 'All terms →',
     footerFaq: 'FAQ and words explained',
-    tabTemple: 'Temple',
+    tabTemple: 'Temple card',
     todayTitle: 'Today’s panchangam',
     todayIntro: 'Choose a place (or use your location). Your location is used on this device only and is not sent anywhere.',
     place: 'Place',
