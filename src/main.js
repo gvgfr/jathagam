@@ -289,7 +289,63 @@ $('birth-form').addEventListener('submit', (e) => {
   $('temple-hint').hidden = true;
   renderResults(state.last);
   if (location.hash === '#temple') openTempleCard(chart, state.last.meta.name, state.lang);
-  $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  saveBirth(f);
+  if (state.quietCast) state.quietCast = false;
+  else $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+// ---------------------------------------------------------------- remember birth details (opt-in, this browser only)
+const BIRTH_STORE = 'jathagam.birth.v1';
+const BIRTH_FIELDS = ['name', 'date', 'tob', 'place', 'lat', 'lon', 'tz'];
+function saveBirth(f) {
+  try {
+    if ($('f-remember').checked) {
+      const v = Object.fromEntries(BIRTH_FIELDS.map((k) => [k, f[k]?.value ?? '']));
+      v.node = f.node.value;
+      localStorage.setItem(BIRTH_STORE, JSON.stringify(v));
+    } else localStorage.removeItem(BIRTH_STORE);
+  } catch {
+    /* storage unavailable: nothing is kept */
+  }
+}
+function restoreBirth() {
+  let v = null;
+  try {
+    v = JSON.parse(localStorage.getItem(BIRTH_STORE) || 'null');
+  } catch {
+    v = null;
+  }
+  if (!v || !v.date || !v.tob) return false;
+  const f = $('birth-form');
+  for (const k of BIRTH_FIELDS) if (f[k] && v[k] != null) f[k].value = v[k];
+  if (v.node) f.node.value = v.node;
+  if (f.tz.value === '') f.tz.value = 'auto';
+  $('f-remember').checked = true;
+  $('birth-saved-note').hidden = false;
+  // cast the chart straight away, without jumping down the page
+  state.quietCast = true;
+  f.requestSubmit();
+  return true;
+}
+$('f-forget').addEventListener('click', () => {
+  try {
+    localStorage.removeItem(BIRTH_STORE);
+  } catch {
+    /* nothing to remove */
+  }
+  $('f-remember').checked = false;
+  $('birth-saved-note').hidden = true;
+  $('form-error').textContent = t('birthForgotten');
+});
+$('f-remember').addEventListener('change', (e) => {
+  if (!e.target.checked) {
+    try {
+      localStorage.removeItem(BIRTH_STORE);
+    } catch {
+      /* nothing to remove */
+    }
+    $('birth-saved-note').hidden = true;
+  }
 });
 
 // ---------------------------------------------------------------- render
@@ -534,3 +590,5 @@ window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.ope
 
 initGlossary(document.querySelector('main'), () => state.lang, () => ({ close: t('close'), more: t('allTerms') }));
 applyLang();
+// last: needs the form's submit handler and the language set up
+if (restoreBirth()) route();
