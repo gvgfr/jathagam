@@ -313,7 +313,18 @@ export function initBayes(root, ctx) {
         <p class="hint">${t.hashNote}</p>
       </div>`;
 
-    $('bayes-results').innerHTML = quality + score + modelsCard + oosCard + time + rulesCard + fcCard + recCard + `<div class="card b-res"><p class="hint">${t.limits}</p></div>`;
+    // plain answer first; every number and method in a closed section
+    const v = verdictOf(r.overallBF);
+    const plainItems = [
+      t.plainVerdict[v],
+      r.oos ? t.plainOos[verdictOf(r.oos.testBF)] : t.plainOosNeed,
+      r.timeMoved ? t.plainTimeMoved(tm(bestT.utc), tm(statedUtc)) : t.plainTimeKept(tm(statedUtc)),
+      r.pEffect < 0.5 ? t.plainForecastBase : t.plainForecastAdj,
+    ];
+    const plain = `<div class="card b-res b-plain"><h2>${t.plainTitle}</h2><ul class="b-rules">${plainItems.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    const due0 = loadF().some((x) => x.to < Date.now() && !x.outcome);
+    const details = `<details class="card b-details"><summary><h2>${t.detailsTitle}</h2></summary>${score}${modelsCard}${oosCard}${time}${rulesCard}${fcCard}${due0 ? '' : recCard}</details>`;
+    $('bayes-results').innerHTML = plain + quality + (due0 ? recCard : '') + details + `<div class="card b-res"><p class="hint">${t.limits}</p></div>`;
     $('bayes-results').hidden = false;
     $('b-export')?.addEventListener('click', () => {
       const blob = new Blob([exportRecords(loadF())], { type: 'application/json' });

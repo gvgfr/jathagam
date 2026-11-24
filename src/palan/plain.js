@@ -379,17 +379,14 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     const m = houseOf(S);
     return t.via(g(L), h, HOUSE_TOPIC[h][lang], g(S), m, HOUSE_TOPIC[m][lang]);
   };
-  if (act) nowItems.push({ p: [t.bigPicture(g(act.dasa.lord), fmtRange(act.dasa.start, act.dasa.end), viaOf(act.dasa.lord))] });
+  // the big-picture line is in "In brief"; not repeated here
   let nowSummary = null;
   if (curAnt) {
     const lords = [act.dasa.lord, curAnt.bhukti.lord, curAnt.lord];
     const d = describe(lords, now, curAnt.lord);
     nowSummary = { until: fmtDate(curAnt.end), what: d.p[0] };
-    const satH = fromMoon(go.saturn.sign);
-    const jupH = fromMoon(go.jupiter.sign);
-    const extra = [t.satBav(satH, av.bav.saturn[go.saturn.sign]), t.jupBav(jupH, av.bav.jupiter[go.jupiter.sign])];
-    for (const x of doubleTransit(go.jupiter.sign, go.saturn.sign, ageNow)) if (x.ev) extra.push(t.dtLine(x.h, evText(x.ev)[0]));
-    nowItems.push({ h: fmtRange(curAnt.start, curAnt.end), p: [...d.p, ...extra], tips: d.tips, why: whyOf(lords) });
+    // transit support points live in "Planets moving now" (for astrologers)
+    nowItems.push({ h: fmtRange(curAnt.start, curAnt.end), p: [...d.p], tips: d.tips, why: whyOf(lords) });
   }
   sections.push({ key: 'now', title: t.sec.now, items: nowItems });
 
@@ -637,7 +634,7 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
   tr.push({ h: `${t.jupiter} · ${t.until(fmtDate(go.jupiter.until))}`, p: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][0], t.jupBav(go.jupiter.house, av.bav.jupiter[go.jupiter.sign])], tips: [TRANSIT_PLAIN[jg ? 'jupGood' : 'jupWeak'][lang][1]] });
   const rg = [3, 6, 11].includes(go.rahu.house);
   tr.push({ h: `${t.raagu} · ${t.until(fmtDate(go.rahu.until))}`, p: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][0]], tips: [TRANSIT_PLAIN[rg ? 'rahuGood' : 'rahuWeak'][lang][1]] });
-  sections.push({ key: 'transits', title: t.sec.transits, items: tr });
+  sections.push({ key: 'transits', title: t.sec.transits, items: tr, technical: true });
 
   // =========================== NATURE
   sections.push({

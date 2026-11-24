@@ -433,3 +433,18 @@ details.remedies li { margin-bottom: 6px; }
 .pd-avoid { background: #fff4f1; border-radius: 8px; padding: 10px 12px; border-top: none; }
 .t-star { border: none; padding: 0; margin: 8px 0 0; }
 .t-star legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
+
+/* "for astrologers" block on the chart page */
+.astro-details > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.astro-details > summary::-webkit-details-marker { display: none; }
+.astro-details > summary h2 { margin: 0; font-size: 1.02rem; }
+.astro-details > summary::before { content: '＋'; color: var(--saffron); font-weight: 700; }
+.astro-details[open] > summary::before { content: '－'; }
+.astro-details > .card { box-shadow: none; border: 1px solid var(--line); margin: 12px 0 0; }
+.b-details > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.b-details > summary::-webkit-details-marker { display: none; }
+.b-details > summary h2 { margin: 0; font-size: 1.02rem; }
+.b-details > summary::before { content: '＋'; color: var(--saffron); font-weight: 700; }
+.b-details[open] > summary::before { content: '－'; }
+.b-details > .card { box-shadow: none; border: 1px solid var(--line); margin: 12px 0 0; }
+.b-plain li { font-size: 1.02rem; }

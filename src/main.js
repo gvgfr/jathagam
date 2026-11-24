@@ -53,7 +53,7 @@ $('lang-toggle').addEventListener('click', () => {
   // Expand every dasa for printing (also when printing from the browser menu).
 let closedForPrint = [];
 window.addEventListener('beforeprint', () => {
-  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open]), details.palan-tech:not([open])')];
+  closedForPrint = [...document.querySelectorAll('details.dasa:not([open]), details.palan-sec:not([open]), details.palan-tech:not([open]), details.astro-details:not([open])')];
   closedForPrint.forEach((d) => (d.open = true));
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));
@@ -399,6 +399,8 @@ function renderResults({ chart, meta }) {
         <div class="tile"><span>${t('rasiLord')}</span><strong>${gName(s.rasiLord)}</strong></div>
         <div class="tile"><span>${t('nakLord')}</span><strong>${gName(s.nakshatraLord)}</strong></div>
       </div>
+      ${note ? `<p class="warn">${note}</p>` : ''}
+      <p class="hint">${t('checkPlain')(esc(zone))}</p>
       <button type="button" class="btn-temple no-print" id="btn-temple">🙏 ${t('templeCard')}</button>
     </div>`;
 
@@ -520,7 +522,8 @@ function renderResults({ chart, meta }) {
       <button type="button" class="btn-cta" id="btn-palan" aria-expanded="${state.showPalan}" aria-controls="palan">${state.showPalan ? t('palanHide') : t('palanShow')}</button>
     </div>`;
   if (state.showPalan) {
-    const pl = generatePalan(chart, L, (a, b) => `${dt(a, dfmt)} → ${dt(b, dfmt)}`, new Date(), (d) => dt(d, dfmt), (d) => dt(d, 'LLL yyyy'), state.palanSystem);
+    // one date style in the readings: "Mar 2025 – Mar 2043" for spans, "18 Dec 2026" for a day
+    const pl = generatePalan(chart, L, (a, b) => `${dt(a, 'LLL yyyy')} – ${dt(b, 'LLL yyyy')}`, new Date(), (d) => dt(d, 'd LLL yyyy'), (d) => dt(d, 'LLL yyyy'), state.palanSystem);
     const plainSecs = pl.sections.filter((x) => !x.technical);
     const techSecs = pl.sections.filter((x) => x.technical);
     // only "In brief" starts open; readers open the sections they want
@@ -557,7 +560,10 @@ function renderResults({ chart, meta }) {
   }
 
   const res = $('results');
-  res.innerHTML = actions + summary + palan + charts + verify + table + panch + dasa;
+  // what most people need first; exact positions and tables for astrologers, closed
+  const astro = `<details class="card astro-details"><summary><h2>${t('forAstrologers')}</h2></summary>
+      <p class="hint">${t('forAstrologersHint')}</p>${verify}${table}${panch}${dasa}</details>`;
+  res.innerHTML = actions + summary + palan + charts + astro;
   res.hidden = false;
   $('btn-print').addEventListener('click', () => window.print());
   $('btn-temple').addEventListener('click', () => openTempleCard(chart, meta.name, L));

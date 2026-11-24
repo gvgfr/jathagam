@@ -129,12 +129,12 @@ describe('big picture line is chart-specific (no fixed per-dasa sentence)', () =
     const lineFor = (u, lang = 'en') => {
       const c = computeChart({ utc: new Date(u), lat: 13.08, lon: 80.27 });
       const p = generatePalan(c, lang, () => 'R', now, () => '', null);
-      return p.sections.find((s) => s.key === 'now').items[0].p[0];
+      return p.sections.find((s) => s.key === 'brief').items.find((x) => typeof x === 'string' && /period/.test(x) || /தசை/.test(x));
     };
     const a = lineFor('1977-07-27T19:00:00Z');
     const b = lineFor('1990-06-20T13:10:00Z');
-    expect(a).toMatch(/Raagu period/);
-    expect(b).toMatch(/Raagu period/);
+    expect(a).toMatch(/Raagu’s \d+-year period/);
+    expect(b).toMatch(/Raagu’s \d+-year period/);
     expect(a).not.toBe(b);
     for (const x of [a, b, lineFor('1985-02-11T04:30:00Z')]) {
       expect(x).not.toMatch(/foreign or unusual paths|Results tend to come/);
