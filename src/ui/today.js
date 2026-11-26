@@ -45,7 +45,19 @@ export function initToday(root, ctx) {
   const $ = (id) => root.querySelector(`#${id}`);
   let place = null; // {label, lat, lon}
   let last = null;
-  $('t-date').value = DateTime.local().toISODate();
+  let autoDate = DateTime.local().toISODate();
+  $('t-date').value = autoDate;
+  const refreshDay = () => {
+    const nowDay = DateTime.local().toISODate();
+    if (nowDay !== autoDate && $('t-date').value === autoDate) {
+      autoDate = nowDay;
+      $('t-date').value = nowDay;
+      if (last) show(false);
+    }
+  };
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && refreshDay());
+  window.addEventListener('pageshow', refreshDay);
+  window.addEventListener('focus', refreshDay);
 
   attachAutocomplete(
     $('t-place'),
@@ -111,7 +123,7 @@ export function initToday(root, ctx) {
     show();
   });
 
-  function show() {
+  function show(scroll = true) {
     if (!place) {
       $('t-error').textContent = ctx.t('needPlace');
       return;
@@ -120,7 +132,7 @@ export function initToday(root, ctx) {
     const date = $('t-date').value || DateTime.now().setZone(zone).toISODate();
     last = { place, zone, p: dailyPanchangam(date, place.lat, place.lon, zone) };
     render();
-    $('today-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) $('today-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function render() {
@@ -174,20 +186,22 @@ export function initToday(root, ctx) {
           seasonCare = CARE_KEYS.some((k) => EVENT_TEXT[k]?.[Lg][0] === text);
         }
       }
-      const look = [...r.look.map((l) => L.line[l.key]), ...(season && !seasonCare ? [season] : []), ...r.background.filter((x) => x.key === 'guruGood').map((x) => L.bg[x.key](monthOf(x.until)))];
+      // today's lines (change daily) first; slow background (changes over months) in a small footer
+      const tara = L.tara[r.taraLine.key];
+      const look = [...(!r.taraLine.care ? [tara] : []), ...r.look.map((l) => L.line[l.key])];
       const care = [
         ...(r.chand ? [L.chandOn(span(r.chand.start, r.chand.end))] : []),
-        ...(season && seasonCare ? [season] : []),
+        ...(r.taraLine.care && !r.chand ? [tara] : []),
         ...r.care.filter((l) => l.key !== 'h8all').map((l) => L.line[l.key]),
-        ...(r.taraWeak && !r.chand ? [L.taraCare] : []),
-        ...r.background.filter((x) => x.key !== 'guruGood').map((x) => L.bg[x.key](monthOf(x.until))),
       ];
+      const slow = [...(season ? [season] : []), ...r.background.map((x) => L.bg[x.key](monthOf(x.until)))];
       const ul = (xs) => `<ul class="pd-list">${xs.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
       personal = `<div class="card pd">
-        <h2>${L.title}</h2>
+        <h2>${L.title} · ${DateTime.fromISO(p.date, { zone }).setLocale(Lg === 'ta' ? 'ta-IN' : 'en-GB').toFormat('EEE d LLL')}</h2>
         <p class="pd-verdict pd-v-${r.verdict}">${L.verdict[r.verdict]}</p>
         ${look.length ? `<h3>${L.lookTitle}</h3>${ul(look)}` : ''}
         ${care.length ? `<h3>${L.careTitle}</h3>${ul(care)}` : ''}
+        ${slow.length ? `<details class="pd-slow"><summary>${L.slowTitle}</summary>${ul(slow)}</details>` : ''}
         <p class="pd-times">${L.avoidTimes(`${tm(p.raaguKaalam.start)} – ${tm(p.raaguKaalam.end)}`, `${tm(p.yamagandam.start)} – ${tm(p.yamagandam.end)}`)}</p>
         <p class="hint">${esc(L.nextChand(r.nextChandrashtamam.map((c) => span(c.start, c.end)).join('; ')))}</p>
         <p class="hint">${esc(L.why(NAMES.rasi[Lg][r.moonMain.sign], r.moonMain.house, NAMES.nakshatra[Lg][r.taraMain.index], L.taraName[r.taraMain.tara]))} ${esc(L.label)}</p>

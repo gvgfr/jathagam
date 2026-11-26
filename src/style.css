@@ -454,3 +454,5 @@ details.remedies li { margin-bottom: 6px; }
 .pd-list { margin: 0; padding-left: 1.2em; }
 .pd-list li { margin-bottom: 6px; line-height: 1.5; }
 .pd-times { margin: 12px 0 6px; line-height: 1.5; }
+.pd-slow { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 6px; }
+.pd-slow > summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; min-height: 36px; padding: 6px 0; }

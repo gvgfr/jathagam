@@ -108,3 +108,21 @@ describe('daily reading', async () => {
     expect(keys.size).toBe(12);
   });
 });
+
+describe('daily reading changes day to day', async () => {
+  const { dailyReading } = await import('../src/engine/personalDay.js');
+  const { dailyPanchangam } = await import('../src/engine/today.js');
+  const { gocharam } = await import('../src/engine/transit.js');
+  const { TODAY_TEXT } = await import('../src/i18n.js');
+  it('the day-specific lines differ on every one of 10 consecutive days, with text in both languages', () => {
+    const birth = { rasi: 8, nakshatra: 18 };
+    const sigs = [];
+    for (let d = 20; d < 30; d++) {
+      const p = dailyPanchangam(`2026-11-${d}`, 33.95, -84.55, 'America/New_York');
+      const r = dailyReading(birth, p, gocharam(8, p.sunrise));
+      for (const L of ['en', 'ta']) expect(TODAY_TEXT[L].tara[r.taraLine.key]).toBeTruthy();
+      sigs.push(`${r.verdict}|${r.taraLine.key}|${r.look.map((x) => x.key)}|${r.care.map((x) => x.key)}`);
+    }
+    for (let i = 1; i < sigs.length; i++) expect(sigs[i], `day ${20 + i}`).not.toBe(sigs[i - 1]);
+  });
+});

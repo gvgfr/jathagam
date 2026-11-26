@@ -168,9 +168,12 @@ export function dailyReading(birth, p, go = null) {
     else if ([4, 7, 10].includes(go.saturn.house)) background.push({ key: 'kandakaSani', until: go.saturn.until });
     if ([2, 5, 7, 9, 11].includes(go.jupiter.house)) background.push({ key: 'guruGood', until: go.jupiter.until });
   }
+  // today's star from the birth star: changes every day
+  const taraLine = { key: `tara_${taraMain.tara}`, care: taraMain.kind === 'weak' || taraMain.tara === 'janma' };
   return {
     verdict,
     chand,
+    taraLine,
     moonMain,
     taraMain,
     taraWeak: taraMain.kind === 'weak',
