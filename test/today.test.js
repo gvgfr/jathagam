@@ -126,3 +126,22 @@ describe('daily reading changes day to day', async () => {
     for (let i = 1; i < sigs.length; i++) expect(sigs[i], `day ${20 + i}`).not.toBe(sigs[i - 1]);
   });
 });
+
+describe('good / bad day and news', async () => {
+  const { dailyReading } = await import('../src/engine/personalDay.js');
+  const { dailyPanchangam } = await import('../src/engine/today.js');
+  const { gocharam } = await import('../src/engine/transit.js');
+  const { TODAY_TEXT } = await import('../src/i18n.js');
+  it('every day gets a verdict and a news line in both languages; chandrashtamam is never good news', () => {
+    for (let d = 1; d <= 30; d++) {
+      const p = dailyPanchangam(`2026-11-${String(d).padStart(2, '0')}`, 33.95, -84.55, 'America/New_York');
+      const r = dailyReading({ rasi: 8, nakshatra: 18 }, p, gocharam(8, p.sunrise));
+      expect(['good', 'bad', 'mixed']).toContain(r.news);
+      for (const L of ['en', 'ta']) {
+        expect(TODAY_TEXT[L].verdict[r.verdict]).toBeTruthy();
+        expect(TODAY_TEXT[L].news[r.news](r.newsArea ? TODAY_TEXT[L].newsArea[r.newsArea] : '')).toBeTruthy();
+      }
+      if (r.verdict === 'chandrashtamam') expect(r.news).toBe('bad');
+    }
+  });
+});

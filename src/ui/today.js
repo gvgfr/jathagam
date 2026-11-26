@@ -199,6 +199,7 @@ export function initToday(root, ctx) {
       personal = `<div class="card pd">
         <h2>${L.title} · ${DateTime.fromISO(p.date, { zone }).setLocale(Lg === 'ta' ? 'ta-IN' : 'en-GB').toFormat('EEE d LLL')}</h2>
         <p class="pd-verdict pd-v-${r.verdict}">${L.verdict[r.verdict]}</p>
+        <p class="pd-news">${L.news[r.news](r.newsArea ? L.newsArea[r.newsArea] : '')}</p>
         ${look.length ? `<h3>${L.lookTitle}</h3>${ul(look)}` : ''}
         ${care.length ? `<h3>${L.careTitle}</h3>${ul(care)}` : ''}
         ${slow.length ? `<details class="pd-slow"><summary>${L.slowTitle}</summary>${ul(slow)}</details>` : ''}

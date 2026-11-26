@@ -758,11 +758,17 @@ export const BUI = {
 export const TODAY_TEXT = {
   en: {
     verdict: {
-      good: '✅ A good day for you, by tradition.',
-      ordinary: '➖ An ordinary day for you.',
-      slow: '🐢 A day to go slow and keep things simple, by tradition.',
-      chandrashtamam: '⚠️ Chandrashtamam for you today: tradition says don’t start important things.',
+      good: '🙂 A good day for you.',
+      ordinary: '😐 An average day for you.',
+      slow: '🙁 A difficult day for you: go slow and keep things simple.',
+      chandrashtamam: '🙁 A difficult day for you: chandrashtamam. Don’t start important things.',
     },
+    news: {
+      good: (area) => `Good news: tradition says good news is likely today${area ? `, especially about ${area}` : ''}.`,
+      bad: () => 'News: tradition says news may disappoint or things may get delayed today. Don’t read too much into it.',
+      mixed: () => 'News: no strong sign either way; a normal day for news.',
+    },
+    newsArea: { work: 'work', money: 'money', family: 'family and friends' },
     lookTitle: 'What to look forward to',
     careTitle: 'Be careful about',
     line: {
@@ -837,11 +843,17 @@ export const TODAY_TEXT = {
   },
   ta: {
     verdict: {
-      good: '✅ மரபுப்படி உங்களுக்கு நல்ல நாள்.',
-      ordinary: '➖ உங்களுக்குச் சாதாரண நாள்.',
-      slow: '🐢 மரபுப்படி நிதானமாக, எளிமையாகச் செல்ல வேண்டிய நாள்.',
-      chandrashtamam: '⚠️ இன்று உங்களுக்குச் சந்திராஷ்டமம்: முக்கியக் காரியங்களைத் தொடங்க வேண்டாம் என்று மரபு சொல்கிறது.',
+      good: '🙂 உங்களுக்கு நல்ல நாள்.',
+      ordinary: '😐 உங்களுக்குச் சராசரி நாள்.',
+      slow: '🙁 உங்களுக்குச் சிரமமான நாள்: நிதானமாக, எளிமையாகச் செல்லுங்கள்.',
+      chandrashtamam: '🙁 உங்களுக்குச் சிரமமான நாள்: சந்திராஷ்டமம். முக்கியக் காரியங்களைத் தொடங்க வேண்டாம்.',
     },
+    news: {
+      good: (area) => `நல்ல செய்தி: இன்று நல்ல செய்தி வர வாய்ப்பு என்று மரபு சொல்கிறது${area ? `, குறிப்பாக ${area} பற்றி` : ''}.`,
+      bad: () => 'செய்தி: இன்று செய்திகள் ஏமாற்றம் தரலாம் அல்லது காரியங்கள் தாமதமாகலாம் என்று மரபு சொல்கிறது. அதிகம் பொருட்படுத்த வேண்டாம்.',
+      mixed: () => 'செய்தி: இரு பக்கமும் வலுவான அறிகுறி இல்லை; செய்திகளுக்குச் சாதாரண நாள்.',
+    },
+    newsArea: { work: 'வேலை', money: 'பணம்', family: 'குடும்பம், நண்பர்கள்' },
     lookTitle: 'எதிர்பார்க்கலாம்',
     careTitle: 'கவனம் தேவை',
     line: {

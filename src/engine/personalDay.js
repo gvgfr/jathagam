@@ -168,10 +168,19 @@ export function dailyReading(birth, p, go = null) {
     else if ([4, 7, 10].includes(go.saturn.house)) background.push({ key: 'kandakaSani', until: go.saturn.until });
     if ([2, 5, 7, 9, 11].includes(go.jupiter.house)) background.push({ key: 'guruGood', until: go.jupiter.until });
   }
+  // news: traditional reading of the Moon's house and today's tara for good or disappointing news
+  const NEWS_HOUSE = { 1: 1, 3: 1, 7: 1, 10: 1, 11: 1, 2: -1, 8: -1, 12: -1 };
+  const NEWS_TARA = { sampat: 1, kshema: 1, sadhana: 1, mitra: 1, paramaMitra: 1, vipat: -1, pratyak: -1, naidhana: -1 };
+  const ns = (NEWS_HOUSE[moonMain.house] || 0) + (NEWS_TARA[taraMain.tara] || 0);
+  const news = chand || ns <= -1 ? 'bad' : ns >= 1 ? 'good' : 'mixed';
+  // the topic of good news comes only from today's positive lines, never from a caution
+  const newsArea = (DAY_LINES[moonMain.house] || []).find((l) => !l.care && l.area !== 'all' && l.area !== 'health')?.area || null;
   // today's star from the birth star: changes every day
   const taraLine = { key: `tara_${taraMain.tara}`, care: taraMain.kind === 'weak' || taraMain.tara === 'janma' };
   return {
     verdict,
+    news,
+    newsArea,
     chand,
     taraLine,
     moonMain,
