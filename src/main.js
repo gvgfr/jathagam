@@ -58,6 +58,12 @@ window.addEventListener('beforeprint', () => {
 });
 window.addEventListener('afterprint', () => closedForPrint.forEach((d) => (d.open = false)));
 
+// Opening the site starts at the top, not at a scroll position the browser remembered from last time
+try {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+} catch {
+  /* not supported */
+}
 initGlossary(document.querySelector('main'), () => state.lang, () => ({ close: t('close'), more: t('allTerms') }));
 applyLang();
 });
@@ -157,6 +163,9 @@ function route() {
   const view = ON_JATHAGAM.includes(tab) ? 'jathagam' : tab;
   $('jathagam-intro').dataset.intro = tab === 'palan' || tab === 'temple' ? tab : 'jathagam';
   renderIntros();
+  // a new tab opens at the top (not wherever the previous page was scrolled to); Palan scrolls to the reading below
+  if (tab !== state.lastTab && tab !== 'palan') window.scrollTo(0, 0);
+  state.lastTab = tab;
   for (const v of VIEWS) $(`${v}-view`).hidden = v !== view;
   $('palan-hint').hidden = !(tab === 'palan' && !state.last);
   $('temple-hint').hidden = !(tab === 'temple' && !state.last);
@@ -598,3 +607,18 @@ initGlossary(document.querySelector('main'), () => state.lang, () => ({ close: t
 applyLang();
 // last: needs the form's submit handler and the language set up
 if (restoreBirth()) route();
+// Browsers may restore the old scroll position a moment after loading (or when showing
+// the page from their cache), so return to the top a few times, unless the person has
+// already started scrolling themselves.
+let userScrolled = false;
+for (const ev of ['touchstart', 'wheel', 'keydown', 'mousedown']) window.addEventListener(ev, () => (userScrolled = true), { once: true, passive: true });
+const toTop = () => !userScrolled && location.hash.slice(1) !== 'palan' && window.scrollTo(0, 0);
+const settleTop = () => [0, 100, 300, 700].forEach((ms) => setTimeout(toTop, ms));
+settleTop();
+window.addEventListener('load', settleTop, { once: true });
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    userScrolled = false;
+    settleTop();
+  }
+});
