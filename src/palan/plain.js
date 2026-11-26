@@ -158,6 +158,7 @@ const T = {
     safetyWhy: { period: (l) => `${l} sub-period, traditionally linked with accidents and injuries in your chart.`, mars: (h) => `Sevvai (Mars) passes your ${ord(h)} house from the Moon or lagnam — traditionally a time for physical care.`, sani: 'Sani is in a testing position for you.' },
     safetyNone: 'No specific caution windows in the next two years. Usual care applies.',
     sadeNext: (d) => `Saturn’s 7½-year phase (Ezharai Sani) is not running now; the next one starts around ${d}.`,
+    sadeBrief: (ph, until, tip) => `Ezharai Sani (Saturn’s 7½ years) is running for you: you are in its ${['', 'first (starting)', 'middle (peak)', 'last (ending)'][ph]} part, until ${until}. Tradition calls it a testing time, not a reason for fear. ${tip}`,
     saturn: 'Saturn (Sani)', jupiter: 'Jupiter (Guru)', raagu: 'Raagu',
   },
   ta: {
@@ -218,6 +219,7 @@ const T = {
     safetyWhy: { period: (l) => `${l} உட்காலம்; உங்கள் ஜாதகத்தில் விபத்து, காயங்களுடன் பாரம்பரியமாகத் தொடர்புடையது.`, mars: (h) => `செவ்வாய் சந்திரன் அல்லது லக்னத்துக்கு ${h}-இல் கடக்கிறார் — பாரம்பரியமாக உடல் பாதுகாப்பில் கவனம் தேவைப்படும் காலம்.`, sani: 'சனி உங்களுக்குச் சோதனையான நிலையில்.' },
     safetyNone: 'அடுத்த இரண்டு ஆண்டுகளில் தனிக் கவனக் காலம் இல்லை. வழக்கமான கவனம் போதும்.',
     sadeNext: (d) => `ஏழரைச் சனி இப்போது இல்லை; அடுத்தது சுமார் ${d} அன்று தொடங்கும்.`,
+    sadeBrief: (ph, until, tip) => `உங்களுக்கு ஏழரைச் சனி நடக்கிறது: அதன் ${['', 'முதல் (தொடக்க)', 'நடு (உச்ச)', 'கடைசி (முடிவு)'][ph]} பகுதி, ${until} வரை. மரபு இதைச் சோதனைக் காலம் என்கிறது; பயப்பட வேண்டியதில்லை. ${tip}`,
     saturn: 'சனி', jupiter: 'குரு', raagu: 'ராகு',
   },
 };
@@ -573,6 +575,9 @@ export function plainPalan(chart, A, go, lang, fmtRange, fmtDate, now, fmtMonth,
     const ph = primaryHouses(L);
     brief.push(t.bigStory(g(L), act.dasa.years, act.dasa.start.getUTCFullYear(), act.dasa.end.getUTCFullYear(), t.houses([...new Set(ph)]), joinAnd(focusOf(L).map(aShort)), viaOf(L)));
   }
+  // Ezharai Sani (Saturn's 7½ years): people look for this first, so it is in the brief, not only in "Planets moving now"
+  if (go.sadeSati.active) brief.push(t.sadeBrief(go.sadeSati.phase, fmtDate(go.sadeSati.end), TRANSIT_PLAIN[`sade${go.sadeSati.phase}`][lang][1]));
+  else if (go.sadeSati.nextStart) brief.push(t.sadeNext(fmtDate(go.sadeSati.nextStart)));
   const short = (k) => EVENT_SHORT[k][lang];
   const pickDistinct = (evs, n) => {
     const uniq = [...new Map(evs.map((e) => [e.key, e])).values()];

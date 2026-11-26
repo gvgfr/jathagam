@@ -145,3 +145,15 @@ describe('good / bad day and news', async () => {
     }
   });
 });
+
+describe('Ezharai Sani in the daily background', async () => {
+  const { dailyReading } = await import('../src/engine/personalDay.js');
+  const { dailyPanchangam } = await import('../src/engine/today.js');
+  const { gocharam } = await import('../src/engine/transit.js');
+  it('shows for Mesham, Meenam and Kumbam in Nov 2026 (Sani in Meenam), not for others', () => {
+    const p = dailyPanchangam('2026-11-26', 33.95, -84.55, 'America/New_York');
+    const has = (rasi) => dailyReading({ rasi, nakshatra: 0 }, p, gocharam(rasi, p.sunrise)).background.some((x) => x.key === 'sade');
+    expect([0, 10, 11].every(has)).toBe(true);
+    expect([1, 2, 3, 4, 5, 6, 7, 8, 9].some(has)).toBe(false);
+  });
+});

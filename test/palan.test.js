@@ -167,3 +167,22 @@ describe('the Palan does not tell most people the same thing', () => {
     }
   }, 60000);
 });
+
+describe('Ezharai Sani in the Palan brief', () => {
+  it('a Meenam-rasi chart in Nov 2026 is told it is in the middle part; others get the next start', async () => {
+    const { computeChart } = await import('../src/engine/index.js');
+    const { generatePalan } = await import('../src/palan/index.js');
+    const now = new Date('2026-11-26T00:00:00Z');
+    const brief = (utc) => generatePalan(computeChart({ utc: new Date(utc), lat: 13.08, lon: 80.27 }), 'en', () => 'R', now, (d) => d.toISOString().slice(0, 7), () => 'M').sections.find((s) => s.key === 'brief').items.filter((x) => typeof x === 'string').join(' ');
+    // find a birth moment with the Moon in Meenam and one in Rishabam
+    let meenam = null;
+    let rishabam = null;
+    for (let t = Date.UTC(1980, 0, 1); (!meenam || !rishabam) && t < Date.UTC(1980, 3, 1); t += 6 * 3600000) {
+      const r = computeChart({ utc: new Date(t), lat: 13.08, lon: 80.27 }).summary.rasi;
+      if (r === 11 && !meenam) meenam = t;
+      if (r === 1 && !rishabam) rishabam = t;
+    }
+    expect(brief(meenam)).toMatch(/Ezharai Sani .* middle \(peak\) part, until 2029-08/);
+    expect(brief(rishabam)).toMatch(/not running now; the next one starts around 2027-06/);
+  });
+});

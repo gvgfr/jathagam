@@ -145,7 +145,7 @@ const KIND_SCORE = { good: 1, mixed: 0, weak: -1, avoid: -2 };
  * One plain reading for the day from sunrise to next sunrise.
  * @param {{rasi:number, nakshatra:number}} birth
  * @param {{sunrise:Date, sunset:Date, nextSunrise:Date, nakshatra:{index:number,end:Date}[]}} p dailyPanchangam result
- * @param {{saturn:{house:number, until:Date}, jupiter:{house:number, until:Date}, sade:object}|null} go slow-planet positions from the birth rasi (gocharam)
+ * @param {{saturn:{house:number, until:Date}, jupiter:{house:number, until:Date}, sadeSati:object}|null} go slow-planet positions from the birth rasi (gocharam)
  */
 export function dailyReading(birth, p, go = null) {
   const d = personalDay(birth, p.sunrise, p.nextSunrise, p.nakshatra);
@@ -163,7 +163,7 @@ export function dailyReading(birth, p, go = null) {
   const lines = DAY_LINES[moonMain.house] || [];
   const background = [];
   if (go) {
-    if (go.sade?.active) background.push({ key: 'sade', until: go.sade.end });
+    if (go.sadeSati?.active) background.push({ key: 'sade', until: go.sadeSati.end });
     else if (go.saturn.house === 8) background.push({ key: 'ashtamaSani', until: go.saturn.until });
     else if ([4, 7, 10].includes(go.saturn.house)) background.push({ key: 'kandakaSani', until: go.saturn.until });
     if ([2, 5, 7, 9, 11].includes(go.jupiter.house)) background.push({ key: 'guruGood', until: go.jupiter.until });
