@@ -17,7 +17,7 @@ const RE = new RegExp(
 );
 
 // Never touch form controls, the charts, navigation, or the pop-up itself
-const SKIP = 'input, select, option, textarea, button, label, legend, .si-chart, .tabs, .term, #gloss-pop, .temple-overlay, script, style, .gloss-list dt, .no-gloss';
+const SKIP = 'input, select, option, textarea, button, label, legend, .faq-item > summary, .si-chart, .tabs, .term, #gloss-pop, .temple-overlay, script, style, .gloss-list dt, .no-gloss';
 // A term is highlighted only the first time it appears in each of these blocks
 const SCOPE = 'details.palan-sec, .dosham-block, .intro, .faq-item, .card, section, .palan-cta';
 
