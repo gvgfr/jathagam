@@ -241,7 +241,9 @@ body.no-scroll { overflow: hidden; }
 .tc-row.tc-main strong { font-size: 2.3rem; color: var(--maroon); }
 .tc-row em { display: block; font-style: normal; font-weight: 600; color: var(--maroon-2); }
 .tc-controls { margin-top: 12px; }
-.tc-goth { width: 100%; }
+.tc-goth, .tc-kula { width: 100%; }
+.tc-kula { margin-top: 8px; }
+.tc-help { font-size: 0.82rem; line-height: 1.5; margin: 8px 0 0; color: inherit; opacity: 0.9; }
 .tc-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .tc-buttons .btn-ghost { color: var(--cream); border-color: var(--gold); }
 .tc-status { color: var(--gold); min-height: 1em; margin: 8px 0 0; }

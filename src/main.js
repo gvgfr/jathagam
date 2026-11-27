@@ -169,7 +169,7 @@ function route() {
   for (const v of VIEWS) $(`${v}-view`).hidden = v !== view;
   $('palan-hint').hidden = !(tab === 'palan' && !state.last);
   $('temple-hint').hidden = !(tab === 'temple' && !state.last);
-  if (tab === 'temple' && state.last) openTempleCard(state.last.chart, state.last.meta.name, state.lang);
+  if (tab === 'temple' && state.last) openTempleCard(state.last.chart, state.last.meta.name, state.lang, templeOpts());
   if (tab === 'palan' && state.last && !state.showPalan) {
     state.showPalan = true;
     renderResults(state.last);
@@ -297,13 +297,31 @@ $('birth-form').addEventListener('submit', (e) => {
   $('palan-hint').hidden = true;
   $('temple-hint').hidden = true;
   renderResults(state.last);
-  if (location.hash === '#temple') openTempleCard(chart, state.last.meta.name, state.lang);
+  if (location.hash === '#temple') openTempleCard(chart, state.last.meta.name, state.lang, templeOpts());
   saveBirth(f);
   if (state.quietCast) state.quietCast = false;
   else $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 // ---------------------------------------------------------------- remember birth details (opt-in, this browser only)
+// Gothram and kula deivam typed on the Temple card: kept for this visit, and saved with the
+// birth details only when "Remember my birth details" is ticked.
+function templeOpts() {
+  return {
+    extras: state.extras || {},
+    remembered: $('f-remember').checked,
+    onChange: (x) => {
+      state.extras = x;
+      if (!$('f-remember').checked) return;
+      try {
+        const v = JSON.parse(localStorage.getItem(BIRTH_STORE) || 'null');
+        if (v) localStorage.setItem(BIRTH_STORE, JSON.stringify({ ...v, ...x }));
+      } catch {
+        /* storage unavailable */
+      }
+    },
+  };
+}
 const BIRTH_STORE = 'jathagam.birth.v1';
 const BIRTH_FIELDS = ['name', 'date', 'tob', 'place', 'lat', 'lon', 'tz'];
 function saveBirth(f) {
@@ -311,6 +329,7 @@ function saveBirth(f) {
     if ($('f-remember').checked) {
       const v = Object.fromEntries(BIRTH_FIELDS.map((k) => [k, f[k]?.value ?? '']));
       v.node = f.node.value;
+      Object.assign(v, state.extras || {});
       localStorage.setItem(BIRTH_STORE, JSON.stringify(v));
     } else localStorage.removeItem(BIRTH_STORE);
   } catch {
@@ -326,6 +345,7 @@ function restoreBirth() {
   }
   if (!v || !v.date || !v.tob) return false;
   const f = $('birth-form');
+  state.extras = { gothram: v.gothram || '', kula: v.kula || '' };
   for (const k of BIRTH_FIELDS) if (f[k] && v[k] != null) f[k].value = v[k];
   if (v.node) f.node.value = v.node;
   if (f.tz.value === '') f.tz.value = 'auto';
@@ -342,6 +362,7 @@ $('f-forget').addEventListener('click', () => {
   } catch {
     /* nothing to remove */
   }
+  state.extras = {};
   $('f-remember').checked = false;
   $('birth-saved-note').hidden = true;
   $('form-error').textContent = t('birthForgotten');
@@ -575,7 +596,7 @@ function renderResults({ chart, meta }) {
   res.innerHTML = actions + summary + palan + charts + astro;
   res.hidden = false;
   $('btn-print').addEventListener('click', () => window.print());
-  $('btn-temple').addEventListener('click', () => openTempleCard(chart, meta.name, L));
+  $('btn-temple').addEventListener('click', () => openTempleCard(chart, meta.name, L, templeOpts()));
   res.querySelectorAll('.sys-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
       state.palanSystem = btn.dataset.sys;

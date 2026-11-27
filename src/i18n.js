@@ -314,7 +314,7 @@ export const DUI = {
     kalaVariant: { sarpa: 'கிரகங்கள் ராகுவிலிருந்து கேது நோக்கி', amirtha: 'கிரகங்கள் கேதுவிலிருந்து ராகு நோக்கி (கால அமிர்தம் எனவும் அழைக்கப்படும்)' },
     kalaOutside: (list) => `அச்சின் மறுபக்கத்தில்: ${list}`,
     remediesTitle: 'பாரம்பரிய பரிகாரங்கள்',
-    remediesNote: 'இவை பாரம்பரிய நம்பிக்கை சார்ந்த வழிபாடுகள் மட்டுமே; இவை எதையும் மாற்றும் என நிரூபிக்கப்படவில்லை. விருப்பமிருந்தால் மட்டும், இலவசமான அல்லது குறைந்த செலவான வழிகளைத் தேர்ந்தெடுக்கவும். பெரிய தொகை கேட்பவர்களிடமோ, கெடுதல் உறுதி என்று பயமுறுத்துபவர்களிடமோ எச்சரிக்கையாக இருக்கவும்.',
+    remediesNote: 'இவை பாரம்பரிய நம்பிக்கை சார்ந்த வழிபாடுகள் மட்டுமே; இவை எதையும் மாற்றும் என நிரூபிக்கப்படவில்லை. விருப்பமிருந்தால் மட்டும், இலவசமான அல்லது குறைந்த செலவான வழிகளைத் தேர்ந்தெடுக்கவும். பல குடும்பங்கள் தங்கள் குல தெய்வக் கோயிலில் வழிபடுவதிலிருந்தே தொடங்குகின்றன. பெரிய தொகை கேட்பவர்களிடமோ, கெடுதல் உறுதி என்று பயமுறுத்துபவர்களிடமோ எச்சரிக்கையாக இருக்கவும்.',
     remedies: {
       sevvai: [
         'செவ்வாய்க்கிழமைகளில் முருகனை வழிபடுதல்; கந்த சஷ்டி கவசம் பாராயணம்.',
@@ -371,7 +371,7 @@ export const DUI = {
     kalaVariant: { sarpa: 'planets run from Raagu towards Kethu', amirtha: 'planets run from Kethu towards Raagu (also called kala amirtha)' },
     kalaOutside: (list) => `On the other side of the axis: ${list}`,
     remediesTitle: 'Traditional remedies (parigaram)',
-    remediesNote: 'These are traditional devotional practices only; they are not shown to change anything. If you wish, choose free or low-cost ones. Be wary of anyone who asks for large sums or says misfortune is certain unless you pay.',
+    remediesNote: 'These are traditional devotional practices only; they are not shown to change anything. If you wish, choose free or low-cost ones. Many families simply start by praying at their kula deivam (family deity) temple. Be wary of anyone who asks for large sums or says misfortune is certain unless you pay.',
     remedies: {
       sevvai: [
         'Worship Lord Murugan on Tuesdays (Sevvai-kizhamai); recite Kanda Sashti Kavacham.',
